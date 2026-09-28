@@ -1,0 +1,41 @@
+{
+  "id": "dxcufgbs-dice-trails",
+  "title": "Dxcufgb's damage dice trails",
+  "description": "Gives Dice So Nice dice a streak of their damage type while they roll: a tail of fire, a jagged lightning bolt, frost, death-smoke and more.",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Dxcufgb",
+      "url": "https://github.com/Dxcufgb"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "url": "https://github.com/dxcufgb/FoundryVTT-dice-trails",
+  "manifest": "https://github.com/dxcufgb/FoundryVTT-dice-trails/releases/latest/download/module.json",
+  "download": "https://github.com/dxcufgb/FoundryVTT-dice-trails/releases/latest/download/module.zip",
+  "bugs": "https://github.com/dxcufgb/FoundryVTT-dice-trails/issues",
+  "readme": "https://github.com/dxcufgb/FoundryVTT-dice-trails#readme",
+  "license": "LICENSE",
+  "esmodules": [
+    "scripts/dice-trails.js"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "dice-so-nice",
+        "type": "module",
+        "reason": "The trails are drawn on Dice So Nice's 3D dice."
+      }
+    ]
+  }
+}
