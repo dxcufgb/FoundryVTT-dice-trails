@@ -7,7 +7,11 @@
       },
       "Intensity": {
         "Name": "Trail intensity",
-        "Hint": "How many particles the trails use. Lower it if rolls stutter on this computer."
+        "Hint": "How bright, long and busy the trails are: the streak's brightness and length, the glow around the die and the number of particles. Lower it if rolls stutter on this computer."
+      },
+      "Size": {
+        "Name": "Trail width",
+        "Hint": "How wide the streaks, the glow around the die and the particles are. 1 is a narrow streak about as wide as the die."
       },
       "Afterglow": {
         "Name": "Keep glowing after landing",
