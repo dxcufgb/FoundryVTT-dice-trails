@@ -13,6 +13,11 @@
  *     particle emitters that follow them. Particles are rendered by Dice So Nice's
  *     own renderer, so they appear with the dice.
  *
+ * Settings: "Trail intensity" scales how bright, long and busy the trails are;
+ * "Trail width" scales how wide the streaks, glow and particles are.
+ *
+ * Particle sprites: Kenney Particle Pack (CC0, www.kenney.nl), see textures/.
+ *
  * Preview from the console or a macro:
  *   game.modules.get("dxcufgbs-dice-trails").api.preview("fire")
  *   game.modules.get("dxcufgbs-dice-trails").api.previewAll()
@@ -41,9 +46,17 @@ let lastTime = 0;
  *   noiseAmt   how ragged the edges are       scroll  how fast the pattern flows (negative: toward the die)
  *   bands/bandAmt/bandSpeed  pulses along the streak   sparkle  twinkling glints
  *   jag        lightning zig-zag (u)          wave    { amp, freq, speed } weaving motion
+ *   strip      { row, repeat, scroll, mask, glow }  a streak texture (textures/strips.png, rows 0-7)
+ *              laid along the streak. repeat 0 stretches it head-to-tail once, otherwise it
+ *              tiles `repeat` times and flows at `scroll`. mask: how much it cuts the streak's
+ *              shape (0-1); glow: how much it adds light on top.
+ *              Rows: 0 crackling bolt, 1 thin bolt, 2-4 wispy threads, 5 soft band,
+ *                    6 blast (bright head, long tail), 7 flame tongue
  *
  * layer fields (accent particles):
- *   tex        glow | spark | ring | smoke | shard | bubble
+ *   tex        drawn: glow | spark | shard | bubble
+ *              Kenney sprites: ring | heart | rune | smoke | bolts | stars | flames | twirls | slashes | debris
+ *              (sheets of 4 variants; each particle picks one)
  *   blend      add | normal
  *   rate       particles / second while the die flies (scaled by intensity)
  *   rest       rate multiplier while the die lies still (afterglow)
@@ -62,250 +75,312 @@ let lastTime = 0;
  *   swirl      tangential speed around the die's vertical axis
  */
 const EFFECTS = {
+  // Signature: a real flame tail, orange all the way, with licking flame tongues, embers and smoke.
   fire: {
-    aura: { color: "#ff7a1a", size: 3.0, alpha: 0.5, pulse: 0.12, flicker: 0.25 },
+    aura: { color: "#ff6a00", size: 3.0, alpha: 0.6, pulse: 0.14, flicker: 0.3 },
     ribbons: [
       // Smoke trailing far behind the flames
-      { width: 3.2, time: 1.0, blend: "normal", alpha: 0.35, colors: ["#3a2a20", "#2a2420", "#151515"],
-        noiseAmt: 1.3, noiseScale: [4, 3], scroll: 1.5, soft: 0.55, fadePow: 1.4, taper: 0.4 },
-      // The fire tail: broad licking flames, orange to deep red at the tips
-      { width: 3.6, time: 0.65, blend: "add", alpha: 1, colors: ["#ffe28a", "#ff4a08", "#6a0800"],
-        core: "#fff0b0", coreAmt: 0.5, noiseAmt: 2.4, noiseScale: [5, 3], scroll: 5.5, colorNoise: 0.6,
-        soft: 0.45, fadePow: 0.9, taper: 0.45, flicker: 0.12 },
-      // White-hot core right behind the die
-      { width: 1.3, time: 0.35, blend: "add", alpha: 1, colors: ["#ffffff", "#ffe27a", "#ff8a1a"],
-        core: "#ffffff", coreAmt: 1, noiseAmt: 0.7, noiseScale: [8, 2], scroll: 6, soft: 0.3, fadePow: 0.9, taper: 0.8 }
+      { width: 3.2, time: 1.1, blend: "normal", alpha: 0.45, colors: ["#3a2618", "#241c16", "#101010"],
+        noiseAmt: 1.3, noiseScale: [4, 3], scroll: 1.5, soft: 0.55, fadePow: 1.3, taper: 0.4 },
+      // The fire tail: licking flames, yellow at the die, orange, deep red at the tips
+      { width: 3.8, time: 0.7, blend: "add", alpha: 1, colors: ["#ffc23a", "#ff4a00", "#8a0800"],
+        core: "#ffe28a", coreAmt: 0.35, noiseAmt: 2.6, noiseScale: [5, 3], scroll: 6, colorNoise: 0.6,
+        soft: 0.45, fadePow: 0.8, taper: 0.45, flicker: 0.15,
+        strip: { row: 6, repeat: 0, mask: 0.35, glow: 0.5 } },
+      // Hot yellow core right behind the die
+      { width: 1.2, time: 0.35, blend: "add", alpha: 0.9, colors: ["#fff2b0", "#ffc23a", "#ff6a00"],
+        core: "#fff6d0", coreAmt: 0.6, noiseAmt: 0.7, noiseScale: [8, 2], scroll: 6, soft: 0.3, fadePow: 0.9, taper: 0.8,
+        strip: { row: 7, repeat: 0, mask: 0.5, glow: 0.4 } }
     ],
     layers: [
-      { tex: "spark", blend: "add", rate: 40, rest: 0.2, life: [0.5, 1.1], size: [0.35, 0.06], spawn: 0.8,
-        vel: [0, 0, 3.2], jitter: 2.4, gravity: -1.5, drag: 0.6, spin: 6,
-        colors: [[0, "#fff1a0", 1], [0.5, "#ffa13d", 0.9], [1, "#ff3300", 0]] },
-      { tex: "glow", blend: "add", rate: 12, rest: 1.2, life: [0.3, 0.6], size: [1.2, 0.3], spawn: 0.4,
-        vel: [0, 0, 1.8], jitter: 0.5, flicker: 0.4,
-        colors: [[0, "#fff4b8", 0.8], [0.5, "#ff7a1a", 0.6], [1, "#400800", 0]] }
+      { tex: "flames", blend: "add", rate: 28, rest: 0.8, life: [0.25, 0.5], size: [1.1, 0.4], spawn: 0.35,
+        vel: [0, 0, 2.6], jitter: 0.5, drag: 0.6, flicker: 0.2,
+        colors: [[0, "#ffd24a", 0.95], [0.4, "#ff6a00", 0.85], [1, "#8a1000", 0]] },
+      { tex: "spark", blend: "add", rate: 45, rest: 0.3, life: [0.6, 1.2], size: [0.35, 0.06], spawn: 0.8,
+        vel: [0, 0, 3.4], jitter: 2.6, gravity: -1.2, drag: 0.6, spin: 6,
+        colors: [[0, "#ffe27a", 1], [0.5, "#ff8a1a", 0.9], [1, "#ff2a00", 0]] },
+      { tex: "smoke", blend: "normal", rate: 10, rest: 0.5, life: [0.9, 1.4], size: [0.6, 1.8], spawn: 0.3,
+        vel: [0, 0, 1.4], jitter: 0.3, drag: 0.6, spin: 0.8,
+        colors: [[0, "#2a1c12", 0], [0.2, "#2a1c12", 0.45], [1, "#121212", 0]] }
     ]
   },
 
+  // Signature: pale icy streak in freezing mist, falling ice shards and snow glints.
   cold: {
-    aura: { color: "#9fe8ff", size: 3.0, alpha: 0.45, pulse: 0.08 },
+    aura: { color: "#bff4ff", size: 3.0, alpha: 0.5, pulse: 0.06 },
     ribbons: [
       // Freezing mist
-      { width: 3.0, time: 0.75, blend: "add", alpha: 0.35, colors: ["#e8fbff", "#9fe0ff", "#2f7fd1"],
-        noiseAmt: 1.0, noiseScale: [4, 2], scroll: 1, soft: 0.6, fadePow: 1.3, taper: 0.3 },
-      // Frost streak: stretched icy striations that glint
-      { width: 1.5, time: 0.5, blend: "add", alpha: 0.95, colors: ["#ffffff", "#9fe2ff", "#1f6fd1"],
-        core: "#ffffff", coreAmt: 0.7, noiseAmt: 0.7, noiseScale: [14, 1.2], scroll: 0.6, colorNoise: 0.25,
-        soft: 0.18, fadePow: 1.0, taper: 0.8, sparkle: 0.8 }
+      { width: 3.4, time: 0.9, blend: "add", alpha: 0.4, colors: ["#e8fbff", "#8fdcff", "#2f7fd1"],
+        noiseAmt: 1.1, noiseScale: [4, 2], scroll: 0.8, soft: 0.65, fadePow: 1.3, taper: 0.3 },
+      // Frost streak: icy striations that glint
+      { width: 1.5, time: 0.55, blend: "add", alpha: 0.95, colors: ["#e6fbff", "#7fd8ff", "#1f6fd1"],
+        core: "#ffffff", coreAmt: 0.5, noiseAmt: 0.7, noiseScale: [14, 1.2], scroll: 0.6, colorNoise: 0.25,
+        soft: 0.18, fadePow: 1.0, taper: 0.8, sparkle: 1.0,
+        strip: { row: 3, repeat: 1.5, scroll: 0.8, mask: 0, glow: 0.7 } }
     ],
     layers: [
-      { tex: "shard", blend: "add", rate: 22, rest: 0.4, life: [0.6, 1.1], size: [0.5, 0.15], spawn: 0.7,
-        vel: [0, 0, 0], jitter: 1.2, gravity: -1.2, drag: 0.5, spin: 4, flicker: 0.4,
-        colors: [[0, "#ffffff", 1], [0.4, "#c8f2ff", 0.9], [1, "#58b8ff", 0]] }
+      { tex: "shard", blend: "add", rate: 34, rest: 0.4, life: [0.6, 1.2], size: [0.6, 0.2], spawn: 0.7,
+        vel: [0, 0, 0.5], jitter: 1.3, gravity: -3, drag: 0.5, spin: 4, flicker: 0.3,
+        colors: [[0, "#ffffff", 1], [0.4, "#bff0ff", 0.95], [1, "#4aa8ff", 0]] },
+      { tex: "stars", blend: "add", rate: 16, rest: 0.8, life: [0.25, 0.5], size: [0.9, 0.1], spawn: 0.9,
+        vel: [0, 0, 0], jitter: 0.2, spin: 1,
+        colors: [[0, "#ffffff", 1], [1, "#9fe2ff", 0]] }
     ]
   },
 
+  // Signature: a thin, violently jagged bolt with arcs jumping off the die, crackling blue.
   lightning: {
-    aura: { color: "#bfe6ff", size: 3.3, alpha: 0.55, pulse: 0.05, flicker: 0.6 },
-    arcs: { color: "#dff3ff", every: 0.05, count: 2, reach: [1.4, 3.0], restCount: 1 },
+    aura: { color: "#6fb4ff", size: 3.3, alpha: 0.6, pulse: 0.05, flicker: 0.7 },
+    arcs: { color: "#cfe8ff", every: 0.04, count: 3, reach: [1.6, 3.4], restCount: 1 },
     ribbons: [
       // Electric glow around the bolt
-      { width: 2.4, time: 0.38, blend: "add", alpha: 0.55, colors: ["#d6ecff", "#5fa8ff", "#1d3dff"],
+      { width: 2.2, time: 0.4, blend: "add", alpha: 0.6, colors: ["#bfe0ff", "#3f8cff", "#1a2cff"],
         noiseAmt: 0.4, noiseScale: [10, 2], scroll: 8, soft: 0.5, fadePow: 0.9, taper: 0.5,
-        bands: 7, bandAmt: 0.12, bandSpeed: 12, flicker: 0.5 },
+        bands: 7, bandAmt: 0.15, bandSpeed: 12, flicker: 0.6,
+        strip: { row: 0, repeat: 1.2, scroll: 5, mask: 0.3, glow: 1.4 } },
       // Jagged white-hot bolt
-      { width: 0.3, time: 0.36, blend: "add", alpha: 1, colors: ["#ffffff", "#e6f4ff", "#7fb8ff"],
-        core: "#ffffff", coreAmt: 1, noiseAmt: 0.1, soft: 0.25, fadePow: 0.7, taper: 0.4, jag: 1.0, flicker: 0.35 }
+      { width: 0.35, time: 0.4, blend: "add", alpha: 1, colors: ["#ffffff", "#e6f4ff", "#7fb8ff"],
+        core: "#ffffff", coreAmt: 1, noiseAmt: 0.1, soft: 0.25, fadePow: 0.7, taper: 0.4, jag: 1.3, flicker: 0.35 }
     ],
     layers: [
-      { tex: "spark", blend: "add", rate: 45, rest: 0.25, life: [0.08, 0.22], size: [0.5, 0.1], spawn: 0.5,
-        vel: [0, 0, 0], jitter: 8, drag: 0.1, spin: 10, flicker: 0.6,
-        colors: [[0, "#ffffff", 1], [0.5, "#9fd0ff", 0.9], [1, "#2f6bff", 0]] }
+      { tex: "bolts", blend: "add", rate: 40, rest: 0.3, life: [0.06, 0.16], size: [1.3, 1.0], spawn: 0.4,
+        vel: [0, 0, 0], jitter: 1.5, drag: 0.1, flicker: 0.5,
+        colors: [[0, "#ffffff", 1], [0.5, "#8fc4ff", 0.9], [1, "#2f5bff", 0]] }
     ]
   },
 
+  // Signature: a dark indigo roar with big white shockwave rings bursting off the die.
   thunder: {
-    aura: { color: "#8a7dff", size: 3.2, alpha: 0.45, pulse: 0.3, pulseSpeed: 9 },
+    aura: { color: "#4a4dff", size: 3.2, alpha: 0.45, pulse: 0.35, pulseSpeed: 10 },
     ribbons: [
-      // A roaring streak with pulsing shock bands
-      { width: 2.2, time: 0.45, blend: "add", alpha: 0.85, colors: ["#efeaff", "#8a7dff", "#2b1d8f"],
-        core: "#ffffff", coreAmt: 0.5, noiseAmt: 0.5, noiseScale: [5, 2], scroll: 3, soft: 0.35, fadePow: 1.1,
-        taper: 0.5, bands: 5, bandAmt: 0.4, bandSpeed: 5 }
+      { width: 2.4, time: 0.5, blend: "add", alpha: 0.9, colors: ["#b8bcff", "#4a4dff", "#14106a"],
+        core: "#e8eaff", coreAmt: 0.3, noiseAmt: 0.5, noiseScale: [5, 2], scroll: 3, soft: 0.35, fadePow: 1.1,
+        taper: 0.5, bands: 5, bandAmt: 0.55, bandSpeed: 6 }
     ],
     layers: [
-      { tex: "ring", blend: "add", rate: 6, rest: 0.4, life: [0.45, 0.6], size: [0.6, 5.0], spawn: 0,
+      { tex: "ring", blend: "add", rate: 9, rest: 0.5, life: [0.4, 0.55], size: [0.6, 5.5], spawn: 0,
         vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#efeaff", 0.85], [0.4, "#a99bff", 0.45], [1, "#5b48ff", 0]] }
+        colors: [[0, "#ffffff", 1], [0.35, "#c8caff", 0.6], [1, "#4a4dff", 0]] },
+      { tex: "ring", blend: "add", rate: 4, rest: 0.2, life: [0.6, 0.8], size: [1.0, 8.0], spawn: 0,
+        vel: [0, 0, 0], jitter: 0,
+        colors: [[0, "#8f92ff", 0.5], [1, "#2a1d9f", 0]] }
     ]
   },
 
+  // Signature: neon yellow-green streak dripping sizzling droplets, caustic fumes.
   acid: {
-    aura: { color: "#8dff3a", size: 2.8, alpha: 0.4, pulse: 0.1 },
+    aura: { color: "#c8ff1a", size: 2.8, alpha: 0.45, pulse: 0.12 },
     ribbons: [
       // Caustic fumes
-      { width: 2.4, time: 0.7, blend: "normal", alpha: 0.3, colors: ["#6fd12a", "#4f9a1e", "#2d5a10"],
+      { width: 2.6, time: 0.75, blend: "normal", alpha: 0.35, colors: ["#9ad12a", "#6a9a1e", "#3a5a10"],
         noiseAmt: 1.2, noiseScale: [4, 3], scroll: 1.2, soft: 0.6, fadePow: 1.3, taper: 0.3 },
       // Bubbling acid streak
-      { width: 1.5, time: 0.5, blend: "add", alpha: 0.95, colors: ["#efffb0", "#86ff2a", "#1f6f00"],
-        core: "#f4ffd0", coreAmt: 0.6, noiseAmt: 0.9, noiseScale: [9, 4], scroll: 2.2, colorNoise: 0.3,
-        soft: 0.25, fadePow: 1.0, taper: 0.7, sparkle: 0.35 }
+      { width: 1.6, time: 0.55, blend: "add", alpha: 1, colors: ["#f4ff7a", "#c8ff1a", "#4f8f00"],
+        core: "#fbffc8", coreAmt: 0.4, noiseAmt: 0.9, noiseScale: [9, 4], scroll: 2.2, colorNoise: 0.3,
+        soft: 0.25, fadePow: 1.0, taper: 0.7, sparkle: 0.35,
+        strip: { row: 2, repeat: 2, scroll: 1.5, mask: 0, glow: 0.6 } }
     ],
     layers: [
-      { tex: "bubble", blend: "add", rate: 30, rest: 0.3, life: [0.45, 0.8], size: [0.45, 0.3], spawn: 0.5,
-        vel: [0, 0, 0.4], jitter: 1.0, gravity: -7, drag: 0.7,
-        colors: [[0, "#e4ff9a", 1], [0.5, "#8cff2a", 0.9], [1, "#2f8f00", 0]] }
+      // Droplets that drip off and fall
+      { tex: "bubble", blend: "add", rate: 36, rest: 0.4, life: [0.5, 0.9], size: [0.5, 0.3], spawn: 0.5,
+        vel: [0, 0, 0.6], jitter: 1.0, gravity: -9, drag: 0.7,
+        colors: [[0, "#f4ff9a", 1], [0.5, "#c8ff1a", 0.95], [1, "#4f8f00", 0]] },
+      { tex: "smoke", blend: "add", rate: 8, rest: 0.6, life: [0.6, 1.0], size: [0.5, 1.4], spawn: 0.4,
+        vel: [0, 0, 1.0], jitter: 0.3, drag: 0.6, spin: 1,
+        colors: [[0, "#c8ff1a", 0], [0.3, "#9ad12a", 0.35], [1, "#3a5a10", 0]] }
     ]
   },
 
+  // Signature: a thick, billowing green toxic cloud that lingers, sickly purple at the edges.
   poison: {
-    aura: { color: "#4be35c", size: 3.0, alpha: 0.3, pulse: 0.15, pulseSpeed: 2 },
+    aura: { color: "#3adf4a", size: 3.2, alpha: 0.35, pulse: 0.18, pulseSpeed: 2 },
     ribbons: [
-      // A billowing toxic cloud trail, green fading to sickly purple
-      { width: 3.2, time: 0.95, blend: "normal", alpha: 0.5, colors: ["#58d64a", "#3f8f38", "#4b2a6a"],
-        noiseAmt: 1.4, noiseScale: [4, 3], scroll: 1.2, colorNoise: 0.3, soft: 0.6, fadePow: 1.2, taper: 0.2 },
-      { width: 0.9, time: 0.45, blend: "add", alpha: 0.6, colors: ["#e2ff8a", "#6aff3a", "#2a7a1a"],
+      { width: 3.6, time: 1.1, blend: "normal", alpha: 0.6, colors: ["#4fd63a", "#2f8a2a", "#4b2a6a"],
+        noiseAmt: 1.5, noiseScale: [4, 3], scroll: 1.0, colorNoise: 0.35, soft: 0.6, fadePow: 1.1, taper: 0.2 },
+      { width: 0.9, time: 0.5, blend: "add", alpha: 0.7, colors: ["#b8ff6a", "#3aff3a", "#1a6a1a"],
         noiseAmt: 0.6, noiseScale: [6, 2], scroll: 2, soft: 0.4, fadePow: 1.0, taper: 0.8 }
     ],
     layers: [
-      { tex: "glow", blend: "add", rate: 16, rest: 0.5, life: [0.8, 1.4], size: [0.3, 0.12], spawn: 0.9,
+      { tex: "smoke", blend: "normal", rate: 16, rest: 0.7, life: [1.0, 1.7], size: [0.6, 2.2], spawn: 0.4,
+        vel: [0, 0, 0.5], jitter: 0.35, drag: 0.6, spin: 0.6,
+        colors: [[0, "#3aa82a", 0], [0.25, "#2f8a2a", 0.55], [0.7, "#4b2a6a", 0.35], [1, "#2a1a3a", 0]] },
+      { tex: "glow", blend: "add", rate: 14, rest: 0.5, life: [0.8, 1.4], size: [0.3, 0.12], spawn: 0.9,
         vel: [0, 0, 0.4], jitter: 0.6, drag: 0.5, flicker: 0.3,
-        colors: [[0, "#d6ff6a", 0.9], [1, "#6aff3a", 0]] }
+        colors: [[0, "#b8ff6a", 0.9], [1, "#3aff3a", 0]] }
     ]
   },
 
+  // Signature: black death-smoke pulled INTO the die, with ghostly green soul-wisps.
   necrotic: {
-    aura: { color: "#12001c", size: 3.4, alpha: 0.6, pulse: 0.12, pulseSpeed: 2.5, blend: "normal",
-            inner: { color: "#8a3cff", size: 1.6, alpha: 0.35 } },
+    aura: { color: "#050008", size: 3.6, alpha: 0.75, pulse: 0.12, pulseSpeed: 2.5, blend: "normal",
+            inner: { color: "#3affb0", size: 1.5, alpha: 0.35 } },
     ribbons: [
-      // Black death-smoke that flows back INTO the die (negative scroll)
-      { width: 2.8, time: 0.85, blend: "normal", alpha: 0.75, colors: ["#0a0010", "#1a0026", "#000000"],
-        noiseAmt: 1.4, noiseScale: [5, 3], scroll: -1.8, soft: 0.5, fadePow: 1.2, taper: 0.3 },
-      // Sickly violet soul-fire at its edges
-      { width: 1.3, time: 0.55, blend: "add", alpha: 0.65, colors: ["#d4a8ff", "#7a2cff", "#1f003a"],
-        noiseAmt: 1.0, noiseScale: [7, 3], scroll: -2.4, colorNoise: 0.3, soft: 0.3, fadePow: 1.0, taper: 0.6 }
+      // Black death-smoke that flows back into the die (negative scroll)
+      { width: 3.2, time: 0.95, blend: "normal", alpha: 0.85, colors: ["#050008", "#0a0a10", "#000000"],
+        noiseAmt: 1.5, noiseScale: [5, 3], scroll: -1.8, soft: 0.5, fadePow: 1.1, taper: 0.3 },
+      // Ghostly soul-fire at its edges
+      { width: 1.2, time: 0.6, blend: "add", alpha: 0.7, colors: ["#b0ffe0", "#3affb0", "#004a3a"],
+        noiseAmt: 1.0, noiseScale: [7, 3], scroll: -2.4, colorNoise: 0.3, soft: 0.3, fadePow: 1.0, taper: 0.6,
+        strip: { row: 4, repeat: 1.5, scroll: -1.5, mask: 0, glow: 0.9 } }
     ],
     layers: [
-      { tex: "glow", blend: "add", rate: 14, rest: 0.6, life: [0.6, 1.1], size: [0.35, 0.1], spawn: { ring: 1.8 },
+      { tex: "smoke", blend: "normal", rate: 16, rest: 0.8, life: [0.7, 1.1], size: [1.6, 0.4], spawn: { ring: 1.8 },
+        vel: [0, 0, 0], jitter: 0.1, inward: 1.6, swirl: 2.0, spin: 1.5,
+        colors: [[0, "#000000", 0], [0.3, "#050008", 0.75], [1, "#000000", 0]] },
+      { tex: "glow", blend: "add", rate: 16, rest: 0.8, life: [0.6, 1.1], size: [0.4, 0.1], spawn: { ring: 1.9 },
         vel: [0, 0, 0], jitter: 0.2, inward: 2.0, swirl: 2.6,
-        colors: [[0, "#b77bff", 0.0], [0.3, "#9d4dff", 0.9], [1, "#3aff9a", 0]] }
+        colors: [[0, "#3affb0", 0.0], [0.3, "#6affc8", 0.9], [1, "#1a8a6a", 0]] }
     ]
   },
 
+  // Signature: a wide golden sunbeam with a white-gold core, bursting with star glints.
   radiant: {
-    aura: { color: "#fff1a8", size: 3.8, alpha: 0.65, pulse: 0.15, pulseSpeed: 4 },
+    aura: { color: "#ffe066", size: 4.0, alpha: 0.7, pulse: 0.15, pulseSpeed: 4 },
     ribbons: [
-      // Wide soft golden light
-      { width: 3.0, time: 0.55, blend: "add", alpha: 0.45, colors: ["#fff6cc", "#ffd24a", "#ff9d00"],
+      { width: 3.4, time: 0.6, blend: "add", alpha: 0.5, colors: ["#fff0b0", "#ffc21a", "#ff8a00"],
         noiseAmt: 0.3, noiseScale: [3, 1], scroll: 1, soft: 0.7, fadePow: 1.2, taper: 0.4 },
-      // Brilliant white-gold beam
-      { width: 1.2, time: 0.45, blend: "add", alpha: 1, colors: ["#ffffff", "#fff3a8", "#ffc21a"],
-        core: "#ffffff", coreAmt: 1, noiseAmt: 0.15, soft: 0.25, fadePow: 0.9, taper: 0.7, sparkle: 0.6 }
+      { width: 1.2, time: 0.5, blend: "add", alpha: 1, colors: ["#fffbe6", "#ffe066", "#ffb400"],
+        core: "#ffffff", coreAmt: 0.7, noiseAmt: 0.15, soft: 0.25, fadePow: 0.9, taper: 0.7, sparkle: 0.8,
+        strip: { row: 3, repeat: 2, scroll: 3, mask: 0, glow: 0.6 } }
     ],
     layers: [
-      { tex: "spark", blend: "add", rate: 14, rest: 0.6, life: [0.3, 0.6], size: [1.4, 0.2], spawn: 0.2,
-        vel: [0, 0, 0], jitter: 0.2, spin: 1.5,
-        colors: [[0, "#ffffff", 0.9], [0.5, "#fff0a0", 0.7], [1, "#ffd24a", 0]] }
+      { tex: "stars", blend: "add", rate: 26, rest: 0.8, life: [0.3, 0.6], size: [1.4, 0.2], spawn: 0.6,
+        vel: [0, 0, 0], jitter: 0.25, spin: 1.5,
+        colors: [[0, "#ffffff", 1], [0.5, "#ffe680", 0.8], [1, "#ffb400", 0]] }
     ]
   },
 
+  // Signature: magenta-violet arcane energy with arcane swirls orbiting the die.
   force: {
-    aura: { color: "#b36bff", size: 3.2, alpha: 0.5, pulse: 0.1, pulseSpeed: 5 },
+    aura: { color: "#c04dff", size: 3.2, alpha: 0.55, pulse: 0.12, pulseSpeed: 5 },
     ribbons: [
-      // Pure arcane energy with rapidly flowing bands
-      { width: 1.8, time: 0.45, blend: "add", alpha: 0.95, colors: ["#f3e4ff", "#b36bff", "#4a0fbf"],
-        core: "#ffffff", coreAmt: 0.6, noiseAmt: 0.25, noiseScale: [4, 1], scroll: 2, soft: 0.25, fadePow: 1.0,
-        taper: 0.6, bands: 6, bandAmt: 0.3, bandSpeed: 7 }
+      { width: 1.9, time: 0.5, blend: "add", alpha: 1, colors: ["#eab8ff", "#c04dff", "#4a0f9f"],
+        core: "#f6e0ff", coreAmt: 0.4, noiseAmt: 0.25, noiseScale: [4, 1], scroll: 2, soft: 0.25, fadePow: 1.0,
+        taper: 0.6, bands: 6, bandAmt: 0.35, bandSpeed: 7,
+        strip: { row: 2, repeat: 2.5, scroll: 4, mask: 0, glow: 0.9 } }
     ],
     layers: [
-      { tex: "glow", blend: "add", rate: 26, rest: 0.8, life: [0.6, 1.0], size: [0.45, 0.15], spawn: 0,
-        orbit: { radius: 1.3, speed: 9, rise: 0.3 },
-        colors: [[0, "#f3e4ff", 1], [0.5, "#c28bff", 0.9], [1, "#7a2dff", 0]] }
+      { tex: "twirls", blend: "add", rate: 26, rest: 1.0, life: [0.5, 0.9], size: [1.0, 0.4], spawn: 0,
+        orbit: { radius: 1.3, speed: 9, rise: 0.3 }, spin: 7,
+        colors: [[0, "#f6e0ff", 1], [0.5, "#c04dff", 0.95], [1, "#6a0fcf", 0]] }
     ]
   },
 
+  // Signature: two hot-pink strands weaving around each other, with spinning mind-swirls.
   psychic: {
-    aura: { color: "#ff5cd6", size: 3.2, alpha: 0.45, pulse: 0.2, pulseSpeed: 3 },
+    aura: { color: "#ff4fb8", size: 3.2, alpha: 0.5, pulse: 0.22, pulseSpeed: 3 },
     ribbons: [
-      // A weaving mind-wave
-      { width: 1.8, time: 0.55, blend: "add", alpha: 0.9, colors: ["#ffe0f7", "#ff5cd6", "#6a3cff"],
-        core: "#ffffff", coreAmt: 0.4, noiseAmt: 0.45, noiseScale: [5, 2], scroll: 1.5, soft: 0.3, fadePow: 1.0,
-        taper: 0.6, bands: 4, bandAmt: 0.6, bandSpeed: 3, wave: { amp: 0.9, freq: 2.2, speed: 8 } },
-      { width: 0.7, time: 0.55, blend: "add", alpha: 0.8, colors: ["#ffffff", "#ffa6ea", "#a05cff"],
-        noiseAmt: 0.2, soft: 0.3, fadePow: 1.0, taper: 0.5, wave: { amp: 0.9, freq: 2.2, speed: 8, phase: 3.14159 } }
+      { width: 1.7, time: 0.6, blend: "add", alpha: 0.95, colors: ["#ffc8ea", "#ff4fb8", "#8a1a6a"],
+        core: "#ffe6f6", coreAmt: 0.3, noiseAmt: 0.45, noiseScale: [5, 2], scroll: 1.5, soft: 0.3, fadePow: 1.0,
+        taper: 0.6, bands: 4, bandAmt: 0.6, bandSpeed: 3, wave: { amp: 1.0, freq: 2.2, speed: 8 },
+        strip: { row: 3, repeat: 2, scroll: 2, mask: 0, glow: 0.7 } },
+      { width: 0.8, time: 0.6, blend: "add", alpha: 0.9, colors: ["#ffe0f4", "#ff8ad6", "#c04d9f"],
+        noiseAmt: 0.2, soft: 0.3, fadePow: 1.0, taper: 0.5, wave: { amp: 1.0, freq: 2.2, speed: 8, phase: 3.14159 } }
     ],
     layers: [
-      { tex: "ring", blend: "add", rate: 4, rest: 0.6, life: [0.7, 0.9], size: [0.5, 3.6], spawn: 0,
-        vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#ffc4f0", 0.6], [0.5, "#d57bff", 0.35], [1, "#7b5cff", 0]] }
+      { tex: "twirls", blend: "add", rate: 9, rest: 0.8, life: [0.6, 0.9], size: [0.6, 3.0], spawn: 0,
+        vel: [0, 0, 0], jitter: 0, spin: 5,
+        colors: [[0, "#ffc8ea", 0.8], [0.5, "#ff4fb8", 0.45], [1, "#8a1a6a", 0]] }
     ]
   },
 
+  // Signature: a heavy dust cloud, flying rock chips and dust rings where it hits.
   bludgeoning: {
-    aura: { color: "#c9b79c", size: 2.4, alpha: 0.18, pulse: 0.05, blend: "normal" },
+    aura: { color: "#c9a878", size: 2.4, alpha: 0.2, pulse: 0.05, blend: "normal" },
     ribbons: [
-      // A heavy trail of dust
-      { width: 2.6, time: 0.6, blend: "normal", alpha: 0.5, colors: ["#b8a488", "#8a7862", "#4a4036"],
-        noiseAmt: 1.3, noiseScale: [4, 3], scroll: 0.8, soft: 0.6, fadePow: 1.2, taper: 0.3 }
+      { width: 3.0, time: 0.7, blend: "normal", alpha: 0.65, colors: ["#c8ae88", "#8a7456", "#4a3e30"],
+        noiseAmt: 1.4, noiseScale: [4, 3], scroll: 0.8, soft: 0.6, fadePow: 1.1, taper: 0.3 }
     ],
     layers: [
-      { tex: "shard", blend: "normal", rate: 14, rest: 0.05, life: [0.4, 0.8], size: [0.3, 0.2], spawn: 0.6,
-        vel: [0, 0, 2.0], jitter: 2.2, gravity: -10, drag: 0.8, spin: 8,
-        colors: [[0, "#7a6a58", 1], [0.8, "#5a4c3e", 0.9], [1, "#3e342a", 0]] }
+      { tex: "debris", blend: "normal", rate: 16, rest: 0.05, life: [0.4, 0.8], size: [1.0, 0.8], spawn: 0.5,
+        vel: [0, 0, 2.2], jitter: 2.4, gravity: -10, drag: 0.8, spin: 8,
+        colors: [[0, "#6a5a48", 1], [0.8, "#4a3e32", 0.95], [1, "#2e2620", 0]] },
+      { tex: "smoke", blend: "normal", rate: 10, rest: 0.1, life: [0.6, 1.0], size: [0.6, 2.0], spawn: 0.4,
+        vel: [0, 0, 0.6], jitter: 0.6, drag: 0.6, spin: 0.5,
+        colors: [[0, "#b8a080", 0], [0.2, "#a08868", 0.5], [1, "#5a4a3a", 0]] },
+      { tex: "ring", blend: "normal", rate: 3, rest: 0, life: [0.35, 0.5], size: [0.8, 4.0], spawn: 0,
+        vel: [0, 0, 0], jitter: 0,
+        colors: [[0, "#c8ae88", 0.7], [1, "#6a5a48", 0]] }
     ]
   },
 
+  // Signature: a needle-thin, razor-straight silver streak with speed dashes and a glinting point.
   piercing: {
-    aura: { color: "#e6f0ff", size: 2.2, alpha: 0.3, pulse: 0.05 },
+    aura: { color: "#dfe8ff", size: 1.8, alpha: 0.5, pulse: 0.05 },
     ribbons: [
-      // A needle-thin, razor-straight streak
-      { width: 0.9, time: 0.3, blend: "add", alpha: 0.35, colors: ["#e6f0ff", "#9fb8e8", "#4a6aa8"],
+      { width: 0.9, time: 0.45, blend: "add", alpha: 0.4, colors: ["#e6f0ff", "#9fb8e8", "#4a6aa8"],
         noiseAmt: 0, soft: 0.6, fadePow: 0.8, taper: 0.5 },
-      { width: 0.3, time: 0.3, blend: "add", alpha: 1, colors: ["#ffffff", "#e8f0ff", "#8aa6d6"],
-        core: "#ffffff", coreAmt: 1, noiseAmt: 0, soft: 0.2, fadePow: 0.6, taper: 0.4 }
+      { width: 0.3, time: 0.45, blend: "add", alpha: 1, colors: ["#ffffff", "#e8f0ff", "#8aa6d6"],
+        core: "#ffffff", coreAmt: 1, noiseAmt: 0, soft: 0.2, fadePow: 0.6, taper: 0.3,
+        strip: { row: 5, repeat: 3, scroll: 7, mask: 0.8, glow: 0 } }
     ],
-    layers: []
+    layers: [
+      { tex: "stars", blend: "add", rate: 5, rest: 0.5, life: [0.12, 0.2], size: [1.8, 0.6], spawn: 0,
+        vel: [0, 0, 0], jitter: 0,
+        colors: [[0, "#ffffff", 1], [1, "#b8c8ff", 0]] },
+      { tex: "stars", blend: "add", rate: 12, rest: 0.2, life: [0.15, 0.3], size: [0.6, 0.1], spawn: 0.3,
+        vel: [0, 0, 0], jitter: 0.1,
+        colors: [[0, "#ffffff", 1], [1, "#8aa6d6", 0]] }
+    ]
   },
 
+  // Signature: crimson slash marks cutting the air around a silver-and-red swing.
   slashing: {
-    aura: { color: "#ff3b3b", size: 2.6, alpha: 0.28, pulse: 0.08 },
+    aura: { color: "#ff2a2a", size: 2.6, alpha: 0.35, pulse: 0.08 },
     ribbons: [
-      // Crimson glow of the swing
-      { width: 1.6, time: 0.4, blend: "add", alpha: 0.5, colors: ["#ffb0b0", "#ff2a2a", "#5a0000"],
+      { width: 1.7, time: 0.45, blend: "add", alpha: 0.65, colors: ["#ff8a8a", "#ff1a1a", "#5a0000"],
         noiseAmt: 0.3, soft: 0.5, fadePow: 1.0, taper: 0.6, wave: { amp: 0.8, freq: 1.2, speed: 10 } },
-      // A sharp silver-edged slash that sweeps side to side
-      { width: 0.55, time: 0.4, blend: "add", alpha: 1, colors: ["#ffffff", "#ffd6d6", "#c40000"],
-        core: "#ffffff", coreAmt: 0.9, noiseAmt: 0.1, soft: 0.2, fadePow: 0.8, taper: 0.5,
+      { width: 0.55, time: 0.45, blend: "add", alpha: 1, colors: ["#ffffff", "#ffc0c0", "#c40000"],
+        core: "#ffffff", coreAmt: 0.8, noiseAmt: 0.1, soft: 0.2, fadePow: 0.8, taper: 0.5,
+        strip: { row: 2, repeat: 1.5, scroll: 4, mask: 0, glow: 0.8 },
         wave: { amp: 0.8, freq: 1.2, speed: 10 } }
     ],
-    layers: []
-  },
-
-  healing: {
-    aura: { color: "#7dffb0", size: 3.0, alpha: 0.42, pulse: 0.12, pulseSpeed: 2 },
-    ribbons: [
-      // A soft ribbon of life-light with gentle pulses and twinkles
-      { width: 1.8, time: 0.6, blend: "add", alpha: 0.85, colors: ["#f4fff6", "#7dffb0", "#2fd97a"],
-        core: "#ffffff", coreAmt: 0.5, noiseAmt: 0.45, noiseScale: [4, 2], scroll: 1.2, soft: 0.4,
-        fadePow: 1.1, taper: 0.5, bands: 3, bandAmt: 0.3, bandSpeed: 2, sparkle: 0.5 }
-    ],
     layers: [
-      { tex: "glow", blend: "add", rate: 26, rest: 0.8, life: [0.8, 1.3], size: [0.4, 0.1], spawn: 0.7,
-        vel: [0, 0, 1.4], jitter: 0.5, drag: 0.5,
-        colors: [[0, "#eaffef", 1], [0.5, "#7dffb0", 0.9], [1, "#2fd97a", 0]] }
+      { tex: "slashes", blend: "add", rate: 10, rest: 0.2, life: [0.18, 0.32], size: [1.3, 2.0], spawn: 0.3,
+        vel: [0, 0, 0], jitter: 0,
+        colors: [[0, "#ffffff", 1], [0.4, "#ff4a4a", 0.8], [1, "#8a0000", 0]] },
+      // A few red droplets flung off
+      { tex: "glow", blend: "normal", rate: 10, rest: 0, life: [0.4, 0.7], size: [0.25, 0.2], spawn: 0.4,
+        vel: [0, 0, 1.5], jitter: 2.0, gravity: -9, drag: 0.8,
+        colors: [[0, "#c40000", 0.9], [1, "#5a0000", 0]] }
     ]
   },
 
-  temphp: {
-    aura: { color: "#8fd3ff", size: 3.0, alpha: 0.42, pulse: 0.1 },
+  // Signature: soft green-gold life-light with little hearts rising from the die.
+  healing: {
+    aura: { color: "#7dffb0", size: 3.2, alpha: 0.5, pulse: 0.14, pulseSpeed: 2 },
     ribbons: [
-      // A shimmering shield-light streak
-      { width: 1.6, time: 0.5, blend: "add", alpha: 0.85, colors: ["#ffffff", "#8fd3ff", "#2a7ad1"],
-        core: "#ffffff", coreAmt: 0.6, noiseAmt: 0.3, noiseScale: [4, 1], scroll: 1, soft: 0.3, fadePow: 1.0,
-        taper: 0.6, bands: 8, bandAmt: 0.18, bandSpeed: 4 }
+      { width: 1.8, time: 0.65, blend: "add", alpha: 0.9, colors: ["#eaffc8", "#5dff9a", "#1fb86a"],
+        core: "#ffffff", coreAmt: 0.35, noiseAmt: 0.45, noiseScale: [4, 2], scroll: 1.2, soft: 0.4,
+        fadePow: 1.1, taper: 0.5, bands: 3, bandAmt: 0.3, bandSpeed: 2, sparkle: 0.6,
+        strip: { row: 4, repeat: 2, scroll: 1.5, mask: 0, glow: 0.7 } }
     ],
     layers: [
-      { tex: "shard", blend: "add", rate: 22, rest: 0.8, life: [0.6, 1.0], size: [0.4, 0.2], spawn: 0,
-        orbit: { radius: 1.3, speed: 5, rise: 0.2 }, spin: 1,
-        colors: [[0, "#ffffff", 1], [0.5, "#bfe9ff", 0.8], [1, "#4aa8ff", 0]] }
+      { tex: "heart", blend: "add", rate: 9, rest: 1.0, life: [0.9, 1.4], size: [1.5, 2.0], spawn: 0.8,
+        vel: [0, 0, 1.6], jitter: 0.3, drag: 0.7,
+        colors: [[0, "#ffffff", 0], [0.15, "#b8ffcc", 0.95], [1, "#3aff8a", 0]] },
+      { tex: "glow", blend: "add", rate: 22, rest: 0.8, life: [0.8, 1.3], size: [0.4, 0.1], spawn: 0.7,
+        vel: [0, 0, 1.4], jitter: 0.5, drag: 0.5,
+        colors: [[0, "#f4ffe0", 1], [0.5, "#7dffb0", 0.9], [1, "#1fb86a", 0]] }
+    ]
+  },
+
+  // Signature: a steel-blue shield streak, with a turning ward-rune around the die and orbiting shards.
+  temphp: {
+    aura: { color: "#6fb8ff", size: 3.0, alpha: 0.45, pulse: 0.1 },
+    ribbons: [
+      { width: 1.6, time: 0.55, blend: "add", alpha: 0.9, colors: ["#d8ecff", "#6fb8ff", "#1f4fa8"],
+        core: "#ffffff", coreAmt: 0.4, noiseAmt: 0.3, noiseScale: [4, 1], scroll: 1, soft: 0.3, fadePow: 1.0,
+        taper: 0.6, bands: 8, bandAmt: 0.22, bandSpeed: 4,
+        strip: { row: 5, repeat: 3, scroll: 2, mask: 0.4, glow: 0.3 } }
+    ],
+    layers: [
+      { tex: "rune", blend: "add", rate: 3, rest: 1.2, life: [0.8, 1.0], size: [4.4, 4.8], spawn: 0,
+        orbit: { radius: 0, speed: 0, rise: 0, flat: true }, spin: 2,
+        colors: [[0, "#dff0ff", 0], [0.2, "#bfe0ff", 1], [0.7, "#6fb8ff", 0.8], [1, "#2f6fd1", 0]] },
+      { tex: "shard", blend: "add", rate: 22, rest: 0.8, life: [0.6, 1.0], size: [0.45, 0.2], spawn: 0,
+        orbit: { radius: 1.4, speed: 5, rise: 0.2 }, spin: 1,
+        colors: [[0, "#ffffff", 1], [0.5, "#bfe0ff", 0.85], [1, "#3a8aff", 0]] }
     ]
   }
 };
@@ -332,6 +407,11 @@ Hooks.once("init", () => {
     scope: "client", config: true, type: Number, default: 1,
     range: { min: 0.25, max: 2, step: 0.25 }
   });
+  game.settings.register(MODULE_ID, "size", {
+    name: "DXDT.Settings.Size.Name", hint: "DXDT.Settings.Size.Hint",
+    scope: "client", config: true, type: Number, default: 1,
+    range: { min: 0.25, max: 2, step: 0.25 }
+  });
   game.settings.register(MODULE_ID, "afterglow", {
     name: "DXDT.Settings.Afterglow.Name", hint: "DXDT.Settings.Afterglow.Hint",
     scope: "client", config: true, type: Boolean, default: true
@@ -354,6 +434,7 @@ async function loadThree() {
   if (THREE) return THREE;
   THREE = await import(foundry.utils.getRoute(THREE_URL));
   TEXTURES = makeTextures();
+  await loadSprites();
   return THREE;
 }
 
@@ -446,6 +527,28 @@ function canvasTexture(draw, size = 64) {
   return tex;
 }
 
+/** Kenney Particle Pack sprites (CC0). Sheets hold 2x2 variants. */
+const SPRITES = { ring: 1, heart: 1, rune: 1, smoke: 4, bolts: 4, stars: 4, flames: 4, twirls: 4, slashes: 4, debris: 4, strips: 8 };
+// The art fills only the middle of each sprite, so draw these larger to match the drawn ones.
+const SPRITE_SIZE = { ring: 1.1, heart: 1.3, rune: 1, smoke: 1.5, bolts: 1.7, stars: 2.2, flames: 1.9, twirls: 1.7, slashes: 1.6, debris: 1.5 };
+const FRAMES = {};   // texture name -> number of variants
+
+async function loadSprites() {
+  const loader = new THREE.TextureLoader();
+  await Promise.all(Object.entries(SPRITES).map(async ([name, frames]) => {
+    try {
+      const tex = await loader.loadAsync(foundry.utils.getRoute(`modules/${MODULE_ID}/textures/${name}.png`));
+      tex.generateMipmaps = frames === 1;           // no mipmaps on sheets: they would bleed between variants
+      tex.minFilter = frames === 1 ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
+      if (name === "strips") tex.wrapS = THREE.RepeatWrapping;
+      TEXTURES[name] = tex;
+      FRAMES[name] = frames;
+    } catch (err) {
+      console.warn(`${MODULE_ID} | could not load texture ${name}, using a plain glow`, err);
+    }
+  }));
+}
+
 function makeTextures() {
   const radial = (g, s, stops) => {
     const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
@@ -509,11 +612,14 @@ attribute float aSize;
 attribute float aAlpha;
 attribute float aRot;
 attribute vec3 aColor;
+attribute float aFrame;
 uniform float uScale;
 varying float vAlpha;
 varying float vRot;
+varying float vFrame;
 varying vec3 vColor;
 void main() {
+  vFrame = aFrame;
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   gl_PointSize = aSize * uScale / max(-mv.z, 0.001);
   gl_Position = projectionMatrix * mv;
@@ -524,15 +630,24 @@ void main() {
 
 const FRAGMENT = `
 uniform sampler2D uMap;
+uniform float uGrid;
 varying float vAlpha;
 varying float vRot;
+varying float vFrame;
 varying vec3 vColor;
 void main() {
   vec2 uv = gl_PointCoord - 0.5;
   float c = cos(vRot), s = sin(vRot);
   uv = mat2(c, -s, s, c) * uv + 0.5;
+  if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) discard;   // rotated corners
+  vec2 d = abs(uv - 0.5);
+  float border = 1.0 - smoothstep(0.4, 0.5, max(d.x, d.y));             // no hard sprite edges
+  if (uGrid > 1.0) {
+    vec2 cell = vec2(mod(vFrame, uGrid), floor(vFrame / uGrid));
+    uv = (clamp(uv, 0.01, 0.99) + cell) / uGrid;
+  }
   vec4 t = texture2D(uMap, uv);
-  float a = t.a * vAlpha;
+  float a = t.a * vAlpha * border;
   if (a < 0.004) discard;
   gl_FragColor = vec4(vColor * t.rgb, a);
 }`;
@@ -564,23 +679,26 @@ function sampleGradient(stops, t, out) {
 }
 
 class PointCloud {
-  constructor(capacity, texture, blend) {
+  constructor(capacity, texture, blend, frames = 1) {
     this.capacity = capacity;
+    this.frames = frames;
     const geo = new THREE.BufferGeometry();
     this.pos = new Float32Array(capacity * 3);
     this.col = new Float32Array(capacity * 3);
     this.alpha = new Float32Array(capacity);
     this.size = new Float32Array(capacity);
     this.rot = new Float32Array(capacity);
+    this.frame = new Float32Array(capacity);
     geo.setAttribute("position", new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute("aColor", new THREE.BufferAttribute(this.col, 3).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute("aAlpha", new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute("aSize", new THREE.BufferAttribute(this.size, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setAttribute("aRot", new THREE.BufferAttribute(this.rot, 1).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute("aFrame", new THREE.BufferAttribute(this.frame, 1).setUsage(THREE.DynamicDrawUsage));
     geo.setDrawRange(0, 0);
     this.geometry = geo;
     this.material = new THREE.ShaderMaterial({
-      uniforms: { uMap: { value: texture }, uScale: { value: 500 } },
+      uniforms: { uMap: { value: texture }, uScale: { value: 500 }, uGrid: { value: frames > 1 ? 2 : 1 } },
       vertexShader: VERTEX,
       fragmentShader: FRAGMENT,
       transparent: true,
@@ -597,7 +715,7 @@ class PointCloud {
   commit(count, scale) {
     const g = this.geometry;
     g.setDrawRange(0, count);
-    for (const k of ["position", "aColor", "aAlpha", "aSize", "aRot"]) g.attributes[k].needsUpdate = true;
+    for (const k of ["position", "aColor", "aAlpha", "aSize", "aRot", "aFrame"]) g.attributes[k].needsUpdate = true;
     this.material.uniforms.uScale.value = scale;
   }
 
@@ -623,7 +741,9 @@ class Layer {
   constructor(def, unit) {
     this.def = def;
     this.unit = unit;
-    this.cloud = new PointCloud(420, TEXTURES[def.tex] ?? TEXTURES.glow, def.blend);
+    const tex = TEXTURES[def.tex];
+    this.cloud = new PointCloud(420, tex ?? TEXTURES.glow, def.blend, tex ? (FRAMES[def.tex] ?? 1) : 1);
+    this.texSize = tex && FRAMES[def.tex] ? (SPRITE_SIZE[def.tex] ?? 1) : 1;
     this.parts = [];
     this.carry = 0;
     this.tmp = [0, 0, 0, 0];
@@ -634,7 +754,8 @@ class Layer {
     for (let i = 0; i < n && this.parts.length < this.cloud.capacity; i++) {
       const life = rand(d.life[0], d.life[1]);
       const p = { age: 0, life, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, rot: Math.random() * 6.283,
-                  spin: (d.spin ?? 0) * (Math.random() < 0.5 ? -1 : 1) * rand(0.5, 1), seed: Math.random() };
+                  spin: (d.spin ?? 0) * (Math.random() < 0.5 ? -1 : 1) * rand(0.5, 1), seed: Math.random(),
+                  frame: Math.floor(Math.random() * this.cloud.frames) };
       if (d.orbit) {
         p.orbitAngle = Math.random() * Math.PI * 2;
         p.orbitZ = rand(-0.6, 0.6) * u;
@@ -658,7 +779,7 @@ class Layer {
     }
   }
 
-  update(dt, diePos, dieVel, rateFactor, scale) {
+  update(dt, diePos, dieVel, rateFactor, scale, sizeMul = 1) {
     const d = this.def, u = this.unit;
     // Emit
     this.carry += d.rate * rateFactor * dt;
@@ -681,7 +802,7 @@ class Layer {
         const o = d.orbit;
         p.orbitAngle += o.speed * dt * (o.helix ? p.helixSign : 1);
         const r = o.radius * u * (1 - 0.3 * t);
-        const z = o.helix ? Math.sin(p.orbitAngle * 0.5) * u * 0.8 * p.helixSign : p.orbitZ;
+        const z = o.helix ? Math.sin(p.orbitAngle * 0.5) * u * 0.8 * p.helixSign : o.flat ? 0 : p.orbitZ;
         p.x = diePos[0] + Math.cos(p.orbitAngle) * r;
         p.y = diePos[1] + Math.sin(p.orbitAngle) * r;
         p.z = diePos[2] + z + (o.rise ?? 0) * u * p.age;
@@ -708,13 +829,14 @@ class Layer {
       sampleGradient(d.colors, t, this.tmp);
       let a = this.tmp[3];
       if (d.flicker) a *= 1 - d.flicker * Math.random();
-      const size = (d.size[0] + (d.size[1] - d.size[0]) * t) * u;
+      const size = (d.size[0] + (d.size[1] - d.size[0]) * t) * u * PARTICLE_SIZE * sizeMul * this.texSize;
 
       c.pos[k * 3] = p.x; c.pos[k * 3 + 1] = p.y; c.pos[k * 3 + 2] = p.z;
       c.col[k * 3] = this.tmp[0]; c.col[k * 3 + 1] = this.tmp[1]; c.col[k * 3 + 2] = this.tmp[2];
       c.alpha[k] = a;
       c.size[k] = size;
       c.rot[k] = p.rot;
+      c.frame[k] = p.frame;
       this.parts[k] = p;
       k++;
     }
@@ -739,17 +861,18 @@ class Aura {
     if (this.inner) scene.add(this.inner.points);
   }
 
-  update(dt, diePos, strength, scale) {
+  update(dt, diePos, strength, scale, sizeMul = 1, intensity = 1) {
     const d = this.def, u = this.unit;
     this.t += dt;
+    const bright = Math.min(1.6, Math.max(0.2, intensity));
     this.level += (strength - this.level) * Math.min(1, dt * 4);
     const pulse = 1 + (d.pulse ?? 0) * Math.sin(this.t * (d.pulseSpeed ?? 6));
     const flick = 1 - (d.flicker ?? 0) * Math.random();
     const draw = (cloud, color, size, alpha) => {
       cloud.pos[0] = diePos[0]; cloud.pos[1] = diePos[1]; cloud.pos[2] = diePos[2];
       cloud.col.set(hexToRgb(color));
-      cloud.alpha[0] = alpha * flick * this.level;
-      cloud.size[0] = size * u * pulse;
+      cloud.alpha[0] = Math.min(1, alpha * bright) * flick * this.level;
+      cloud.size[0] = size * AURA_SIZE * sizeMul * u * pulse;
       cloud.rot[0] = 0;
       cloud.commit(1, scale);
     };
@@ -787,8 +910,8 @@ class Arcs {
     this.timer = 0;
     this.bolts = [];
   }
-  update(dt, diePos, active, resting) {
-    const d = this.def, u = this.unit;
+  update(dt, diePos, active, resting, sizeMul = 1) {
+    const d = this.def, u = this.unit * sizeMul;
     this.timer -= dt;
     if (this.timer <= 0) {
       this.timer = d.every * rand(0.6, 1.6);
@@ -848,6 +971,8 @@ uniform float uTime, uSeed, uAlpha, uNoiseAmt, uColorNoise, uSoft, uFadePow;
 uniform float uBands, uBandAmt, uBandSpeed, uSparkle, uCoreAmt, uScroll;
 uniform vec2 uNoiseScale;
 uniform vec3 uC0, uC1, uC2, uCore;
+uniform sampler2D uStrip;
+uniform float uStripOn, uStripRow, uStripRepeat, uStripScroll, uStripMask, uStripGlow;
 varying vec2 vUv;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -880,19 +1005,32 @@ void main() {
     spark = step(1.0 - 0.06 * uSparkle, hash(cell + uSeed)) * edge;
   }
   float fade = pow(max(1.0 - u, 0.0), uFadePow);
-  float a = shape * fade * uAlpha * max(bands, 0.0) + spark * fade;
+  float st = 1.0;
+  if (uStripOn > 0.5) {
+    float sx = uStripRepeat > 0.0 ? u * uStripRepeat - uTime * uStripScroll : clamp(u, 0.0, 1.0);
+    float sy = 1.0 - (uStripRow + 1.0 - clamp(vUv.y, 0.02, 0.98)) / 8.0;
+    st = texture2D(uStrip, vec2(sx, sy)).a;
+  }
+  float shaped = shape * mix(1.0, st, uStripMask * uStripOn);
+  float glow = st * uStripGlow * uStripOn;
+  float a = (shaped + glow) * fade * uAlpha * max(bands, 0.0) + spark * fade;
   if (a < 0.004) discard;
-  gl_FragColor = vec4(col * max(bands, 0.3) + spark, clamp(a, 0.0, 1.0));
+  vec3 lit = mix(col, uCore, clamp(glow, 0.0, 1.0) * 0.6);
+  gl_FragColor = vec4(lit * max(bands, 0.3) + spark, clamp(a, 0.0, 1.0));
 }`;
 
-const STREAK_WIDTH = 1.35;   // global multipliers so streaks read well next to the dice
-const STREAK_TIME = 1.25;
+// Global multipliers on top of the per-effect values (and the "Trail width" setting).
+const STREAK_WIDTH = 0.45;   // streak width
+const STREAK_TIME = 1.25;    // streak length (seconds of flight path)
+const AURA_SIZE = 0.7;       // glow around the die
+const PARTICLE_SIZE = 1.0;   // accent particles
+const BASE_WIDTH = 0.75;     // what "Trail width" 1 means (everything above is multiplied by it)
 
 class Ribbon {
   constructor(def, unit) {
     this.def = def;
     this.unit = unit;
-    this.max = 90;
+    this.max = 140;                // enough points for the longest streak at high intensity
     this.pts = [];                 // newest first: { x, y, z, age, j }
     this.seed = Math.random() * 100;
     this.jagTimer = 0;
@@ -923,7 +1061,12 @@ class Ribbon {
         uSparkle: { value: def.sparkle ?? 0 }, uCoreAmt: { value: def.coreAmt ?? 0 }, uScroll: { value: def.scroll ?? 1 },
         uNoiseScale: { value: new THREE.Vector2(...(def.noiseScale ?? [5, 2])) },
         uC0: { value: rgb(c[0]) }, uC1: { value: rgb(c[1]) }, uC2: { value: rgb(c[2]) },
-        uCore: { value: rgb(def.core ?? c[0]) }
+        uCore: { value: rgb(def.core ?? c[0]) },
+        uStrip: { value: TEXTURES.strips ?? null },
+        uStripOn: { value: def.strip && TEXTURES.strips ? 1 : 0 },
+        uStripRow: { value: def.strip?.row ?? 0 }, uStripRepeat: { value: def.strip?.repeat ?? 0 },
+        uStripScroll: { value: def.strip?.scroll ?? 0 }, uStripMask: { value: def.strip?.mask ?? 0 },
+        uStripGlow: { value: def.strip?.glow ?? 0 }
       },
       vertexShader: RIBBON_VERTEX,
       fragmentShader: RIBBON_FRAGMENT,
@@ -939,13 +1082,13 @@ class Ribbon {
     this.mesh.raycast = () => {};
   }
 
-  update(dt, diePos, moving, camPos, intensity) {
+  update(dt, diePos, moving, camPos, intensity, sizeMul = 1) {
     const d = this.def, u = this.unit;
     this.time += dt;
 
-    // Age the path; drop points older than the trail length.
+    // Age the path; drop points older than the trail length (longer at higher intensity).
     for (const p of this.pts) p.age += dt;
-    const life = d.time * STREAK_TIME;
+    const life = d.time * STREAK_TIME * (0.55 + 0.45 * intensity);
     while (this.pts.length && this.pts[this.pts.length - 1].age > life) this.pts.pop();
     if (moving) {
       this.pts.unshift({ x: diePos[0], y: diePos[1], z: diePos[2], age: 0, j: 0 });
@@ -991,13 +1134,13 @@ class Ribbon {
 
       const t = Math.min(1, p.age / life);                   // 0 at the die, 1 at the tip
       const head = Math.min(1, 0.35 + t * 10);               // rounded start at the die
-      const w = d.width * STREAK_WIDTH * u * 0.5 * Math.pow(1 - t, d.taper ?? 0.7) * head;
+      const w = d.width * STREAK_WIDTH * sizeMul * u * 0.5 * Math.pow(1 - t, d.taper ?? 0.7) * head;
 
       let off = 0;
-      if (d.jag && i > 0) off += p.j * d.jag * u * Math.min(1, t * 6);
+      if (d.jag && i > 0) off += p.j * d.jag * u * sizeMul * Math.min(1, t * 6);
       if (d.wave) {
         const wv = d.wave;
-        off += Math.sin(t * wv.freq * 6.2831853 - this.time * wv.speed + (wv.phase ?? 0)) * wv.amp * u * Math.min(1, t * 4);
+        off += Math.sin(t * wv.freq * 6.2831853 - this.time * wv.speed + (wv.phase ?? 0)) * wv.amp * u * sizeMul * Math.min(1, t * 4);
       }
       const cx = p.x + sx * off, cy = p.y + sy * off, cz = p.z + sz * off;
 
@@ -1012,7 +1155,7 @@ class Ribbon {
     const un = this.material.uniforms;
     un.uTime.value = this.time;
     const flick = d.flicker ? 1 - d.flicker * Math.random() : 1;
-    un.uAlpha.value = (d.alpha ?? 1) * flick * Math.min(1, 0.5 + 0.5 * intensity);
+    un.uAlpha.value = (d.alpha ?? 1) * flick * Math.min(1.6, Math.max(0.2, intensity));
     return n;
   }
 
@@ -1051,7 +1194,7 @@ class DieEmitter {
     return !!this.group.parent && this.group.parent === this.box.scene;
   }
 
-  update(dt, intensity, afterglow, scale) {
+  update(dt, intensity, afterglow, scale, sizeMul = 1) {
     if (!this.attached) {                   // Dice So Nice cleared the table
       this.alive = false;
       return 0;
@@ -1074,14 +1217,14 @@ class DieEmitter {
     let live = 0;
     const cam = this.box.camera?.position;
     const camPos = cam ? [cam.x, cam.y, cam.z] : [pos[0], pos[1], pos[2] + 3000];
-    for (const r of this.ribbons) live += r.update(dt, pos, !resting, camPos, intensity);
+    for (const r of this.ribbons) live += r.update(dt, pos, !resting, camPos, intensity, sizeMul);
     for (const l of this.layers) {
       const factor = resting ? rateFactor * (l.def.rest ?? 0.25) : rateFactor;
-      live += l.update(dt, pos, this.vel, factor, scale);
+      live += l.update(dt, pos, this.vel, factor, scale, sizeMul);
     }
     const auraStrength = resting ? (afterglow ? 0.7 : 0) : 1;
-    if (this.aura) this.aura.update(dt, pos, auraStrength, scale);
-    if (this.arcs) live += this.arcs.update(dt, pos, !resting || afterglow, resting);
+    if (this.aura) this.aura.update(dt, pos, auraStrength, scale, sizeMul, intensity);
+    if (this.arcs) live += this.arcs.update(dt, pos, !resting || afterglow, resting, sizeMul);
     if (this.aura && this.aura.level > 0.02) live++;
     return live;
   }
@@ -1099,7 +1242,7 @@ function dieRadius(mesh, group) {
     const geo = mesh.geometry ?? mesh.children?.find(c => c.geometry)?.geometry;
     if (geo && !geo.boundingSphere) geo.computeBoundingSphere?.();
     const r = geo?.boundingSphere?.radius;
-    const s = Math.max(mesh.scale?.x ?? 1, 1) * Math.max(group.scale?.x ?? 1, 1);
+    const s = Math.abs(mesh.scale?.x || 1) * Math.abs(group.scale?.x || 1);
     if (r && Number.isFinite(r)) return r * s;
   } catch (_) { /* fall through */ }
   const base = game.dice3d?.DiceFactory?.baseScale ?? 50;
@@ -1142,13 +1285,14 @@ function tick() {
 
   if (!emitters.size) return;
 
-  const intensity = game.settings.get(MODULE_ID, "intensity") ?? 1;
+  const intensity = Number(game.settings.get(MODULE_ID, "intensity") ?? 1) || 1;
+  const sizeMul = (Number(game.settings.get(MODULE_ID, "size") ?? 1) || 1) * BASE_WIDTH;
   const afterglow = game.settings.get(MODULE_ID, "afterglow") ?? true;
   const scale = pointScale(box);
 
   let live = 0;
   for (const [key, em] of emitters) {
-    live += em.update(dt, intensity, afterglow, scale);
+    live += em.update(dt, intensity, afterglow, scale, sizeMul);
     if (!em.alive || (!em.attached)) {
       em.dispose();
       emitters.delete(key);
