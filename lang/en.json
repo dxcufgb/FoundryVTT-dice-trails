@@ -1,0 +1,18 @@
+{
+  "DXDT": {
+    "Settings": {
+      "Enabled": {
+        "Name": "Show damage type trails",
+        "Hint": "Draw a particle trail on 3D dice rolled for damage or healing, matching the damage type."
+      },
+      "Intensity": {
+        "Name": "Trail intensity",
+        "Hint": "How many particles the trails use. Lower it if rolls stutter on this computer."
+      },
+      "Afterglow": {
+        "Name": "Keep glowing after landing",
+        "Hint": "Dice keep a faint aura and a few particles while they lie on the table, as if still charged."
+      }
+    }
+  }
+}
