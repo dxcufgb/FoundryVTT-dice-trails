@@ -18,13 +18,26 @@
  *
  * Particle sprites: Kenney Particle Pack (CC0, www.kenney.nl), see textures/.
  *
+ * Custom trails for regular rolls (attacks, checks, saves, initiative, ...): every user designs
+ * their own in the "Dice trails" window (Configure Settings -> Dxcufgb's damage dice trails, or the
+ * button in the Token Controls) out of layers (Flame, Frost, Storm, Comet, ..., or an image of
+ * their own), and gives them to kinds of roll. They are stored on the User, so the trails follow
+ * them to any computer and everyone at the table sees them on that player's rolls.
+ * See custom-trails.js (designs, compiler) and trail-editor.js (the window).
+ *
  * Preview from the console or a macro:
  *   game.modules.get("dxcufgbs-dice-trails").api.preview("fire")
  *   game.modules.get("dxcufgbs-dice-trails").api.previewAll()
+ *   game.modules.get("dxcufgbs-dice-trails").api.open()          // the Dice trails window
  */
 
-const MODULE_ID = "dxcufgbs-dice-trails";
-const TAG = "dxTrail";
+import { MODULE_ID, TAG, TAG_KIND, TAG_USER, FLAG_PRESETS, FLAG_TRAILS } from "./constants.js";
+import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } from "./custom-trails.js";
+import { DiceTrailsEditor } from "./trail-editor.js";
+import { exportTrail, importTrail } from "./transfer.js";
+
+export { MODULE_ID };
+
 const THREE_URL = "modules/dice-so-nice/libs/three.module.min.js";
 
 let THREE = null;
@@ -32,6 +45,8 @@ let TEXTURES = null;
 const emitters = new Map();     // mesh uuid -> DieEmitter
 let tickerActive = false;
 let lastTime = 0;
+let previewDef = null;          // the effect the editor's test roll shows
+const compiled = new Map();     // JSON of a trail -> compiled effect
 
 /* ======================================================================== */
 /*  Effect definitions                                                      */
@@ -416,11 +431,40 @@ Hooks.once("init", () => {
     name: "DXDT.Settings.Afterglow.Name", hint: "DXDT.Settings.Afterglow.Hint",
     scope: "client", config: true, type: Boolean, default: true
   });
+  game.settings.registerMenu(MODULE_ID, "editor", {
+    name: "DXDT.Settings.Editor.Name", label: "DXDT.Settings.Editor.Label", hint: "DXDT.Settings.Editor.Hint",
+    icon: "fa-solid fa-dice-d20", type: DiceTrailsEditor.Menu, restricted: false
+  });
+  game.settings.register(MODULE_ID, "showOthers", {
+    name: "DXDT.Settings.ShowOthers.Name", hint: "DXDT.Settings.ShowOthers.Hint",
+    scope: "client", config: true, type: Boolean, default: true
+  });
+  game.settings.register(MODULE_ID, "lastConfig", { scope: "client", config: false, type: Object, default: {} });
+
+  const mod = game.modules.get(MODULE_ID);
+  if (mod) {
+    mod.api = {
+      preview, previewAll, types: Object.keys(EFFECTS),
+      open: () => DiceTrailsEditor.open(),
+      designs: DESIGNS, kinds: KINDS,
+      presets, savePreset, deletePreset, trails, setTrail, clearTrail, exportTrail, importTrail
+    };
+  }
+});
+
+// A button in the Token Controls, next to the other per-player looks (rings, ...).
+Hooks.on("getSceneControlButtons", controls => {
+  const tokens = controls.tokens;
+  if (!tokens?.tools) return;
+  const orders = Object.values(tokens.tools).map(t => t.order ?? 0);
+  tokens.tools[MODULE_ID] = {
+    name: MODULE_ID, order: Math.max(0, ...orders) + 1, title: "DXDT.Control.Title",
+    icon: "fa-solid fa-dice-d20", button: true, visible: true,
+    onChange: () => DiceTrailsEditor.open()
+  };
 });
 
 Hooks.once("ready", async () => {
-  const mod = game.modules.get(MODULE_ID);
-  if (mod) mod.api = { preview, previewAll, types: Object.keys(EFFECTS) };
   if (!game.modules.get("dice-so-nice")?.active) return;
   try {
     await loadThree();
@@ -438,20 +482,174 @@ async function loadThree() {
   return THREE;
 }
 
-// Tag every die with its damage type before Dice So Nice builds the 3D dice.
+// Tag every die with its damage type before Dice So Nice builds the 3D dice; the dice of a
+// regular roll (no damage type) get the roller's custom trail for that kind of roll instead.
 Hooks.on("diceSoNiceRollStart", (messageID, context) => {
   try {
     if (!game.settings.get(MODULE_ID, "enabled") || !THREE) return;
     let tagged = 0;
     const message = messageID ? game.messages.get(messageID) : null;
-    if (message) for (const roll of message.rolls ?? []) tagged += tagRoll(roll, null);
-    if (context?.roll) tagged += tagRoll(context.roll, null);
-    if (context?.dsnRoll) tagged += tagRoll(context.dsnRoll, null);
+    const rolls = [...(message?.rolls ?? []), context?.roll, context?.dsnRoll].filter(r => r?.terms);
+    for (const roll of rolls) tagged += tagRoll(roll, null);
+
+    const user = context?.user ?? message?.author ?? message?.user ?? null;
+    const kind = rollKind(message, rolls);
+    const cfg = kind ? trailFor(user, kind) : null;
+    if (cfg && (user?.id === game.user.id || game.settings.get(MODULE_ID, "showOthers"))) {
+      for (const roll of rolls) tagged += tagCustom(roll, kind, user.id);
+    }
     if (tagged) startTicker();
   } catch (err) {
     console.error(`${MODULE_ID} | diceSoNiceRollStart`, err);
   }
 });
+
+/* ======================================================================== */
+/*  Regular rolls: which kind, whose trail                                  */
+/* ======================================================================== */
+
+/**
+ * What kind of roll a message is, for custom trails: attack, check, save, death, initiative or
+ * other. Damage and healing rolls return null (they get their damage type trails). Reads the
+ * dnd5e and pf2e roll flags and falls back to the roll's own options and class.
+ */
+export function rollKind(message, rolls = []) {
+  const hints = [];
+  const f = message?.flags ?? {};
+  if (f.core?.initiativeRoll) return "initiative";
+  if (f.dnd5e?.roll?.type) hints.push(f.dnd5e.roll.type);
+  if (f.pf2e?.context?.type) hints.push(f.pf2e.context.type);
+  for (const r of rolls) {
+    if (typeof r.options?.type === "string") hints.push(r.options.type);
+    if (r.constructor?.name) hints.push(r.constructor.name);
+  }
+  for (const raw of hints) {
+    const h = String(raw).toLowerCase();
+    if (/damage|heal/.test(h)) return null;
+    if (/death/.test(h)) return "death";
+    if (/initiative/.test(h)) return "initiative";
+    if (/attack/.test(h)) return "attack";
+    if (/sav(e|ing)|concentration/.test(h)) return "save";
+    if (/skill|abilit|tool|check|perception/.test(h)) return "check";
+  }
+  // A roll with a damage type anywhere is a damage roll, whatever the system.
+  if (rolls.some(r => rollType(r))) return null;
+  return "other";
+}
+
+/** Tag the dice of a roll that have no damage type yet with a user's custom trail. */
+function tagCustom(roll, kind, userId) {
+  if (!roll?.terms) return 0;
+  let n = 0;
+  for (const term of roll.terms) {
+    if (Array.isArray(term?.rolls)) { for (const r of term.rolls) n += tagCustom(r, kind, userId); continue; }
+    if (term?.roll?.terms) { n += tagCustom(term.roll, kind, userId); continue; }
+    if (!(Array.isArray(term?.results) && typeof term.faces === "number")) continue;
+    term.options ??= {};
+    if (term.options[TAG]) continue;
+    term.options[TAG] = CUSTOM;
+    term.options[TAG_KIND] = kind;
+    term.options[TAG_USER] = userId;
+    n++;
+  }
+  return n;
+}
+
+/* ======================================================================== */
+/*  Custom trails: storage (flags on the User)                              */
+/* ======================================================================== */
+
+/** A user's trails by kind of roll: {attack: trail, ...}. Missing kinds have none. */
+export function trails(user = game.user) {
+  const t = user?.getFlag?.(MODULE_ID, FLAG_TRAILS);
+  const out = {};
+  if (t && typeof t === "object") for (const k of KINDS) if (t[k]?.layers) out[k] = normalizeConfig(t[k]);
+  return out;
+}
+
+/** The trail a user has given this kind of roll, if any. */
+export function trailFor(user, kind) {
+  if (!user || !kind) return null;
+  const t = user.getFlag?.(MODULE_ID, FLAG_TRAILS);
+  return t?.[kind]?.layers ? normalizeConfig(t[kind]) : null;
+}
+
+/** Give one or more kinds of roll a trail (yours: trails are per user). */
+export async function setTrail(kinds, cfg) {
+  const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
+  if (!list.length) return false;
+  const data = normalizeConfig(cfg);
+  const next = { ...(game.user.getFlag(MODULE_ID, FLAG_TRAILS) ?? {}) };
+  for (const k of list) next[k] = data;
+  await game.user.setFlag(MODULE_ID, FLAG_TRAILS, next);
+  return true;
+}
+
+export async function clearTrail(kinds) {
+  const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
+  const next = { ...(game.user.getFlag(MODULE_ID, FLAG_TRAILS) ?? {}) };
+  for (const k of list) delete next[k];
+  await game.user.setFlag(MODULE_ID, FLAG_TRAILS, next);
+  return true;
+}
+
+/** This user's saved trails: [{id, name, cfg}], kept in a flag on their User document. */
+export function presets() {
+  const list = game.user.getFlag(MODULE_ID, FLAG_PRESETS);
+  return Array.isArray(list) ? list.filter(p => p?.id && p.cfg) : [];
+}
+
+/** Save a trail under a name; a saved trail with the same name is replaced. Returns its id. */
+export async function savePreset(name, cfg) {
+  name = String(name ?? "").trim().slice(0, 60);
+  if (!name) return null;
+  const list = presets();
+  const old = list.find(p => p.name.toLowerCase() === name.toLowerCase());
+  const entry = { id: old?.id ?? foundry.utils.randomID(), name, cfg: normalizeConfig(cfg) };
+  const next = old ? list.map(p => (p === old ? entry : p)) : [...list, entry];
+  next.sort((a, b) => a.name.localeCompare(b.name));
+  await game.user.setFlag(MODULE_ID, FLAG_PRESETS, next);
+  return entry.id;
+}
+
+export async function deletePreset(id) {
+  await game.user.setFlag(MODULE_ID, FLAG_PRESETS, presets().filter(p => p.id !== id));
+}
+
+/** The compiled effect of a trail (cached by content). */
+function effectOf(cfg) {
+  const key = JSON.stringify(cfg);
+  let def = compiled.get(key);
+  if (!def) {
+    if (compiled.size > 60) compiled.clear();
+    def = compileTrail(cfg);
+    compiled.set(key, def);
+  }
+  return def;
+}
+
+/** The effect a tagged 3D die should get: a damage type's, a user's custom trail or the editor's preview. */
+function effectForDie(mesh) {
+  const type = mesh.options?.[TAG];
+  if (!type) return null;
+  if (EFFECTS[type]) return { def: EFFECTS[type], cfg: null };
+  if (type === "preview") return previewDef ? { def: previewDef, cfg: null } : null;
+  if (type === CUSTOM) {
+    const cfg = trailFor(game.users.get(mesh.options[TAG_USER]), mesh.options[TAG_KIND]);
+    return cfg ? { def: effectOf(cfg), cfg } : null;
+  }
+  return null;
+}
+
+/** Show the editor's trail on the next test roll and on dice already on the table. */
+export function setPreviewEffect(cfg) {
+  previewDef = cfg ? compileTrail(cfg) : null;
+  for (const [key, em] of emitters) {
+    if (em.mesh?.options?.[TAG] !== "preview") continue;
+    em.dispose();
+    emitters.delete(key);
+  }
+}
 
 /* ======================================================================== */
 /*  Damage type detection                                                   */
@@ -527,10 +725,19 @@ function canvasTexture(draw, size = 64) {
   return tex;
 }
 
-/** Kenney Particle Pack sprites (CC0). Sheets hold 2x2 variants. */
-const SPRITES = { ring: 1, heart: 1, rune: 1, smoke: 4, bolts: 4, stars: 4, flames: 4, twirls: 4, slashes: 4, debris: 4, strips: 8 };
+/**
+ * Sprite sheets in textures/ (2x2 variants, white with an alpha shape): the Kenney Particle Pack
+ * ones (CC0) and the module's own (tools/make-textures.py, CC0).
+ */
+const SPRITES = {
+  ring: 1, heart: 1, rune: 1, smoke: 4, bolts: 4, stars: 4, flames: 4, twirls: 4, slashes: 4, debris: 4, strips: 8,
+  leaves: 4, petals: 4, snowflakes: 4, notes: 4, glyphs: 4, knives: 4, stones: 4, flares: 4, bubbles: 4, drops: 4, skulls: 4
+};
 // The art fills only the middle of each sprite, so draw these larger to match the drawn ones.
-const SPRITE_SIZE = { ring: 1.1, heart: 1.3, rune: 1, smoke: 1.5, bolts: 1.7, stars: 2.2, flames: 1.9, twirls: 1.7, slashes: 1.6, debris: 1.5 };
+const SPRITE_SIZE = {
+  ring: 1.1, heart: 1.3, rune: 1, smoke: 1.5, bolts: 1.7, stars: 2.2, flames: 1.9, twirls: 1.7, slashes: 1.6, debris: 1.5,
+  leaves: 1.3, petals: 1.4, snowflakes: 1.2, notes: 1.3, glyphs: 1.2, knives: 1.1, stones: 1.3, flares: 1.3, bubbles: 1.2, drops: 1.3, skulls: 1.4
+};
 const FRAMES = {};   // texture name -> number of variants
 
 async function loadSprites() {
@@ -547,6 +754,35 @@ async function loadSprites() {
       console.warn(`${MODULE_ID} | could not load texture ${name}, using a plain glow`, err);
     }
   }));
+}
+
+/** Images of the users' own ("custom:<path>" textures), loaded on demand. */
+const customTextures = new Map();   // src -> { promise, done }
+
+/** Load the user images a trail needs; resolves once they are ready (failed ones draw as a plain glow). */
+export function loadCustomTextures(cfg) {
+  return Promise.all(customSources(cfg).map(src => {
+    let entry = customTextures.get(src);
+    if (!entry) {
+      entry = { done: false };
+      entry.promise = new THREE.TextureLoader().loadAsync(src).then(tex => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        TEXTURES[`custom:${src}`] = tex;
+        FRAMES[`custom:${src}`] = 1;
+        return tex;
+      }).catch(err => {
+        console.warn(`${MODULE_ID} | image ${src} could not be loaded`, err);
+        return null;
+      }).finally(() => { entry.done = true; });
+      customTextures.set(src, entry);
+    }
+    return entry.promise;
+  }));
+}
+
+/** True once every user image a trail needs has been tried (loaded or failed). */
+function customTexturesReady(cfg) {
+  return customSources(cfg).every(src => customTextures.get(src)?.done);
 }
 
 function makeTextures() {
@@ -631,6 +867,7 @@ void main() {
 const FRAGMENT = `
 uniform sampler2D uMap;
 uniform float uGrid;
+uniform float uColorize;
 varying float vAlpha;
 varying float vRot;
 varying float vFrame;
@@ -649,7 +886,9 @@ void main() {
   vec4 t = texture2D(uMap, uv);
   float a = t.a * vAlpha * border;
   if (a < 0.004) discard;
-  gl_FragColor = vec4(vColor * t.rgb, a);
+  // colorize: keep the image's light and shade, paint it in the particle colour
+  vec3 rgb = uColorize > 0.5 ? vColor * dot(t.rgb, vec3(0.299, 0.587, 0.114)) : vColor * t.rgb;
+  gl_FragColor = vec4(rgb, a);
 }`;
 
 const hexCache = new Map();
@@ -679,7 +918,7 @@ function sampleGradient(stops, t, out) {
 }
 
 class PointCloud {
-  constructor(capacity, texture, blend, frames = 1) {
+  constructor(capacity, texture, blend, frames = 1, colorize = false) {
     this.capacity = capacity;
     this.frames = frames;
     const geo = new THREE.BufferGeometry();
@@ -698,7 +937,7 @@ class PointCloud {
     geo.setDrawRange(0, 0);
     this.geometry = geo;
     this.material = new THREE.ShaderMaterial({
-      uniforms: { uMap: { value: texture }, uScale: { value: 500 }, uGrid: { value: frames > 1 ? 2 : 1 } },
+      uniforms: { uMap: { value: texture }, uScale: { value: 500 }, uGrid: { value: frames > 1 ? 2 : 1 }, uColorize: { value: colorize ? 1 : 0 } },
       vertexShader: VERTEX,
       fragmentShader: FRAGMENT,
       transparent: true,
@@ -742,7 +981,7 @@ class Layer {
     this.def = def;
     this.unit = unit;
     const tex = TEXTURES[def.tex];
-    this.cloud = new PointCloud(420, tex ?? TEXTURES.glow, def.blend, tex ? (FRAMES[def.tex] ?? 1) : 1);
+    this.cloud = new PointCloud(420, tex ?? TEXTURES.glow, def.blend, tex ? (FRAMES[def.tex] ?? 1) : 1, !!def.colorize);
     this.texSize = tex && FRAMES[def.tex] ? (SPRITE_SIZE[def.tex] ?? 1) : 1;
     this.parts = [];
     this.carry = 0;
@@ -805,7 +1044,7 @@ class Layer {
         const z = o.helix ? Math.sin(p.orbitAngle * 0.5) * u * 0.8 * p.helixSign : o.flat ? 0 : p.orbitZ;
         p.x = diePos[0] + Math.cos(p.orbitAngle) * r;
         p.y = diePos[1] + Math.sin(p.orbitAngle) * r;
-        p.z = diePos[2] + z + (o.rise ?? 0) * u * p.age;
+        p.z = diePos[2] + z + (o.lift ?? 0) * u + (o.rise ?? 0) * u * p.age;   // lift: hover above the die
       } else {
         if (d.inward || d.swirl) {
           const dx = diePos[0] - p.x, dy = diePos[1] - p.y, dz = diePos[2] - p.z;
@@ -1166,18 +1405,22 @@ class Ribbon {
   }
 }
 
-class DieEmitter {
-  constructor(box, group, mesh, type) {
+/**
+ * Everything drawn for one die: the streaks, particles, auras and arcs of an effect definition
+ * ({ribbons, layers, aura | auras, arcs} - a damage type's from EFFECTS, or a compiled custom trail).
+ */
+export class DieEmitter {
+  constructor(box, group, mesh, def) {
     this.box = box;
     this.group = group;
     this.mesh = mesh;
-    this.type = type;
-    const def = EFFECTS[type];
     this.unit = dieRadius(mesh, group);
+    const auras = def.auras ?? (def.aura ? [def.aura] : []);
+    const arcs = Array.isArray(def.arcs) ? def.arcs : def.arcs ? [def.arcs] : [];
     this.layers = (def.layers ?? []).map(l => new Layer(l, this.unit));
     this.ribbons = (def.ribbons ?? []).map(r => new Ribbon(r, this.unit));
-    this.aura = def.aura ? new Aura(def.aura, this.unit) : null;
-    this.arcs = def.arcs ? new Arcs(def.arcs, this.unit) : null;
+    this.auras = auras.map(a => new Aura(a, this.unit));
+    this.arcs = arcs.map(a => new Arcs(a, this.unit));
     this.lastPos = null;
     this.vel = [0, 0, 0];
     this.still = 0;
@@ -1185,9 +1428,9 @@ class DieEmitter {
     this.alive = true;
     const scene = box.scene;
     for (const r of this.ribbons) scene.add(r.mesh);
-    this.aura?.addTo(scene);
+    for (const a of this.auras) a.addTo(scene);
     for (const l of this.layers) scene.add(l.cloud.points);
-    if (this.arcs) scene.add(this.arcs.lines);
+    for (const a of this.arcs) scene.add(a.lines);
   }
 
   get attached() {
@@ -1223,17 +1466,19 @@ class DieEmitter {
       live += l.update(dt, pos, this.vel, factor, scale, sizeMul);
     }
     const auraStrength = resting ? (afterglow ? 0.7 : 0) : 1;
-    if (this.aura) this.aura.update(dt, pos, auraStrength, scale, sizeMul, intensity);
-    if (this.arcs) live += this.arcs.update(dt, pos, !resting || afterglow, resting, sizeMul);
-    if (this.aura && this.aura.level > 0.02) live++;
+    for (const a of this.auras) {
+      a.update(dt, pos, auraStrength, scale, sizeMul, intensity);
+      if (a.level > 0.02) live++;
+    }
+    for (const a of this.arcs) live += a.update(dt, pos, !resting || afterglow, resting, sizeMul);
     return live;
   }
 
   dispose() {
     for (const r of this.ribbons) r.dispose();
     for (const l of this.layers) l.cloud.dispose();
-    this.aura?.dispose();
-    this.arcs?.dispose();
+    for (const a of this.auras) a.dispose();
+    for (const a of this.arcs) a.dispose();
   }
 }
 
@@ -1277,10 +1522,13 @@ function tick() {
   // Find newly spawned, tagged dice
   for (const child of box.scene.children) {
     const mesh = child.children?.[0];
-    const type = mesh?.options?.[TAG];
-    if (!type || !EFFECTS[type] || mesh.sim === undefined) continue;
+    if (!mesh?.options?.[TAG] || mesh.sim === undefined) continue;
     const key = mesh.uuid;
-    if (!emitters.has(key)) emitters.set(key, new DieEmitter(box, child, mesh, type));
+    if (emitters.has(key)) continue;
+    const effect = effectForDie(mesh);
+    if (!effect) continue;
+    if (effect.cfg && !customTexturesReady(effect.cfg)) { loadCustomTextures(effect.cfg); continue; }   // next tick
+    emitters.set(key, new DieEmitter(box, child, mesh, effect.def));
   }
 
   if (!emitters.size) return;
@@ -1318,22 +1566,53 @@ function pointScale(box) {
 /*  Preview                                                                 */
 /* ======================================================================== */
 
+/**
+ * Roll dice on the table with a trail: a damage type by name ("fire"), or a custom trail
+ * ({layers: [...]}) as the editor builds them.
+ */
 async function preview(type = "fire", formula = "2d6") {
+  if (type && typeof type === "object") return previewTrail(type, formula);
   const key = normalizeType(type);
   if (!key) {
     ui.notifications.warn(`${MODULE_ID}: unknown damage type "${type}". Known: ${Object.keys(EFFECTS).join(", ")}`);
     return;
   }
+  return rollTagged(formula, { [TAG]: key });
+}
+
+/** Roll dice on the table with a custom trail (the editor's "Test roll"). */
+export async function previewTrail(cfg, formula = "1d20") {
+  setPreviewEffect(cfg);
+  await loadThree();
+  await loadCustomTextures(cfg);
+  return rollTagged(formula, { [TAG]: "preview" });
+}
+
+async function rollTagged(formula, options) {
   if (!game.dice3d) {
     ui.notifications.warn(`${MODULE_ID}: Dice So Nice is not active.`);
     return;
   }
   await loadThree();
   const roll = await new Roll(formula).evaluate();
-  for (const d of roll.dice) d.options[TAG] = key;
+  for (const d of roll.dice) Object.assign(d.options, options);
   startTicker();
   return game.dice3d.showForRoll(roll, game.user, false);
 }
+
+/** What the editor's live preview needs from this file. */
+export function renderContext() {
+  return {
+    THREE,
+    DieEmitter,
+    pointScale,
+    intensity: Number(game.settings.get(MODULE_ID, "intensity") ?? 1) || 1,
+    sizeMul: (Number(game.settings.get(MODULE_ID, "size") ?? 1) || 1) * BASE_WIDTH,
+    afterglow: game.settings.get(MODULE_ID, "afterglow") ?? true
+  };
+}
+
+export { loadThree };
 
 async function previewAll(formula = "1d8") {
   for (const type of Object.keys(EFFECTS)) {
