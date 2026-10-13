@@ -17,7 +17,8 @@
  */
 
 export const CUSTOM = "custom";
-export const MAX_LAYERS = 4;
+/** How many effects a trail can stack. Every layer is drawn in full, so many busy layers cost frames. */
+export const MAX_LAYERS = 20;
 
 /** The kinds of roll a trail can be given to. Damage and healing rolls keep their damage type trails. */
 export const KINDS = ["attack", "check", "save", "death", "initiative", "other"];

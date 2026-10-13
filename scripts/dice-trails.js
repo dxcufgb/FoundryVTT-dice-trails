@@ -1463,6 +1463,7 @@ export class DieEmitter {
     this.sound = box.silent ? null : DieSound.for(def);
     this.moveVel = null;      // velocity over the last two moved frames, in die radii per second
     this.sinceMove = 0;
+    this.wasResting = false;
     const scene = box.scene;
     for (const r of this.ribbons) scene.add(r.mesh);
     for (const a of this.auras) a.addTo(scene);
@@ -1501,6 +1502,9 @@ export class DieEmitter {
     const speed = Math.hypot(this.vel[0], this.vel[1], this.vel[2]) / this.unit;  // die radii per second
     this.still = speed < 0.6 ? this.still + dt : 0;
     const resting = this.still > 0.35 || this.box.rolling === false;
+    // A die that slides to rest sends no final zero-velocity sample: the moment it comes to rest is its landing.
+    if (resting && !this.wasResting && impact === 0 && this.moveVel) impact = bounceStrength(this.moveVel, [0, 0, 0]);
+    this.wasResting = resting;
     if (this.sound) {
       const moveSpeed = this.moveVel ? Math.hypot(this.moveVel[0], this.moveVel[1], this.moveVel[2]) : 0;
       this.sound.update(dt, moveSpeed, impact, resting);
