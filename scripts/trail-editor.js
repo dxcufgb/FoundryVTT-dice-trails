@@ -68,8 +68,9 @@ export class TrailPreview {
     this.group.add(this.mesh);
     this.scene.add(this.group);
 
+    // silent: the preview would loop its sound forever while you design; the Test roll plays it.
     this.box = { scene: this.scene, camera: this.camera, renderer: this.renderer, rolling: true, isVisible: true,
-                 renderScene: () => this.render() };
+                 silent: true, renderScene: () => this.render() };
     this.emitter = null;
     this.t = Math.random() * 5;
     this.last = performance.now();

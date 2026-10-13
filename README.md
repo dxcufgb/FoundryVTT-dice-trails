@@ -64,7 +64,7 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Knives | Steel, Assassin, Gilded, Spectral |
   | Orbiting Stones | Granite, Sandstone, Obsidian, Jade |
 
-- **Layers: combine effects into one trail.** Stack up to 4 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them.
+- **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
 - **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
 - **Fine-tune every layer:** width, length, speed, opacity, number of particles, and an own colour instead of the style's.
 - **Effects for every layer:** *Glow* (an aura around the die), *Pulse* (a beat along the streak and aura), *Sparkle* (glints) and *Wave* (a weaving motion).
@@ -85,12 +85,25 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
 - **Saved trails:** save the whole stack under a name and load it again later.
 - **Export / import:** **Export to file** saves the trail in the editor as a single `.dice-trail.json` file, with every image of your own packed inside it. **Import from file** in any other world or Foundry adds those images to that world (in `worlds/<world>/dxcufgbs-dice-trails/imported/`, each image only once), loads the trail into the editor and adds it to your saved trails. Importing images needs permission to upload files; otherwise ask the GM to import it. PNG, WebP, JPEG, GIF and AVIF images are packed; SVG images and web addresses that don't allow it are kept as links only.
 
+## Sound effects
+
+Every trail sounds like its element, in two parts:
+
+- **While the die flies:** a quiet loop that follows the die's speed, so a fast die roars, crackles or hums and the sound dies away as it slows: a fire crackles, frost whistles with glinting ice, lightning buzzes, thunder rumbles, acid sizzles, necrotic drones and moans, radiant shimmers, a comet whooshes, the Bard's Song plays a tune, and so on.
+- **When the die bounces:** the moment a die hits the table, a wall or another die, its trail bursts out loud: a flame burst, an ice crack, a lightning zap, a thunder boom, a stone thud, a blade clang, a bell chime, a splash, ... The harder the impact, the louder and deeper the hit, and the loop swells with it, so the bounces are what you hear most. The final landing counts as a (soft) bounce too.
+
+Every damage type and every design has its own sound theme (the Flame design sounds like fire damage, Frost like cold, Storm like lightning, Orbiting Stones like bludgeoning, Knives like slashing, Arcane Ward like temporary HP, ...). A trail with several layers plays all of their themes, each as loud as its layer's opacity; a layer made of your own image is silent. The sounds play on Foundry's **Interface** audio channel, so that volume slider applies on top of the module's own **Sound volume** setting, and you can switch them off with **Trail sounds**. The live preview in the Dice trails window is silent (it would loop forever while you design); **Test roll** plays the sound on the table.
+
+All sounds are the module's own: `tools/make-sounds.py` synthesizes them from noise, sine waves, filters and envelopes, with no recordings or third-party samples, and they are dedicated to the public domain (CC0 1.0), see [sounds/LICENSE-CC0-generated.txt](sounds/LICENSE-CC0-generated.txt).
+
 ## Settings (per user)
 
 - **Show dice trails**: on/off.
 - **Trail intensity** (0.25–2): how bright, long and busy the trails are. Lower it if rolls stutter.
 - **Trail width** (0.25–2): how wide the streaks, glow and particles are. The default is a narrow streak about as wide as the die.
 - **Keep glowing after landing**: dice keep a faint aura on the table.
+- **Trail sounds**: on/off.
+- **Sound volume** (0–2): how loud the trail sounds are, on top of Foundry's Interface volume.
 - **Your trails for regular rolls**: opens the Dice trails window.
 - **Show other players' trails**: show the trails the other players designed on their rolls.
 
@@ -110,6 +123,7 @@ api.setTrail(["check", "save"], cfg);                         // several kinds a
 api.clearTrail("attack");
 api.trails();                                                 // your trails by kind; api.trails(user) another user's
 api.designs; api.kinds; api.types;                            // designs and styles, kinds of roll, damage types
+api.sounds; api.playSound("thunder", 1);                      // the sound themes; play one's bounce hit (strength 0-1)
 api.presets();                                                // your saved trails
 await api.exportTrail(cfg, "My trail");                       // download it as one file, images included
 const { name, cfg } = await api.importTrail(file);            // read such a file (a File or its text)
@@ -119,7 +133,9 @@ const { name, cfg } = await api.importTrail(file);            // read such a fil
 
 Code: [MIT](LICENSE).
 
-Particle and streak textures in `textures/`: the Kenney sprites (bolts, debris, flames, heart, ring, rune, slashes, smoke, stars, strips, twirls) are from the [Particle Pack](https://kenney.nl/assets/particle-pack) by Kenney (www.kenney.nl), [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain), see [textures/LICENSE-Kenney.txt](textures/LICENSE-Kenney.txt). The leaves, petals, snowflakes, notes, glyphs, knives, stones, flares, bubbles, drops and skulls are drawn by the module's own script (`tools/make-textures.py`) and dedicated to the public domain too (CC0 1.0), see [textures/LICENSE-CC0-generated.txt](textures/LICENSE-CC0-generated.txt). Everything is free to use, change and share.
+Particle and streak textures in `textures/`: the Kenney sprites (bolts, debris, flames, heart, ring, rune, slashes, smoke, stars, strips, twirls) are from the [Particle Pack](https://kenney.nl/assets/particle-pack) by Kenney (www.kenney.nl), [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain), see [textures/LICENSE-Kenney.txt](textures/LICENSE-Kenney.txt). The leaves, petals, snowflakes, notes, glyphs, knives, stones, flares, bubbles, drops and skulls are drawn by the module's own script (`tools/make-textures.py`) and dedicated to the public domain too (CC0 1.0), see [textures/LICENSE-CC0-generated.txt](textures/LICENSE-CC0-generated.txt).
+
+Sound effects in `sounds/`: synthesized by the module's own script (`tools/make-sounds.py`), no recordings or third-party samples, dedicated to the public domain (CC0 1.0), see [sounds/LICENSE-CC0-generated.txt](sounds/LICENSE-CC0-generated.txt). Everything is free to use, change and share.
 
 ## Releasing
 

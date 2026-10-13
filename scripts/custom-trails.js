@@ -17,7 +17,8 @@
  */
 
 export const CUSTOM = "custom";
-export const MAX_LAYERS = 4;
+/** How many effects a trail can stack. Every layer is drawn in full, so many busy layers cost frames. */
+export const MAX_LAYERS = 20;
 
 /** The kinds of roll a trail can be given to. Damage and healing rolls keep their damage type trails. */
 export const KINDS = ["attack", "check", "save", "death", "initiative", "other"];
@@ -28,11 +29,12 @@ export const KINDS = ["attack", "check", "save", "death", "initiative", "other"]
 /*
  * colors: [bright, main, dark]. Each design's `build(p, s)` returns the parts of an effect
  * (ribbons, layers, auras, arcs) in the renderer's format, using the palette p and the style s.
- * Sizes are in die radii, see the renderer for the fields.
+ * Sizes are in die radii, see the renderer for the fields. `sound` names the design's sound theme
+ * (trail-sounds.js): a loop while the die flies and a hit when it bounces.
  */
 export const DESIGNS = {
   flame: {
-    label: "Flame", icon: "fa-solid fa-fire",
+    label: "Flame", icon: "fa-solid fa-fire", sound: "fire",
     styles: {
       fire: { label: "Fire", colors: ["#ffe08a", "#ff6a10", "#8a0a00"] },
       blue: { label: "Blue Flame", colors: ["#e8fbff", "#2a8aff", "#0a1a8a"] },
@@ -66,7 +68,7 @@ export const DESIGNS = {
   },
 
   frost: {
-    label: "Frost", icon: "fa-solid fa-snowflake",
+    label: "Frost", icon: "fa-solid fa-snowflake", sound: "frost",
     styles: {
       frost: { label: "Frost", colors: ["#ffffff", "#9ad8ff", "#1a4a7a"] },
       glacier: { label: "Glacier", colors: ["#e0ffff", "#3a9ad8", "#0a1a4a"] },
@@ -96,7 +98,7 @@ export const DESIGNS = {
   },
 
   storm: {
-    label: "Storm", icon: "fa-solid fa-bolt",
+    label: "Storm", icon: "fa-solid fa-bolt", sound: "lightning",
     styles: {
       thunder: { label: "Thunder", colors: ["#ffffff", "#6ab8ff", "#0a1a4a"] },
       arcane: { label: "Arcane", colors: ["#fff0ff", "#c05aff", "#2a0a4a"] },
@@ -122,7 +124,7 @@ export const DESIGNS = {
   },
 
   smoke: {
-    label: "Magic Smoke", icon: "fa-solid fa-smog",
+    label: "Magic Smoke", icon: "fa-solid fa-smog", sound: "smoke",
     styles: {
       arcane: { label: "Arcane", colors: ["#e8c8ff", "#9a4dff", "#2a0a5a"] },
       shadow: { label: "Shadow", colors: ["#5a4a6a", "#1a1422", "#050308"] },
@@ -149,7 +151,7 @@ export const DESIGNS = {
   },
 
   rays: {
-    label: "Sunbeam", icon: "fa-solid fa-sun",
+    label: "Sunbeam", icon: "fa-solid fa-sun", sound: "radiant",
     styles: {
       holy: { label: "Holy", colors: ["#ffffff", "#ffe89a", "#c89a2a"] },
       sun: { label: "Sunfire", colors: ["#fff4c0", "#ffa02a", "#c8400a"] },
@@ -174,7 +176,7 @@ export const DESIGNS = {
   },
 
   arcane: {
-    label: "Arcane", icon: "fa-solid fa-hat-wizard",
+    label: "Arcane", icon: "fa-solid fa-hat-wizard", sound: "force",
     styles: {
       arcane: { label: "Arcane", colors: ["#e0f4ff", "#3a9aff", "#0a1a4a"] },
       fey: { label: "Fey", colors: ["#f0ffe8", "#5aff9a", "#0a3a2a"] },
@@ -200,7 +202,7 @@ export const DESIGNS = {
   },
 
   stardust: {
-    label: "Stardust", icon: "fa-solid fa-star",
+    label: "Stardust", icon: "fa-solid fa-star", sound: "stardust",
     styles: {
       stardust: { label: "Stardust", colors: ["#ffffff", "#9ad0ff", "#2a3a8a"] },
       fireflies: { label: "Fireflies", colors: ["#f0ffa0", "#b8e84a", "#3a5a0a"] },
@@ -228,7 +230,7 @@ export const DESIGNS = {
   },
 
   comet: {
-    label: "Comet", icon: "fa-solid fa-meteor",
+    label: "Comet", icon: "fa-solid fa-meteor", sound: "comet",
     styles: {
       silver: { label: "Silver", colors: ["#ffffff", "#c8d8e8", "#3a4a5a"] },
       gold: { label: "Gold", colors: ["#fff8d0", "#ffc84a", "#4a3000"] },
@@ -255,7 +257,7 @@ export const DESIGNS = {
   },
 
   rainbow: {
-    label: "Rainbow", icon: "fa-solid fa-rainbow",
+    label: "Rainbow", icon: "fa-solid fa-rainbow", sound: "rainbow",
     styles: {
       prism: { label: "Prism", colors: ["#ff4a4a", "#4aff6a", "#4a8aff"] },
       pastel: { label: "Pastel", colors: ["#ffb3c6", "#c8ffb3", "#b3d9ff"] },
@@ -279,7 +281,7 @@ export const DESIGNS = {
   },
 
   necrotic: {
-    label: "Necrotic", icon: "fa-solid fa-skull",
+    label: "Necrotic", icon: "fa-solid fa-skull", sound: "necrotic",
     styles: {
       necrotic: { label: "Necrotic", colors: ["#c8ff8a", "#3affb0", "#050008"] },
       shadow: { label: "Shadow", colors: ["#c8a8ff", "#4a2a7a", "#050308"] },
@@ -311,7 +313,7 @@ export const DESIGNS = {
   },
 
   tide: {
-    label: "Tide", icon: "fa-solid fa-water",
+    label: "Tide", icon: "fa-solid fa-water", sound: "tide",
     styles: {
       ocean: { label: "Ocean", colors: ["#e0ffff", "#1a8ad8", "#06204a"] },
       tropical: { label: "Tropical", colors: ["#f0fff8", "#1ad8c0", "#04404a"] },
@@ -340,7 +342,7 @@ export const DESIGNS = {
   },
 
   ward: {
-    label: "Arcane Ward", icon: "fa-solid fa-shield-halved",
+    label: "Arcane Ward", icon: "fa-solid fa-shield-halved", sound: "ward",
     styles: {
       arcane: { label: "Arcane", colors: ["#e8f8ff", "#3a9aff", "#0a1a4a"] },
       holy: { label: "Holy", colors: ["#fffbe0", "#ffc83a", "#4a3000"] },
@@ -366,7 +368,7 @@ export const DESIGNS = {
   },
 
   charm: {
-    label: "Charm", icon: "fa-solid fa-heart",
+    label: "Charm", icon: "fa-solid fa-heart", sound: "charm",
     styles: {
       rose: { label: "Rose", colors: ["#ffe0ec", "#ff4a8a", "#4a0020"] },
       lovesick: { label: "Lovesick", colors: ["#f8e0ff", "#b04aff", "#2a0040"] },
@@ -393,7 +395,7 @@ export const DESIGNS = {
   },
 
   petals: {
-    label: "Leaves & Petals", icon: "fa-solid fa-seedling",
+    label: "Leaves & Petals", icon: "fa-solid fa-seedling", sound: "petals",
     styles: {
       blossom: { label: "Cherry Blossom", colors: ["#ffe8f4", "#ff9ac8", "#8a2a5a"], tex: "petals" },
       autumn: { label: "Autumn Leaves", colors: ["#ffe0a0", "#e8801c", "#5a2a0a"], tex: "leaves" },
@@ -418,7 +420,7 @@ export const DESIGNS = {
   },
 
   song: {
-    label: "Bard's Song", icon: "fa-solid fa-music",
+    label: "Bard's Song", icon: "fa-solid fa-music", sound: "song",
     styles: {
       golden: { label: "Golden", colors: ["#fff8d0", "#ffc84a", "#4a3000"] },
       silver: { label: "Silver", colors: ["#ffffff", "#c8d8e8", "#3a4a5a"] },
@@ -445,7 +447,7 @@ export const DESIGNS = {
   },
 
   blades: {
-    label: "Knives", icon: "fa-solid fa-khanda",
+    label: "Knives", icon: "fa-solid fa-khanda", sound: "blade",
     styles: {
       steel: { label: "Steel", colors: ["#ffffff", "#a8b0bc", "#2a2e36"] },
       assassin: { label: "Assassin", colors: ["#ff5a5a", "#6a6a74", "#08080a"] },
@@ -472,7 +474,7 @@ export const DESIGNS = {
   },
 
   stones: {
-    label: "Orbiting Stones", icon: "fa-solid fa-mountain",
+    label: "Orbiting Stones", icon: "fa-solid fa-mountain", sound: "stone",
     styles: {
       granite: { label: "Granite", colors: ["#d8d8d0", "#8a8a84", "#2a2a28"] },
       sandstone: { label: "Sandstone", colors: ["#fff0c8", "#d8a868", "#4a3010"] },
@@ -706,7 +708,7 @@ function buildCustom(l) {
  */
 export function compileTrail(cfg) {
   const trail = normalizeConfig(cfg);
-  const out = { ribbons: [], layers: [], auras: [], arcs: [] };
+  const out = { ribbons: [], layers: [], auras: [], arcs: [], sounds: [] };
   for (const l of trail.layers) {
     let parts;
     if (l.design === CUSTOM) {
@@ -717,6 +719,8 @@ export function compileTrail(cfg) {
       const p = palette(l);
       parts = design.build(p, l.style, design.styles[l.style]);
       parts.glowColor = p.main;
+      // The design's sound, as loud as the layer is opaque (an image of your own is silent).
+      if (design.sound) out.sounds.push({ theme: design.sound, gain: l.alpha });
     }
     const t = tune(parts, l);
     out.ribbons.push(...t.ribbons);

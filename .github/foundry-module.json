@@ -1,3 +1,13 @@
 {
-  "include": ["module.json", "LICENSE", "README.md", "lang", "scripts", "styles", "templates", "textures"]
+  "include": [
+    "module.json",
+    "LICENSE",
+    "README.md",
+    "lang",
+    "scripts",
+    "styles",
+    "templates",
+    "textures",
+    "sounds"
+  ]
 }
