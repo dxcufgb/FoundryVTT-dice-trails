@@ -1,0 +1,10 @@
+The sound files in this folder (<theme>-loop.ogg and <theme>-hit.ogg) are synthesized from scratch
+by this module's own script (tools/make-sounds.py) out of noise, sine waves, filters and envelopes.
+No recordings and no third-party samples went into them. They are dedicated to the public domain
+under Creative Commons Zero (CC0 1.0):
+http://creativecommons.org/publicdomain/zero/1.0/
+
+  fire, frost, lightning, thunder, acid, poison, necrotic, radiant, force, psychic, stone, needle,
+  blade, healing, ward, smoke, stardust, comet, rainbow, tide, charm, petals, song
+
+You may use, change and share them in personal and commercial projects without asking.

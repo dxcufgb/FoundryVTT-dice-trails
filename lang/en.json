@@ -17,6 +17,14 @@
         "Name": "Keep glowing after landing",
         "Hint": "Dice keep a faint aura and a few particles while they lie on the table, as if still charged."
       },
+      "Sounds": {
+        "Name": "Trail sounds",
+        "Hint": "Every trail sounds like its element: a quiet crackle, hum or whoosh while the die flies, and a loud burst, crack or clang whenever it bounces or lands. Plays on the Interface audio channel."
+      },
+      "SoundVolume": {
+        "Name": "Sound volume",
+        "Hint": "How loud the trail sounds are, on top of Foundry's Interface volume slider. 0 is silent."
+      },
       "Editor": {
         "Name": "Your trails for regular rolls",
         "Label": "Open the Dice trails window",

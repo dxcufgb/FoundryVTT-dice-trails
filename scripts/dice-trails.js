@@ -18,6 +18,10 @@
  *
  * Particle sprites: Kenney Particle Pack (CC0, www.kenney.nl), see textures/.
  *
+ * Sound: every trail has a sound theme (EFFECTS[type].sound, DESIGNS[design].sound): a quiet loop
+ * while the die flies, and a loud hit whenever it bounces (detected from its velocity in
+ * DieEmitter.update) or lands. See trail-sounds.js; the files in sounds/ are the module's own (CC0).
+ *
  * Custom trails for regular rolls (attacks, checks, saves, initiative, ...): every user designs
  * their own in the "Dice trails" window (Configure Settings -> Dxcufgb's damage dice trails, or the
  * button in the Token Controls) out of layers (Flame, Frost, Storm, Comet, ..., or an image of
@@ -35,6 +39,7 @@ import { MODULE_ID, TAG, TAG_KIND, TAG_USER, FLAG_PRESETS, FLAG_TRAILS } from ".
 import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } from "./custom-trails.js";
 import { DiceTrailsEditor } from "./trail-editor.js";
 import { exportTrail, importTrail } from "./transfer.js";
+import { DieSound, THEMES, bounceStrength, beginSoundFrame, endSoundFrame, playHit, preloadSounds, soundsOn, stopAllSounds } from "./trail-sounds.js";
 
 export { MODULE_ID };
 
@@ -92,6 +97,7 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
 const EFFECTS = {
   // Signature: a real flame tail, orange all the way, with licking flame tongues, embers and smoke.
   fire: {
+    sound: "fire",
     aura: { color: "#ff6a00", size: 3.0, alpha: 0.6, pulse: 0.14, flicker: 0.3 },
     ribbons: [
       // Smoke trailing far behind the flames
@@ -122,6 +128,7 @@ const EFFECTS = {
 
   // Signature: pale icy streak in freezing mist, falling ice shards and snow glints.
   cold: {
+    sound: "frost",
     aura: { color: "#bff4ff", size: 3.0, alpha: 0.5, pulse: 0.06 },
     ribbons: [
       // Freezing mist
@@ -145,6 +152,7 @@ const EFFECTS = {
 
   // Signature: a thin, violently jagged bolt with arcs jumping off the die, crackling blue.
   lightning: {
+    sound: "lightning",
     aura: { color: "#6fb4ff", size: 3.3, alpha: 0.6, pulse: 0.05, flicker: 0.7 },
     arcs: { color: "#cfe8ff", every: 0.04, count: 3, reach: [1.6, 3.4], restCount: 1 },
     ribbons: [
@@ -166,6 +174,7 @@ const EFFECTS = {
 
   // Signature: a dark indigo roar with big white shockwave rings bursting off the die.
   thunder: {
+    sound: "thunder",
     aura: { color: "#4a4dff", size: 3.2, alpha: 0.45, pulse: 0.35, pulseSpeed: 10 },
     ribbons: [
       { width: 2.4, time: 0.5, blend: "add", alpha: 0.9, colors: ["#b8bcff", "#4a4dff", "#14106a"],
@@ -184,6 +193,7 @@ const EFFECTS = {
 
   // Signature: neon yellow-green streak dripping sizzling droplets, caustic fumes.
   acid: {
+    sound: "acid",
     aura: { color: "#c8ff1a", size: 2.8, alpha: 0.45, pulse: 0.12 },
     ribbons: [
       // Caustic fumes
@@ -208,6 +218,7 @@ const EFFECTS = {
 
   // Signature: a thick, billowing green toxic cloud that lingers, sickly purple at the edges.
   poison: {
+    sound: "poison",
     aura: { color: "#3adf4a", size: 3.2, alpha: 0.35, pulse: 0.18, pulseSpeed: 2 },
     ribbons: [
       { width: 3.6, time: 1.1, blend: "normal", alpha: 0.6, colors: ["#4fd63a", "#2f8a2a", "#4b2a6a"],
@@ -227,6 +238,7 @@ const EFFECTS = {
 
   // Signature: black death-smoke pulled INTO the die, with ghostly green soul-wisps.
   necrotic: {
+    sound: "necrotic",
     aura: { color: "#050008", size: 3.6, alpha: 0.75, pulse: 0.12, pulseSpeed: 2.5, blend: "normal",
             inner: { color: "#3affb0", size: 1.5, alpha: 0.35 } },
     ribbons: [
@@ -250,6 +262,7 @@ const EFFECTS = {
 
   // Signature: a wide golden sunbeam with a white-gold core, bursting with star glints.
   radiant: {
+    sound: "radiant",
     aura: { color: "#ffe066", size: 4.0, alpha: 0.7, pulse: 0.15, pulseSpeed: 4 },
     ribbons: [
       { width: 3.4, time: 0.6, blend: "add", alpha: 0.5, colors: ["#fff0b0", "#ffc21a", "#ff8a00"],
@@ -267,6 +280,7 @@ const EFFECTS = {
 
   // Signature: magenta-violet arcane energy with arcane swirls orbiting the die.
   force: {
+    sound: "force",
     aura: { color: "#c04dff", size: 3.2, alpha: 0.55, pulse: 0.12, pulseSpeed: 5 },
     ribbons: [
       { width: 1.9, time: 0.5, blend: "add", alpha: 1, colors: ["#eab8ff", "#c04dff", "#4a0f9f"],
@@ -283,6 +297,7 @@ const EFFECTS = {
 
   // Signature: two hot-pink strands weaving around each other, with spinning mind-swirls.
   psychic: {
+    sound: "psychic",
     aura: { color: "#ff4fb8", size: 3.2, alpha: 0.5, pulse: 0.22, pulseSpeed: 3 },
     ribbons: [
       { width: 1.7, time: 0.6, blend: "add", alpha: 0.95, colors: ["#ffc8ea", "#ff4fb8", "#8a1a6a"],
@@ -301,6 +316,7 @@ const EFFECTS = {
 
   // Signature: a heavy dust cloud, flying rock chips and dust rings where it hits.
   bludgeoning: {
+    sound: "stone",
     aura: { color: "#c9a878", size: 2.4, alpha: 0.2, pulse: 0.05, blend: "normal" },
     ribbons: [
       { width: 3.0, time: 0.7, blend: "normal", alpha: 0.65, colors: ["#c8ae88", "#8a7456", "#4a3e30"],
@@ -321,6 +337,7 @@ const EFFECTS = {
 
   // Signature: a needle-thin, razor-straight silver streak with speed dashes and a glinting point.
   piercing: {
+    sound: "needle",
     aura: { color: "#dfe8ff", size: 1.8, alpha: 0.5, pulse: 0.05 },
     ribbons: [
       { width: 0.9, time: 0.45, blend: "add", alpha: 0.4, colors: ["#e6f0ff", "#9fb8e8", "#4a6aa8"],
@@ -341,6 +358,7 @@ const EFFECTS = {
 
   // Signature: crimson slash marks cutting the air around a silver-and-red swing.
   slashing: {
+    sound: "blade",
     aura: { color: "#ff2a2a", size: 2.6, alpha: 0.35, pulse: 0.08 },
     ribbons: [
       { width: 1.7, time: 0.45, blend: "add", alpha: 0.65, colors: ["#ff8a8a", "#ff1a1a", "#5a0000"],
@@ -363,6 +381,7 @@ const EFFECTS = {
 
   // Signature: soft green-gold life-light with little hearts rising from the die.
   healing: {
+    sound: "healing",
     aura: { color: "#7dffb0", size: 3.2, alpha: 0.5, pulse: 0.14, pulseSpeed: 2 },
     ribbons: [
       { width: 1.8, time: 0.65, blend: "add", alpha: 0.9, colors: ["#eaffc8", "#5dff9a", "#1fb86a"],
@@ -382,6 +401,7 @@ const EFFECTS = {
 
   // Signature: a steel-blue shield streak, with a turning ward-rune around the die and orbiting shards.
   temphp: {
+    sound: "ward",
     aura: { color: "#6fb8ff", size: 3.0, alpha: 0.45, pulse: 0.1 },
     ribbons: [
       { width: 1.6, time: 0.55, blend: "add", alpha: 0.9, colors: ["#d8ecff", "#6fb8ff", "#1f4fa8"],
@@ -431,6 +451,16 @@ Hooks.once("init", () => {
     name: "DXDT.Settings.Afterglow.Name", hint: "DXDT.Settings.Afterglow.Hint",
     scope: "client", config: true, type: Boolean, default: true
   });
+  game.settings.register(MODULE_ID, "sounds", {
+    name: "DXDT.Settings.Sounds.Name", hint: "DXDT.Settings.Sounds.Hint",
+    scope: "client", config: true, type: Boolean, default: true,
+    onChange: on => { if (!on) stopAllSounds(); else preloadSounds(); }
+  });
+  game.settings.register(MODULE_ID, "soundVolume", {
+    name: "DXDT.Settings.SoundVolume.Name", hint: "DXDT.Settings.SoundVolume.Hint",
+    scope: "client", config: true, type: Number, default: 1,
+    range: { min: 0, max: 2, step: 0.1 }
+  });
   game.settings.registerMenu(MODULE_ID, "editor", {
     name: "DXDT.Settings.Editor.Name", label: "DXDT.Settings.Editor.Label", hint: "DXDT.Settings.Editor.Hint",
     icon: "fa-solid fa-dice-d20", type: DiceTrailsEditor.Menu, restricted: false
@@ -445,6 +475,7 @@ Hooks.once("init", () => {
   if (mod) {
     mod.api = {
       preview, previewAll, types: Object.keys(EFFECTS),
+      sounds: THEMES, playSound: (theme, strength = 1) => playHit(theme, strength),
       open: () => DiceTrailsEditor.open(),
       designs: DESIGNS, kinds: KINDS,
       presets, savePreset, deletePreset, trails, setTrail, clearTrail, exportTrail, importTrail
@@ -469,6 +500,7 @@ Hooks.once("ready", async () => {
   try {
     await loadThree();
     startTicker();   // always on: rolls shown from other clients don't fire the start hook
+    if (soundsOn()) preloadSounds();
   } catch (err) {
     console.error(`${MODULE_ID} | could not load three.js from Dice So Nice`, err);
   }
@@ -1426,6 +1458,11 @@ export class DieEmitter {
     this.still = 0;
     this.emitting = true;
     this.alive = true;
+    // Sound: the effect's themes (none in the editor's silent preview). Bounces are read from the
+    // velocity between frames in which the die actually moved (Dice So Nice animates at its own rate).
+    this.sound = box.silent ? null : DieSound.for(def);
+    this.moveVel = null;      // velocity over the last two moved frames, in die radii per second
+    this.sinceMove = 0;
     const scene = box.scene;
     for (const r of this.ribbons) scene.add(r.mesh);
     for (const a of this.auras) a.addTo(scene);
@@ -1447,11 +1484,27 @@ export class DieEmitter {
     if (this.lastPos && dt > 0) {
       this.vel = [(pos[0] - this.lastPos[0]) / dt, (pos[1] - this.lastPos[1]) / dt, (pos[2] - this.lastPos[2]) / dt];
     }
+
+    // Bounce detection: velocity between frames in which the die moved, compared with the previous one.
+    let impact = 0;
+    this.sinceMove += dt;
+    const moved = !this.lastPos || pos[0] !== this.lastPos[0] || pos[1] !== this.lastPos[1] || pos[2] !== this.lastPos[2];
+    if (moved && this.lastPos && this.sinceMove > 0) {
+      const k = 1 / (this.unit * this.sinceMove);
+      const v = [(pos[0] - this.lastPos[0]) * k, (pos[1] - this.lastPos[1]) * k, (pos[2] - this.lastPos[2]) * k];
+      if (this.moveVel) impact = bounceStrength(this.moveVel, v);
+      this.moveVel = v;
+    }
+    if (moved) this.sinceMove = 0;
     this.lastPos = pos;
 
     const speed = Math.hypot(this.vel[0], this.vel[1], this.vel[2]) / this.unit;  // die radii per second
     this.still = speed < 0.6 ? this.still + dt : 0;
     const resting = this.still > 0.35 || this.box.rolling === false;
+    if (this.sound) {
+      const moveSpeed = this.moveVel ? Math.hypot(this.moveVel[0], this.moveVel[1], this.moveVel[2]) : 0;
+      this.sound.update(dt, moveSpeed, impact, resting);
+    }
 
     let rateFactor;
     if (!resting) rateFactor = intensity * (0.45 + 0.55 * Math.min(1, speed / 12));
@@ -1479,6 +1532,8 @@ export class DieEmitter {
     for (const l of this.layers) l.cloud.dispose();
     for (const a of this.auras) a.dispose();
     for (const a of this.arcs) a.dispose();
+    this.sound?.dispose();
+    this.sound = null;
   }
 }
 
@@ -1512,11 +1567,16 @@ function stopTicker() {
 }
 
 function tick() {
-  if (!game.settings.get(MODULE_ID, "enabled")) return;
-  const box = game.dice3d?.box;
   const now = performance.now();
   const dt = Math.min(0.05, (now - lastTime) / 1000);
   lastTime = now;
+  beginSoundFrame();
+  if (game.settings.get(MODULE_ID, "enabled")) tickDice(dt);
+  endSoundFrame(dt);   // the loops fade out and stop on their own once no die wants them
+}
+
+function tickDice(dt) {
+  const box = game.dice3d?.box;
   if (!box?.scene || !THREE) return;
 
   // Find newly spawned, tagged dice
