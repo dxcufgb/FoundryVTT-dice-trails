@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import wave
+import zlib
 
 import numpy as np
 
@@ -273,48 +274,90 @@ def whoosh(d, lo=200, hi=3000, peak=0.35, width=0.3):
 # ---------------------------------------------------------------------------
 
 
-def theme_fire():
-    d = LOOP
-    roar = highpass(lowpass(pink(d), 900, 1), 80) * (0.5 + 0.5 * smooth_random(d, 7))
-    crack = sprinkle(d, 70, crackle)
-    loop = roar * 0.9 + crack * 0.45
+def pop(f0=(250, 700), length=(0.008, 0.02), gain=(0.3, 1.0)):
+    """A wood pop in a fire: a tiny resonant knock with a bright snap on top."""
+    ln = rng.uniform(*length)
+    f = rng.uniform(*f0)
+    knock = sine(glide(f * 1.4, f, ln), ln) * decay(ln, ln / 3, 0.0003)
+    snap = highpass(white(ln), 3000) * decay(ln, ln / 6, 0.0002) * 0.6
+    return (knock + snap) * rng.uniform(*gain)
 
-    h = 0.8
-    burst = bandpass(white(h), 300, 6000) * decay(h, 0.1)
-    swell = whoosh(h, 150, 2500, peak=0.12, width=0.25)
-    thump = sine(glide(150, 55, h), h) * decay(h, 0.12)
-    cr = sprinkle(h, 35, crackle, density=lambda t: np.exp(-t / 0.25))
-    hit = burst * 0.8 + swell * 0.9 + thump * 0.8 + cr * 0.6
+
+def theme_fire():
+    """A real fire: a breathing roar of flame, hiss, and wood crackling and popping at every size."""
+    d = LOOP
+    flicker = (0.35 + 0.65 * smooth_random(d, 9)) * (0.6 + 0.4 * smooth_random(d, 2.5))   # fast licks over slow breathing
+    roar = highpass(lowpass(pink(d), 700, 1), 60) * flicker
+    hiss = bandpass(white(d), 2500, 9000, 1) * (0.3 + 0.7 * smooth_random(d, 6)) * 0.22
+    snaps = sprinkle(d, 110, lambda: crackle(2000, 10000, (0.003, 0.018), (0.15, 0.7)))   # small, constant crackle
+    pops = sprinkle(d, 14, lambda: pop((250, 700), (0.01, 0.025), (0.5, 1.0)))             # bigger pops now and then
+    loop = roar * 0.95 + hiss + snaps * 0.5 + pops * 0.8
+
+    # The hit: a flare-up, a "whumpf" of flame with a shower of crackles and pops.
+    h = 0.9
+    whumpf = lowpass(pink(h), 500) * envelope(h, 0.035, 0.03, 0.5, 1.4)
+    flare = whoosh(h, 200, 3500, peak=0.1, width=0.2) * 0.9
+    burst = bandpass(white(h), 1000, 8000) * decay(h, 0.08, 0.004) * 0.6
+    thump = sine(glide(140, 55, h), h) * decay(h, 0.1, 0.002) * 0.7
+    shower = sprinkle(h, 45, lambda: crackle(2000, 10000, (0.003, 0.018), (0.2, 0.8)), density=lambda t: np.exp(-t / 0.3))
+    bigpops = sprinkle(h, 7, lambda: pop((200, 600), (0.012, 0.03), (0.6, 1.0)), density=lambda t: np.exp(-t / 0.35))
+    hit = whumpf * 1.1 + flare + burst + thump + shower * 0.6 + bigpops * 0.9
     return loop, hit
 
 
-def theme_frost():
-    d = LOOP
-    wind = bandpass(white(d), 1500, 9000, 1) * (0.3 + 0.7 * smooth_random(d, 1.5)) * 0.5
-    glints = sprinkle(d, 26, lambda: ping((3000, 7000), (0.08, 0.3), (0.15, 0.5)))
-    shimmer = (sine(vibrato(2093, d, 0.4, 0.004), d) + sine(vibrato(3136, d, 0.3, 0.004), d)) * 0.06 * (0.5 + 0.5 * lfo(d, 0.7))
-    loop = reverb(wind + glints + shimmer, 0.4, 0.2, 0.25)
+def ice_crack(gain=(0.3, 1.0)):
+    """A crack running through ice: a sharp snap that rings glassy for a moment."""
+    ln = rng.uniform(0.04, 0.14)
+    snap = highpass(white(ln), 2500) * decay(ln, 0.004, 0.0002)
+    ring = partials(rng.uniform(1800, 3200), [1, 1.5, 2.3], [1, 0.4, 0.2], [ln / 3, ln / 4, ln / 5], ln, 0.0003) * 0.5
+    return (snap + ring) * rng.uniform(*gain)
 
-    h = 0.9
-    crack = highpass(white(h), 2500) * decay(h, 0.02, 0.0005)
-    glass = partials(1800, [1, 1.41, 2.27, 3.12, 4.5], [1, 0.7, 0.5, 0.35, 0.2], [0.4, 0.3, 0.22, 0.16, 0.1], h)
-    shards = sprinkle(h, 30, lambda: crackle(3000, 10000, (0.004, 0.015)), density=lambda t: np.exp(-t / 0.2))
-    hit = reverb(crack * 0.9 + glass * 0.7 + shards * 0.5, 0.5, 0.25, 0.3)
+
+def ice_pew(gain=(0.3, 0.8)):
+    """The chirp of a crack racing across a frozen lake: a tone that slides down as it spreads."""
+    ln = rng.uniform(0.12, 0.35)
+    f = rng.uniform(1800, 3500)
+    return sine(glide(f, f * 0.22, ln, 0.6), ln) * decay(ln, ln / 3, 0.002) * rng.uniform(*gain)
+
+
+def theme_frost():
+    """Crackling ice: crystals forming in a fine crackle, cracks snapping and ringing, and the odd lake-ice chirp."""
+    d = LOOP
+    freeze = sprinkle(d, 160, lambda: crackle(3000, 12000, (0.002, 0.008), (0.1, 0.45)))   # crystals forming
+    cracks = sprinkle(d, 26, ice_crack)
+    pews = sprinkle(d, 5, ice_pew)
+    chill = bandpass(white(d), 2000, 9000, 1) * (0.2 + 0.8 * smooth_random(d, 1.2)) * 0.18   # a cold wind
+    loop = reverb(freeze * 0.6 + cracks * 0.9 + pews * 0.7 + chill, 0.5, 0.25, 0.25)
+
+    # The hit: the ice breaks, a snap, the crack racing away, and a shower of shards.
+    h = 1.0
+    snap = white(h) * decay(h, 0.005, 0.0002)
+    crack = highpass(white(h), 2000) * decay(h, 0.03, 0.0003)
+    pew = sine(glide(3200, 600, h, 0.6), h) * decay(h, 0.1, 0.001) * 0.8
+    glass = partials(2200, [1, 1.41, 2.27, 3.12, 4.5], [1, 0.7, 0.5, 0.35, 0.2], [0.35, 0.28, 0.2, 0.15, 0.1], h)
+    shatter = sprinkle(h, 50, lambda: ice_crack((0.2, 0.7)), density=lambda t: np.exp(-t / 0.25))
+    body = lowpass(white(h), 400) * decay(h, 0.05, 0.001) * 0.5
+    hit = reverb(snap * 1.0 + crack * 0.9 + pew + glass * 0.6 + shatter * 0.6 + body, 0.6, 0.3, 0.3)
     return loop, hit
 
 
 def theme_lightning():
+    """A lightning rod: a taut, crackling charge in the air, and a strike that is all over in a blink."""
     d = LOOP
-    buzz = highpass(white(d), 600) * (0.4 + 0.6 * (lfo(d, 100) > 0)) * (0.5 + 0.5 * smooth_random(d, 9))
-    zaps = sprinkle(d, 40, lambda: crackle(2000, 12000, (0.003, 0.02), (0.4, 1.0)))
-    loop = buzz * 0.35 + zaps * 0.6
+    static = highpass(white(d), 3000) * smooth_random(d, 14) ** 2 * 0.5
+    hum = (sine(120, d) * 0.5 + sine(240, d) * 0.3 + sine(360, d) * 0.15) * (0.5 + 0.5 * smooth_random(d, 8)) * 0.2
+    arcs = sprinkle(d, 55, lambda: crackle(2500, 14000, (0.002, 0.012), (0.5, 1.0)))
+    loop = static + hum + arcs * 0.8
 
-    h = 0.7
-    crack = white(h) * decay(h, 0.012, 0.0003)
-    chirp = sine(glide(4000, 150, h, 0.5), h) * decay(h, 0.06, 0.0005)
-    tail = highpass(white(h), 1500) * decay(h, 0.09, 0.002) * (0.5 + 0.5 * (lfo(h, 90) > 0))
-    sparks = sprinkle(h, 25, lambda: crackle(3000, 12000, (0.003, 0.012)), density=lambda t: np.exp(-t / 0.15))
-    hit = reverb(crack * 1.0 + chirp * 0.6 + tail * 0.6 + sparks * 0.5, 0.6, 0.3, 0.3)
+    # The strike: everything happens in the first 20 ms, no reverb to smear it.
+    h = 0.45
+    snap = white(h) * decay(h, 0.004, 0.0002)                                   # the instantaneous full-band crack
+    edge = highpass(white(h), 2500) * decay(h, 0.018, 0.0002)                    # its sharp, bright edge
+    clap = lowpass(white(h), 350) * decay(h, 0.06, 0.0005)                       # the power: a tight low clap
+    sub = sine(glide(130, 45, h, 0.4), h) * decay(h, 0.07, 0.0005)               # the thump in the chest
+    rod = partials(3600, [1, 1.47, 2.09, 2.8], [1, 0.6, 0.4, 0.25], [0.09, 0.07, 0.05, 0.04], h, 0.0002)   # the rod rings for a blink
+    arc = highpass(white(h), 4000) * decay(h, 0.05, 0.001) * (0.5 + 0.5 * (lfo(h, 120) > 0))                # a short sizzle after
+    hit = soft_clip(snap * 1.3 + edge * 1.0 + clap * 1.2 + sub * 1.0 + rod * 0.5 + arc * 0.6, 1.6)
     return loop, hit
 
 
@@ -346,17 +389,35 @@ def theme_acid():
     return loop, hit
 
 
-def theme_poison():
-    d = LOOP
-    hiss = lowpass(pink(d), 2500, 1) * (0.3 + 0.7 * smooth_random(d, 2)) * 0.5
-    gurgle = sprinkle(d, 22, lambda: bubble((120, 420), 1.6, (0.06, 0.16), (0.3, 0.8)))
-    loop = lowpass(hiss + gurgle, 4000)
+def blub(f0=(90, 320), length=(0.05, 0.16), gain=(0.3, 1.0)):
+    """A thick liquid bubble: a round tone that rises as the bubble grows, then bursts with a wet plop."""
+    ln = rng.uniform(*length)
+    f = rng.uniform(*f0)
+    body = harmonics(glide(f, f * 1.9, ln, 1.4), ln, [1, 0.35, 0.12]) * envelope(ln, ln * 0.15, ln * 0.4, ln * 0.45, 1.3)
+    plop = bandpass(white(0.02), 400, 2500) * decay(0.02, 0.006, 0.0005) * 0.5
+    out = body
+    place(out, plop, ln * 0.88)
+    return out * rng.uniform(*gain)
 
-    h = 1.0
-    puff = lowpass(pink(h), 1800) * envelope(h, 0.03, 0.05, 0.8, 1.5)
-    blurp = sine(glide(220, 90, h, 0.7), h) * decay(h, 0.14, 0.01)
-    bubbles = sprinkle(h, 16, lambda: bubble((150, 500), 1.7, (0.05, 0.12)), density=lambda t: np.exp(-t / 0.35))
-    hit = puff * 1.0 + blurp * 0.7 + bubbles * 0.6
+
+def theme_poison():
+    """A cauldron: thick brew bubbling and blurping over a simmer, with wisps of steam."""
+    d = LOOP
+    simmer = lowpass(pink(d), 1200, 1) * (0.4 + 0.6 * smooth_random(d, 5)) * 0.3
+    steam = bandpass(white(d), 2500, 7000, 1) * (0.5 + 0.5 * lfo(d, 0.4)) ** 2 * 0.1
+    small = sprinkle(d, 40, lambda: blub((220, 520), (0.03, 0.07), (0.15, 0.5)))      # a fizz of small bubbles
+    medium = sprinkle(d, 22, lambda: blub((120, 300), (0.06, 0.13), (0.4, 0.9)))
+    big = sprinkle(d, 6, lambda: blub((70, 140), (0.14, 0.24), (0.7, 1.0)))           # the slow, fat blorps
+    loop = lowpass(simmer + steam + small + medium + big, 5000)
+
+    # The hit: the brew boils over, a wet surge of big bubbles and a gush of steam.
+    h = 1.1
+    surge = lowpass(pink(h), 900) * envelope(h, 0.03, 0.08, 0.9, 1.5) * 0.8
+    gush = bandpass(white(h), 2000, 7000, 1) * envelope(h, 0.02, 0.15, 0.8, 2) * 0.25
+    splash = bandpass(white(h), 300, 3000) * decay(h, 0.07, 0.003) * 0.7
+    blorps = sprinkle(h, 10, lambda: blub((70, 180), (0.1, 0.22), (0.6, 1.0)), hi=0.6)
+    fizz = sprinkle(h, 30, lambda: blub((200, 500), (0.03, 0.07), (0.2, 0.5)), density=lambda t: np.exp(-t / 0.4))
+    hit = lowpass(surge + gush + splash + blorps * 1.0 + fizz * 0.7, 6000)
     return loop, hit
 
 
@@ -471,20 +532,31 @@ def theme_blade():
     return loop, hit
 
 
-def theme_healing():
-    d = LOOP
-    pad = sum(sine(vibrato(f, d, 0.3 + i * 0.07, 0.003), d) * a for i, (f, a) in enumerate([(392, 0.4), (493.88, 0.35), (587.33, 0.3), (783.99, 0.2)]))
-    pad *= 0.3 * (0.7 + 0.3 * lfo(d, 1.8))
-    twinkle = sprinkle(d, 14, lambda: ping((2000, 5000), (0.15, 0.4), (0.08, 0.25)))
-    loop = reverb(pad + twinkle, 0.7, 0.4, 0.4)
+def choir(freq, d, voices=5, detune=0.004, vib=(4.5, 0.006)):
+    """A choir-like voice: several slightly detuned, vibrato-laden copies of a tone with vowel-like overtones."""
+    out = silence(d)
+    for v in range(voices):
+        f = freq * (1 + detune * (v - (voices - 1) / 2))
+        out += harmonics(vibrato(f, d, vib[0] + 0.3 * v, vib[1]), d, [1, 0.5, 0.25, 0.3, 0.12, 0.08])
+    return shape(out / voices, lambda f: np.exp(-((f - 900) / 700) ** 2) * 0.8 + 0.35)   # an "ah" formant
 
-    h = 1.2
-    notes = [523.25, 659.25, 783.99, 1046.5]
-    harp = silence(h)
-    for i, f in enumerate(notes):
-        place(harp, pluck(f, 0.9, 0.55, 0.5), i * 0.045, 0.7 - 0.1 * i)
-    glow = sine(glide(1046.5, 1318.5, h, 0.4), h) * envelope(h, 0.08, 0.05, 0.9, 1.5) * 0.15
-    hit = reverb(harp + glow, 0.8, 0.5, 0.4)
+
+def theme_healing():
+    """Holy light: a choir holding a bright major chord under a cathedral's reverb, and a chime of bells."""
+    d = LOOP
+    chord = [(261.63, 0.5), (392.0, 0.45), (523.25, 0.4), (659.25, 0.3), (783.99, 0.2)]     # C major, open voicing
+    pad = sum(choir(f, d) * a for f, a in chord) * 0.3 * (0.8 + 0.2 * lfo(d, 0.5))
+    halo = (sine(vibrato(1046.5, d, 0.4, 0.003), d) + sine(vibrato(1318.5, d, 0.3, 0.003), d) * 0.6) * 0.05 * (0.5 + 0.5 * lfo(d, 0.7, 1.0))
+    sparkle = sprinkle(d, 12, lambda: ping((3000, 7000), (0.2, 0.5), (0.05, 0.18)))
+    loop = reverb(pad + halo + sparkle, 1.5, 0.9, 0.5, 6000)
+
+    h = 1.8
+    bells = silence(h)
+    for i, f in enumerate([1046.5, 1318.5, 1568.0, 2093.0]):                       # a rising chime, C E G C
+        place(bells, partials(f, [1, 2.0, 2.98, 4.2], [1, 0.4, 0.25, 0.12], [0.9, 0.5, 0.3, 0.2], 1.4, 0.001), i * 0.07, 0.5 - 0.06 * i)
+    swell = sum(choir(f, h, 4) * a for f, a in [(523.25, 0.5), (659.25, 0.4), (783.99, 0.3)]) * envelope(h, 0.12, 0.25, 1.4, 1.6) * 0.5
+    light = highpass(white(h), 5000) * envelope(h, 0.05, 0.1, 0.8, 2) * 0.12
+    hit = reverb(bells * 0.9 + swell + light, 1.6, 1.0, 0.5, 6000)
     return loop, hit
 
 
@@ -664,7 +736,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     tmp = tempfile.mkdtemp()
     total = 0
+    global rng
     for name, make in THEMES.items():
+        rng = np.random.default_rng(zlib.crc32(name.encode()))   # per theme: changing one never changes the others' files
         loop, hit = make()
         loop = loopify(level(loop, 0.18, 0.8))      # quiet: it sits under the roll
         hit = fade(level(hit, 0.45, 0.95), 0.0, 0.03)  # loud: the bounce is the event
