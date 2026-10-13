@@ -7,13 +7,14 @@
 
 import { MODULE_ID, TAG } from "./constants.js";
 import {
-  DESIGNS, CUSTOM, MOTIONS, COLOR_MODES, KINDS, MAX_LAYERS, normalizeConfig, normalizeLayer, layerLabel, trailLabel, compileTrail
+  DESIGNS, CUSTOM, MOTIONS, COLOR_MODES, KINDS, SOUNDS, MAX_LAYERS, normalizeConfig, normalizeLayer, layerLabel, trailLabel, compileTrail
 } from "./custom-trails.js";
 import {
   loadThree, renderContext, loadCustomTextures, setPreviewEffect, previewTrail,
   trails, setTrail, clearTrail, presets, savePreset, deletePreset
 } from "./dice-trails.js";
 import { exportTrail, importTrail } from "./transfer.js";
+import { playHit } from "./trail-sounds.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -278,6 +279,14 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       useColor: !isCustom && !!layer.color,
       color: layer.color ?? "#8a5aff",
 
+      // Sound: the design's own (an image has none), none, or any theme
+      sounds: [
+        { id: "", label: game.i18n.localize(isCustom ? "DXDT.Sound.none" : "DXDT.Sound.auto"), selected: layer.sound == null },
+        ...(isCustom ? [] : [{ id: "none", label: game.i18n.localize("DXDT.Sound.none"), selected: layer.sound === "none" }]),
+        ...SOUNDS.map(id => ({ id, label: game.i18n.localize(`DXDT.Sound.${id}`), selected: layer.sound === id }))
+      ],
+      soundTheme: layer.sound ?? (isCustom ? null : design.sound),
+
       presets: saved.map(p => ({ id: p.id, name: p.name, selected: p.id === this.presetId })),
       hasPreset: !!this.presetId
     };
@@ -330,6 +339,21 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     html.querySelector("input[name=additive]")?.addEventListener("change", ev => {
       layer().blend = ev.currentTarget.checked ? "add" : "normal";
       this.#rebuildPreview();
+    });
+    // The sound: choosing one plays its bounce hit, and the "hear it" button plays the current one.
+    const currentSound = () => {
+      const l = layer();
+      return l.sound ?? (l.design === CUSTOM ? null : DESIGNS[l.design].sound);
+    };
+    html.querySelector("select[name=sound]")?.addEventListener("change", ev => {
+      layer().sound = ev.currentTarget.value || null;
+      const theme = currentSound();
+      if (theme && theme !== "none") playHit(theme, 1);
+      this.#rebuildPreview();
+    });
+    html.querySelector("button[name=playSound]")?.addEventListener("click", () => {
+      const theme = currentSound();
+      if (theme && theme !== "none") playHit(theme, 1);
     });
     html.querySelector("input[name=src]")?.addEventListener("change", ev => {
       layer().src = ev.currentTarget.value.trim();

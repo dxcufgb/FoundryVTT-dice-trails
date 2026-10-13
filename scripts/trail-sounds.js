@@ -15,18 +15,16 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { SOUNDS } from "./custom-trails.js";
 
-/** Every theme a trail can sound like. */
-export const THEMES = [
-  "fire", "frost", "lightning", "thunder", "acid", "poison", "necrotic", "radiant", "force", "psychic",
-  "stone", "needle", "blade", "healing", "ward", "smoke", "stardust", "comet", "rainbow", "tide",
-  "charm", "petals", "song"
-];
+/** Every theme a trail can sound like (the list lives with the trail data, so the editor can offer it). */
+export const THEMES = SOUNDS;
 
 /** Per-theme balance on top of the files: how loud its loop and its hit are relative to the others. */
 const BALANCE = {
   thunder: { loop: 1.0, hit: 1.15 },
-  lightning: { loop: 0.9, hit: 1.1 },
+  lightning: { loop: 0.8, hit: 1.3 },   // the strike: sharp and sudden, let it jump out
+  healing: { loop: 0.9, hit: 1.0 },
   stone: { loop: 0.9, hit: 1.1 },
   needle: { loop: 0.7, hit: 0.9 },
   petals: { loop: 0.8, hit: 0.8 },

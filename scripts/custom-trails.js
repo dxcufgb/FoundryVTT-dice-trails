@@ -9,6 +9,7 @@
  *   color                  an own colour instead of the style's (null: the style's colours)
  *   glow, pulse,           effects: an aura around the die, a pulse along the streak and aura,
  *   sparkle, wave          glints along the streak, a weaving motion
+ *   sound                  the layer's sound theme (SOUNDS), "none", or null: the design's own
  *   src, motion, count,    "custom" only: the image, how it moves, how many, how big,
  *   size, blend, colorMode additive blending, and whether it keeps its colours, is tinted or recoloured
  *
@@ -22,6 +23,16 @@ export const MAX_LAYERS = 20;
 
 /** The kinds of roll a trail can be given to. Damage and healing rolls keep their damage type trails. */
 export const KINDS = ["attack", "check", "save", "death", "initiative", "other"];
+
+/**
+ * The sound themes (sounds/<theme>-loop.ogg and -hit.ogg, see trail-sounds.js). A layer's `sound` is
+ * one of these, "none", or null for its design's own sound (an image of your own has none by default).
+ */
+export const SOUNDS = [
+  "fire", "frost", "lightning", "thunder", "acid", "poison", "necrotic", "radiant", "force", "psychic",
+  "stone", "needle", "blade", "healing", "ward", "smoke", "stardust", "comet", "rainbow", "tide",
+  "charm", "petals", "song"
+];
 
 /* ======================================================================== */
 /*  Designs                                                                 */
@@ -532,7 +543,7 @@ export const COLOR_MODES = ["original", "tint", "colorize"];
 
 export const LAYER_DEFAULTS = {
   design: "comet", style: "silver", scale: 1, length: 1, speed: 1, alpha: 1, density: 1, color: null,
-  glow: 0, pulse: 0, sparkle: 0, wave: 0
+  glow: 0, pulse: 0, sparkle: 0, wave: 0, sound: null
 };
 export const CUSTOM_DEFAULTS = { src: "", motion: "trail", count: 12, size: 0.8, blend: "add", colorMode: "original" };
 
@@ -558,6 +569,7 @@ export function normalizeLayer(layer = {}) {
   for (const k of Object.keys(LAYER_DEFAULTS)) c[k] = src[k] ?? LAYER_DEFAULTS[k];
   clampFields(c, RANGES, LAYER_DEFAULTS);
   if (c.color && !isHex(c.color)) c.color = null;
+  if (c.sound !== "none" && !SOUNDS.includes(c.sound)) c.sound = null;
   if (c.design === CUSTOM) {
     c.style = CUSTOM;
     for (const k of Object.keys(CUSTOM_DEFAULTS)) c[k] = src[k] ?? CUSTOM_DEFAULTS[k];
@@ -719,9 +731,10 @@ export function compileTrail(cfg) {
       const p = palette(l);
       parts = design.build(p, l.style, design.styles[l.style]);
       parts.glowColor = p.main;
-      // The design's sound, as loud as the layer is opaque (an image of your own is silent).
-      if (design.sound) out.sounds.push({ theme: design.sound, gain: l.alpha });
     }
+    // The layer's chosen sound, or its design's own, as loud as the layer is opaque.
+    const theme = l.sound ?? (l.design === CUSTOM ? null : DESIGNS[l.design].sound);
+    if (theme && theme !== "none") out.sounds.push({ theme, gain: l.alpha });
     const t = tune(parts, l);
     out.ribbons.push(...t.ribbons);
     out.layers.push(...t.layers);

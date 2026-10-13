@@ -134,6 +134,13 @@
         <output data-for="{{name}}">{{text}}</output>
         {{/each}}
       </div>
+
+      <h3>{{localize "DXDT.App.Sound"}} <small>{{localize "DXDT.App.SoundHint"}}</small></h3>
+      <div class="dxdt-sliders">
+        <label>{{localize "DXDT.App.Sound"}}</label>
+        <select name="sound">{{#each sounds}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+        <button type="button" name="playSound" class="dxdt-play" {{#unless soundTheme}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.PlaySoundHint'}}"><i class="fa-solid fa-volume-high"></i></button>
+      </div>
     </section>
   </div>
 
