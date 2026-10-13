@@ -15,13 +15,10 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { SOUNDS } from "./custom-trails.js";
 
-/** Every theme a trail can sound like. */
-export const THEMES = [
-  "fire", "frost", "lightning", "thunder", "acid", "poison", "necrotic", "radiant", "force", "psychic",
-  "stone", "needle", "blade", "healing", "ward", "smoke", "stardust", "comet", "rainbow", "tide",
-  "charm", "petals", "song"
-];
+/** Every theme a trail can sound like (the list lives with the trail data, so the editor can offer it). */
+export const THEMES = SOUNDS;
 
 /** Per-theme balance on top of the files: how loud its loop and its hit are relative to the others. */
 const BALANCE = {
