@@ -1,0 +1,145 @@
+<div class="dxdt-root">
+  <div class="dxdt-body">
+    <section class="dxdt-left">
+      <div class="dxdt-preview"></div>
+      <button type="button" class="dxdt-test" data-action="testRoll" data-tooltip="{{localize 'DXDT.App.TestRollHint'}}"><i class="fa-solid fa-dice-d20"></i> {{localize "DXDT.App.TestRoll"}}</button>
+      <p class="hint">{{localize "DXDT.App.PreviewHint"}}</p>
+
+      <h3>{{localize "DXDT.App.Rolls"}} <small>{{localize "DXDT.App.RollsHint"}}</small></h3>
+      <div class="dxdt-kinds">
+        {{#each kinds}}
+        <label class="dxdt-kind" data-tooltip="{{hint}}">
+          <input type="checkbox" name="kind" value="{{id}}" {{checked checked}}>
+          <span class="dxdt-kind-name">{{label}}</span>
+          <span class="dxdt-kind-trail {{#unless trail}}none{{/unless}}">{{#if trail}}{{trail}}{{else}}{{localize "DXDT.App.NoTrail"}}{{/if}}</span>
+          {{#if trail}}<button type="button" data-action="editKind" data-kind="{{id}}" data-tooltip="{{localize 'DXDT.App.EditKind'}}"><i class="fa-solid fa-pen"></i></button>{{/if}}
+        </label>
+        {{/each}}
+        <label class="dxdt-kind dxdt-all">
+          <input type="checkbox" name="allKinds" data-action="allKinds" {{checked allChecked}}>
+          <span class="dxdt-kind-name">{{localize "DXDT.App.AllKinds"}}</span>
+        </label>
+      </div>
+
+      <h3>{{localize "DXDT.App.SavedTrails"}}</h3>
+      <div class="dxdt-presets">
+        <select name="preset">
+          <option value="">{{#if presets.length}}{{localize "DXDT.App.PickSaved"}}{{else}}{{localize "DXDT.App.NoneSaved"}}{{/if}}</option>
+          {{#each presets}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
+        </select>
+        <button type="button" data-action="loadPreset" {{#unless hasPreset}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.LoadHint'}}"><i class="fa-solid fa-folder-open"></i></button>
+        <button type="button" data-action="savePreset" data-tooltip="{{localize 'DXDT.App.SaveHint'}}"><i class="fa-solid fa-floppy-disk"></i></button>
+        <button type="button" data-action="deletePreset" {{#unless hasPreset}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.DeleteHint'}}"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <p class="hint">{{localize "DXDT.App.SavedHint"}}</p>
+      <div class="dxdt-transfer">
+        <button type="button" data-action="exportTrail" data-tooltip="{{localize 'DXDT.Transfer.ExportHint'}}"><i class="fa-solid fa-file-export"></i> {{localize "DXDT.Transfer.Export"}}</button>
+        <button type="button" data-action="importTrail" data-tooltip="{{localize 'DXDT.Transfer.ImportHint'}}"><i class="fa-solid fa-file-import"></i> {{localize "DXDT.Transfer.Import"}}</button>
+        <input type="file" name="trailFile" accept=".json,application/json" hidden>
+      </div>
+    </section>
+
+    <section class="dxdt-right">
+      <h3>{{localize "DXDT.App.Layers"}} <small>{{localize "DXDT.App.LayersHint"}}</small></h3>
+      <div class="dxdt-layers">
+        {{#each layers}}
+        <button type="button" data-action="selectLayer" data-index="{{index}}" class="{{#if active}}active{{/if}}" data-tooltip="{{label}}">
+          {{#if thumb}}<img src="{{thumb}}" alt="">{{else}}<i class="{{icon}}"></i>{{/if}}<span>{{label}}</span>
+        </button>
+        {{/each}}
+        <button type="button" class="dxdt-add" data-action="addLayer" {{#unless canAddLayer}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.AddLayerHint'}}"><i class="fa-solid fa-plus"></i> {{localize "DXDT.App.AddLayer"}}</button>
+      </div>
+      <div class="dxdt-layer-tools">
+        <span>{{localize "DXDT.App.Editing" n=layerNumber of=layerCount}}</span>
+        <button type="button" data-action="moveLayer" data-dir="-1" {{#unless canMoveDown}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.MoveDown'}}"><i class="fa-solid fa-arrow-left"></i></button>
+        <button type="button" data-action="moveLayer" data-dir="1" {{#unless canMoveUp}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.MoveUp'}}"><i class="fa-solid fa-arrow-right"></i></button>
+        <button type="button" data-action="duplicateLayer" {{#unless canAddLayer}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.Duplicate'}}"><i class="fa-solid fa-clone"></i></button>
+        <button type="button" data-action="removeLayer" {{#unless canRemoveLayer}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.RemoveLayer'}}"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <h3>{{localize "DXDT.App.Design"}}</h3>
+      <div class="dxdt-designs">
+        {{#each designs}}
+        <button type="button" data-action="design" data-design="{{id}}" class="{{#if active}}active{{/if}} {{#if custom}}custom{{/if}}" data-tooltip="{{label}}">
+          <i class="{{icon}}"></i><span>{{label}}</span>
+        </button>
+        {{/each}}
+      </div>
+
+      {{#if isCustom}}
+      <h3>{{localize "DXDT.App.CustomImage"}}</h3>
+      <div class="dxdt-image">
+        <div class="dxdt-thumb">{{#if src}}<img src="{{src}}" alt="">{{else}}<i class="fa-solid fa-image"></i>{{/if}}</div>
+        <div class="dxdt-image-src">
+          <input type="text" name="src" value="{{src}}" placeholder="{{localize 'DXDT.App.ImagePath'}}">
+          <div class="dxdt-image-buttons">
+            <button type="button" data-action="browseImage" {{#unless canBrowse}}disabled{{/unless}}><i class="fa-solid fa-folder-open"></i> {{localize "DXDT.App.Browse"}}</button>
+            <button type="button" data-action="uploadImage" {{#unless canUpload}}disabled{{/unless}}><i class="fa-solid fa-upload"></i> {{localize "DXDT.App.Upload"}}</button>
+            <input type="file" name="imageFile" accept="image/png,image/webp,image/*" hidden>
+          </div>
+          {{#unless canUpload}}<p class="hint">{{localize "DXDT.App.NoUpload"}}</p>{{/unless}}
+        </div>
+      </div>
+      <div class="dxdt-sliders">
+        <label>{{localize "DXDT.App.Motion"}}</label>
+        <select name="motion">{{#each motions}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+        <output></output>
+        {{#each customSliders}}
+        <label>{{localize label}}</label>
+        <input type="range" name="{{name}}" min="{{min}}" max="{{max}}" step="{{step}}" value="{{value}}" data-fmt="{{fmt}}">
+        <output data-for="{{name}}">{{text}}</output>
+        {{/each}}
+        <label>{{localize "DXDT.App.ColorMode"}}</label>
+        <span class="dxdt-color">
+          <select name="colorMode">{{#each colorModes}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+          {{#if showImageColor}}<input type="color" name="color" value="{{color}}">{{/if}}
+        </span>
+        <output></output>
+      </div>
+      <label class="dxdt-check">
+        <input type="checkbox" name="additive" {{checked additive}}>
+        {{localize "DXDT.App.Additive"}}
+      </label>
+      {{else}}
+      <h3>{{localize "DXDT.App.Style"}} <small>{{designLabel}}</small></h3>
+      <div class="dxdt-styles">
+        {{#each styles}}
+        <button type="button" data-action="style" data-style="{{id}}" class="{{#if active}}active{{/if}}">{{label}}</button>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      <h3>{{localize "DXDT.App.Tune"}}</h3>
+      <div class="dxdt-sliders">
+        {{#each sliders}}
+        <label>{{localize label}}</label>
+        <input type="range" name="{{name}}" min="{{min}}" max="{{max}}" step="{{step}}" value="{{value}}" data-fmt="{{fmt}}">
+        <output data-for="{{name}}">{{text}}</output>
+        {{/each}}
+        {{#unless isCustom}}
+        <label>{{localize "DXDT.App.Color"}}</label>
+        <span class="dxdt-color">
+          <input type="checkbox" name="useColor" {{checked useColor}} data-tooltip="{{localize 'DXDT.App.ColorHint'}}">
+          <input type="color" name="color" value="{{color}}" {{#unless useColor}}disabled{{/unless}}>
+        </span>
+        <output></output>
+        {{/unless}}
+      </div>
+
+      <h3>{{localize "DXDT.App.Effects"}}</h3>
+      <div class="dxdt-sliders">
+        {{#each effects}}
+        <label>{{localize label}}</label>
+        <input type="range" name="{{name}}" min="{{min}}" max="{{max}}" step="{{step}}" value="{{value}}" data-fmt="{{fmt}}">
+        <output data-for="{{name}}">{{text}}</output>
+        {{/each}}
+      </div>
+    </section>
+  </div>
+
+  <footer class="form-footer dxdt-footer">
+    <button type="button" data-action="reset" data-tooltip="{{localize 'DXDT.App.ResetHint'}}"><i class="fa-solid fa-rotate-left"></i> {{localize "DXDT.App.Reset"}}</button>
+    <button type="button" data-action="remove" {{#unless canApply}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.RemoveHint'}}"><i class="fa-solid fa-trash"></i> {{localize "DXDT.App.Remove"}}</button>
+    <button type="button" data-action="apply" class="bright" {{#unless canApply}}disabled{{/unless}} data-tooltip="{{localize 'DXDT.App.ApplyHint'}}"><i class="fa-solid fa-check"></i> {{localize "DXDT.App.Apply"}}</button>
+  </footer>
+</div>

@@ -1,0 +1,11 @@
+The sprite sheets listed below are drawn by this module's own script (tools/make-textures.py)
+and are dedicated to the public domain under Creative Commons Zero (CC0 1.0):
+http://creativecommons.org/publicdomain/zero/1.0/
+
+  leaves.png, petals.png, snowflakes.png, notes.png, glyphs.png, knives.png, stones.png,
+  flares.png, bubbles.png, drops.png, skulls.png
+
+You may use, change and share them in personal and commercial projects without asking.
+
+The other sprites in this folder (bolts, debris, flames, heart, ring, rune, slashes, smoke,
+stars, strips, twirls) come from the Kenney Particle Pack, also CC0, see LICENSE-Kenney.txt.

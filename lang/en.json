@@ -2,8 +2,8 @@
   "DXDT": {
     "Settings": {
       "Enabled": {
-        "Name": "Show damage type trails",
-        "Hint": "Draw a particle trail on 3D dice rolled for damage or healing, matching the damage type."
+        "Name": "Show dice trails",
+        "Hint": "Draw a particle trail on 3D dice: the damage type's trail on damage and healing dice, the roller's own trail on other rolls."
       },
       "Intensity": {
         "Name": "Trail intensity",
@@ -16,7 +16,140 @@
       "Afterglow": {
         "Name": "Keep glowing after landing",
         "Hint": "Dice keep a faint aura and a few particles while they lie on the table, as if still charged."
+      },
+      "Editor": {
+        "Name": "Your trails for regular rolls",
+        "Label": "Open the Dice trails window",
+        "Hint": "Design your own trails for attack rolls, checks, saving throws, initiative and other rolls that are not damage. Everyone at the table sees them on your rolls."
+      },
+      "ShowOthers": {
+        "Name": "Show other players' trails",
+        "Hint": "Show the custom trails the other players designed on their rolls. Off: only your own trails and the damage type trails are drawn on this computer."
       }
+    },
+    "Control": {
+      "Title": "Dice trails: your trails for regular rolls"
+    },
+    "Kind": {
+      "attack": "Attack rolls",
+      "check": "Checks",
+      "save": "Saving throws",
+      "death": "Death saves",
+      "initiative": "Initiative",
+      "other": "Other rolls"
+    },
+    "KindHint": {
+      "attack": "Attack rolls (weapons, spells)",
+      "check": "Ability, skill and tool checks",
+      "save": "Saving throws and concentration",
+      "death": "Death saving throws",
+      "initiative": "Initiative rolls",
+      "other": "Every other roll that is not damage or healing: hit dice, plain /roll commands, tables, ..."
+    },
+    "App": {
+      "Title": "Dice trails",
+      "NoDiceSoNice": "Dice So Nice is not active, there are no 3D dice to give trails to.",
+      "TestRoll": "Test roll",
+      "TestRollHint": "Roll a d20 on the table with the trail in the editor",
+      "PreviewHint": "The die flies, rests a moment and goes again. The trail follows your Trail intensity and Trail width settings.",
+      "NoPreview": "The preview could not be started, see the console (F12).",
+      "Rolls": "Your rolls",
+      "RollsHint": "which rolls get the trail",
+      "NoTrail": "no trail",
+      "EditKind": "Load this trail into the editor",
+      "AllKinds": "All kinds of roll",
+      "NoKinds": "Tick the kinds of roll that should get the trail.",
+      "Design": "Design",
+      "Style": "Style",
+      "Tune": "Fine-tune",
+      "Width": "Width",
+      "Length": "Length",
+      "Speed": "Speed",
+      "Opacity": "Opacity",
+      "Density": "Particles",
+      "Color": "Own colour",
+      "ColorHint": "Recolour the layer around one colour of your choice",
+      "Apply": "Use for ticked rolls",
+      "ApplyHint": "Give the ticked kinds of roll the trail in the editor",
+      "Remove": "Remove trail",
+      "RemoveHint": "The ticked kinds of roll get no trail",
+      "Reset": "Reset",
+      "ResetHint": "Reset this layer's fine-tuning and effects",
+      "Applied": "Trail set for: {kinds}.",
+      "Removed": "Trail removed from: {kinds}.",
+      "Layers": "Layers",
+      "LayersHint": "drawn left (bottom) to right (top)",
+      "AddLayer": "Add",
+      "AddLayerHint": "Add another effect on top of this trail",
+      "Editing": "Editing layer {n} of {of}",
+      "MoveDown": "Move down (draw earlier)",
+      "MoveUp": "Move up (draw on top)",
+      "Duplicate": "Duplicate layer",
+      "RemoveLayer": "Remove layer",
+      "Effects": "Effects",
+      "CustomImage": "Your image",
+      "ImagePath": "Path or URL of an image (PNG with transparency works best)",
+      "Browse": "Browse",
+      "Upload": "Upload",
+      "NoUpload": "You may not upload files in this world; ask the GM, or pick an image that is already there.",
+      "NotImage": "That file is not an image.",
+      "UploadFailed": "The image could not be uploaded, see the console (F12) for details.",
+      "NoImage": "A layer uses your own image but no image is chosen yet.",
+      "ImageSize": "Image size",
+      "Count": "How many",
+      "Motion": "Motion",
+      "ColorMode": "Colour",
+      "Additive": "Glow like light (additive blending)",
+      "SavedTrails": "Saved trails",
+      "PickSaved": "Choose a saved trail…",
+      "NoneSaved": "Nothing saved yet",
+      "LoadHint": "Load it into the editor",
+      "SaveHint": "Save all layers as one trail",
+      "DeleteHint": "Delete the saved trail",
+      "SavedHint": "Saved trails are yours: they follow your user to any computer.",
+      "SaveTitle": "Save trail",
+      "SaveName": "Name",
+      "Save": "Save",
+      "Saved": "Saved \"{name}\".",
+      "DeleteTitle": "Delete saved trail",
+      "DeleteConfirm": "Delete \"{name}\"? Rolls that already use it keep their trail."
+    },
+    "Effect": {
+      "Glow": "Glow",
+      "Pulse": "Pulse",
+      "Sparkle": "Sparkle",
+      "Wave": "Wave"
+    },
+    "Motion": {
+      "Trail": "Trailing behind the die",
+      "Orbit": "Circling the die",
+      "Rise": "Rising from the die",
+      "Burst": "Bursting out",
+      "Flutter": "Fluttering down",
+      "Spin": "Spinning on the die"
+    },
+    "ColorMode": {
+      "original": "Original colours",
+      "tint": "Tint",
+      "colorize": "Recolour"
+    },
+    "Transfer": {
+      "Export": "Export to file",
+      "Import": "Import from file",
+      "ExportHint": "Save the trail in the editor as one file, including your own images, to use in another world or Foundry",
+      "ImportHint": "Load a trail file exported from Dice trails; its images are added to this world and it is saved to your saved trails",
+      "ExportTitle": "Export trail",
+      "ExportText": "The trail in the editor, with all its layers and your own images, is saved as one file.",
+      "DefaultName": "Imported trail",
+      "Exported": "Trail exported as {file}.",
+      "ExportFailed": "The trail could not be exported, see the console (F12) for details.",
+      "NotEmbedded": "These images could not be put in the file, so the file only refers to where they are: {files}",
+      "Imported": "Imported \"{name}\" and added it to your saved trails ({n} image(s) added to this world).",
+      "ImportFailed": "The file could not be imported: {error}",
+      "BadFile": "this is not a Dice trails file.",
+      "TooNew": "the file was made by a newer version of Dice trails; update the module first.",
+      "ImageFailed": "These images from the file could not be added to this world: {files}",
+      "NoUploadImport": "You may not upload files in this world, so these images from the file were not added: {files}. Ask the GM to import the file."
     }
   }
 }
