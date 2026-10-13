@@ -17,6 +17,7 @@ files come out the same every time.
 
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -395,7 +396,8 @@ def blub(f0=(90, 320), length=(0.05, 0.16), gain=(0.3, 1.0)):
     f = rng.uniform(*f0)
     body = harmonics(glide(f, f * 1.9, ln, 1.4), ln, [1, 0.35, 0.12]) * envelope(ln, ln * 0.15, ln * 0.4, ln * 0.45, 1.3)
     plop = bandpass(white(0.02), 400, 2500) * decay(0.02, 0.006, 0.0005) * 0.5
-    out = body
+    out = silence(ln + 0.02)                  # room for the whole plop, even on the shortest bubble
+    out[: len(body)] = body
     place(out, plop, ln * 0.88)
     return out * rng.uniform(*gain)
 
@@ -726,8 +728,43 @@ def write_wav(path, x):
 
 
 def encode(wav, ogg):
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-ar", "32000", "-ac", "1",
-                    "-c:a", "libvorbis", "-q:a", "2", ogg], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-fflags", "+bitexact", "-flags", "+bitexact", "-i", wav,
+                    "-ar", "32000", "-ac", "1", "-c:a", "libvorbis", "-q:a", "2", ogg], check=True)
+    fix_ogg_serial(ogg, zlib.crc32(os.path.basename(ogg).encode()))
+
+
+OGG_CRC = []
+for _i in range(256):
+    _r = _i << 24
+    for _ in range(8):
+        _r = ((_r << 1) ^ 0x04C11DB7) if _r & 0x80000000 else (_r << 1)
+    OGG_CRC.append(_r & 0xFFFFFFFF)
+
+
+def ogg_crc(data):
+    r = 0
+    for b in data:
+        r = ((r << 8) & 0xFFFFFFFF) ^ OGG_CRC[((r >> 24) ^ b) & 0xFF]
+    return r
+
+
+def fix_ogg_serial(path, serial):
+    """
+    Give the file's Ogg stream a fixed serial number (ffmpeg picks a random one, which made every
+    regeneration rewrite all 46 files) and recompute each page's checksum. The audio is untouched.
+    """
+    d = bytearray(open(path, "rb").read())
+    i = 0
+    while i < len(d):
+        if d[i : i + 4] != b"OggS":
+            sys.exit(f"{path}: not an Ogg page at byte {i}")
+        nseg = d[i + 26]
+        size = 27 + nseg + sum(d[i + 27 : i + 27 + nseg])
+        d[i + 14 : i + 18] = struct.pack("<I", serial)
+        d[i + 22 : i + 26] = b"\0\0\0\0"
+        d[i + 22 : i + 26] = struct.pack("<I", ogg_crc(d[i : i + size]))
+        i += size
+    open(path, "wb").write(d)
 
 
 def main():
