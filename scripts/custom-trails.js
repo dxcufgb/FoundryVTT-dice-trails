@@ -971,6 +971,367 @@ export const DESIGNS = {
           colors: [[0, p.bright, 1], [1, p.main, 0]] }
       ]
     })
+  },
+
+  /* ---- Race trails: one for each D&D 5e species; their styles include lineages and ancestries ---- */
+
+  // Aasimar: soft feathers shed from unseen wings, drifting down through a gentle radiant glow.
+  heavenlyWings: {
+    label: "Heavenly Wings", icon: "fa-solid fa-feather", sound: "radiant",
+    styles: {
+      wings: { label: "Heavenly Wings", colors: ["#ffffff", "#e0ecff", "#7a90c0"] },
+      radiance: { label: "Inner Radiance", colors: ["#fff8e0", "#ffd04a", "#a8700a"] },
+      shroud: { label: "Necrotic Shroud", colors: ["#e0d0f0", "#5a4a6a", "#0a060e"] },
+      dawn: { label: "Dawn", colors: ["#fff0e8", "#ffa8a0", "#8a3a4a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 3.2, alpha: 0.45, pulse: 0.12, pulseSpeed: 1.6 }],
+      ribbons: [
+        // Two faint wing-sweeps beating out of step
+        { width: 1.8, time: 0.7, blend: "add", alpha: 0.35, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.6, noiseScale: [3, 2], scroll: 1, soft: 0.7, fadePow: 1.2, taper: 0.4,
+          wave: { amp: 1.2, freq: 1.2, speed: 5 } },
+        { width: 1.8, time: 0.7, blend: "add", alpha: 0.35, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.6, noiseScale: [3, 2], scroll: 1, soft: 0.7, fadePow: 1.2, taper: 0.4,
+          wave: { amp: 1.2, freq: 1.2, speed: 5, phase: 3.14159 } }
+      ],
+      layers: [
+        // Feathers drifting down
+        { tex: "petals", blend: "normal", rate: 16, rest: 0.7, life: [1.6, 2.4], size: [0.8, 0.7], spawn: 0.7,
+          vel: [0, 0, 1.0], jitter: 1.0, inherit: -0.1, gravity: -1.0, drag: 0.4, spin: 2, swirl: 0.8,
+          colors: [[0, p.bright, 0], [0.1, p.bright, 1], [0.7, p.main, 0.9], [1, p.dark, 0]] },
+        // Radiant motes
+        { tex: "glow", blend: "add", rate: 30, rest: 0.4, life: [1.0, 1.6], size: [0.35, 0.12], spawn: 0.8,
+          vel: [0, 0, 0.8], jitter: 0.3, drag: 0.7, flicker: 0.5,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] },
+        // A soft white core
+        { tex: "glow", blend: "add", rate: 20, rest: 0.3, life: [0.2, 0.3], size: [1.2, 0.6], spawn: 0.1,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, "#ffffff", 0.6], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Dragonborn: a breath weapon roaring out behind the die, with scales glinting as they tumble.
+  dragonBreath: {
+    label: "Dragon Breath", icon: "fa-solid fa-dragon", sound: "fire",
+    styles: {
+      red: { label: "Red", colors: ["#ffe0a0", "#ff4a1a", "#5a0400"] },
+      blue: { label: "Blue", colors: ["#ffffff", "#4ab8ff", "#0a1a5a"] },
+      green: { label: "Green", colors: ["#e8ffb0", "#4adf3a", "#0a3a0a"] },
+      gold: { label: "Gold", colors: ["#fff8d0", "#ffc84a", "#6a4000"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.4, pulse: 0.15, pulseSpeed: 4 }],
+      layers: [
+        // The breath: puffs blown hard back along the die's path, swelling as they slow
+        { tex: "glow", blend: "add", rate: 110, rest: 0.1, life: [0.4, 0.8], size: [0.6, 1.8], spawn: 0.3,
+          vel: [0, 0, 0.3], jitter: 0.8, inherit: -0.35, drag: 0.35, swirl: 0.4,
+          colors: [[0, "#ffffff", 0.9], [0.2, p.bright, 0.8], [0.6, p.main, 0.5], [1, p.dark, 0]] },
+        // Scales tumbling off
+        { tex: "shard", blend: "normal", rate: 12, rest: 0.05, life: [0.6, 0.9], size: [0.45, 0.4], spawn: 0.5,
+          vel: [0, 0, 2.4], jitter: 1.6, gravity: -9, drag: 0.8, spin: 8,
+          colors: [[0, p.bright, 1], [0.3, p.main, 1], [0.8, p.dark, 1], [1, p.dark, 0]] },
+        // Glints
+        { tex: "spark", blend: "add", rate: 14, rest: 0.2, life: [0.2, 0.4], size: [0.6, 0.1], spawn: 0.5,
+          vel: [0, 0, 0], jitter: 0, spin: 2, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Dwarf: stone chips and ore knocked loose from the mountain, flecked with gold and gem glints.
+  deepVein: {
+    label: "Deep Vein", icon: "fa-solid fa-gem", sound: "stone",
+    styles: {
+      gold: { label: "Gold Vein", colors: ["#fff4c0", "#ffc84a", "#3a2a10"] },
+      mithral: { label: "Mithral", colors: ["#ffffff", "#c8d8f0", "#2a3040"] },
+      ruby: { label: "Ruby", colors: ["#ffd0d0", "#e0203a", "#2a0a10"] },
+      emerald: { label: "Emerald", colors: ["#e0ffe8", "#2adf7a", "#06201a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.2, alpha: 0.3, pulse: 0.08, pulseSpeed: 2 }],
+      layers: [
+        // Stone chips knocked loose
+        { tex: "debris", blend: "normal", rate: 16, rest: 0.05, life: [0.7, 1.1], size: [0.8, 0.6], spawn: 0.4,
+          vel: [0, 0, 3], jitter: 2.2, gravity: -11, drag: 0.8, spin: 8,
+          colors: [[0, mix(p.dark, "#6a6458", 0.5), 1], [0.8, mix(p.dark, "#3a3630", 0.5), 0.95], [1, p.dark, 0]] },
+        // Gold and gem flecks
+        { tex: "spark", blend: "add", rate: 40, rest: 0.3, life: [0.4, 0.9], size: [0.4, 0.1], spawn: 0.6,
+          vel: [0, 0, 1.6], jitter: 1.0, gravity: -4, drag: 0.7, flicker: 0.6, spin: 1,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 1], [1, p.main, 0]] },
+        // A few ore nuggets
+        { tex: "stones", blend: "normal", rate: 5, rest: 0, life: [0.7, 1.0], size: [0.5, 0.45], spawn: 0.4,
+          vel: [0, 0, 2.4], jitter: 1.4, gravity: -10, spin: 6,
+          colors: [[0, p.bright, 1], [0.6, p.main, 1], [1, p.dark, 0]] },
+        // Dust low on the table
+        { tex: "smoke", blend: "normal", rate: 8, rest: 0.1, life: [0.8, 1.4], size: [0.8, 2.4], spawn: 0.5,
+          vel: [0, 0, 0.2], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.dark, "#5a5248", 0.5), 0], [0.2, mix(p.dark, "#5a5248", 0.5), 0.4], [1, p.dark, 0]] }
+      ]
+    })
+  },
+
+  // Elf: one fine silver streak, slender leaves turning in its wake and fey motes that wink in and out.
+  elvenGrace: {
+    label: "Elven Grace", icon: "fa-solid fa-moon", sound: "petals",
+    styles: {
+      high: { label: "High Elf", colors: ["#f0f8ff", "#9ad0ff", "#2a4a7a"] },
+      wood: { label: "Wood Elf", colors: ["#f0ffd8", "#7ac83a", "#1a3a0a"] },
+      drow: { label: "Drow", colors: ["#f0d8ff", "#b05aff", "#0a0414"] },
+      eladrin: { label: "Eladrin", colors: ["#ffe8d0", "#ff9a4a", "#4a1a0a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.3, pulse: 0.08, pulseSpeed: 1.2 }],
+      ribbons: [
+        // The fine silver streak
+        { width: 0.45, time: 0.7, blend: "add", alpha: 0.95, colors: ["#ffffff", p.bright, p.main],
+          core: "#ffffff", coreAmt: 0.5, noiseAmt: 0.1, soft: 0.3, fadePow: 1.0, taper: 0.6,
+          wave: { amp: 0.3, freq: 0.8, speed: 3 } },
+        { width: 1.4, time: 0.7, blend: "add", alpha: 0.3, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.4, soft: 0.6, fadePow: 1.2, taper: 0.5, wave: { amp: 0.3, freq: 0.8, speed: 3 } }
+      ],
+      layers: [
+        // Glowing leaves turning in the wake
+        { tex: "leaves", blend: "add", rate: 14, rest: 0.6, life: [1.4, 2.2], size: [0.6, 0.5], spawn: 0.6,
+          vel: [0, 0, 1.0], jitter: 0.8, inherit: -0.08, gravity: -0.8, drag: 0.5, spin: 2, swirl: 0.8,
+          colors: [[0, p.bright, 0], [0.1, p.bright, 0.9], [0.7, p.main, 0.7], [1, p.dark, 0]] },
+        // Fey motes winking in and out
+        { tex: "glow", blend: "add", rate: 25, rest: 0.6, life: [1.0, 1.8], size: [0.3, 0.1], spawn: 0.9,
+          vel: [0, 0, 0.4], jitter: 0.3, drag: 0.6, flicker: 0.8, swirl: 0.6,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Gnome: bubbles that wobble up, little twirls of illusion and pops of starlight.
+  gnomishWhimsy: {
+    label: "Gnomish Whimsy", icon: "fa-solid fa-lightbulb", sound: "charm",
+    styles: {
+      forest: { label: "Forest Gnome", colors: ["#e8ffd0", "#6adf6a", "#0a3a1a"] },
+      rock: { label: "Rock Gnome", colors: ["#fff0d0", "#ff9a4a", "#4a2008"] },
+      deep: { label: "Deep Gnome", colors: ["#e0e8ff", "#7a8aa8", "#0a0e1a"] },
+      illusion: { label: "Illusion", colors: ["#ffe8ff", "#ff8ad8", "#3a0a4a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.2, alpha: 0.3, pulse: 0.2, pulseSpeed: 5 }],
+      layers: [
+        // Wobbling bubbles
+        { tex: "bubbles", blend: "add", rate: 16, rest: 0.7, life: [1.0, 1.8], size: [0.4, 0.8], spawn: 0.6,
+          vel: [0, 0, 1.4], jitter: 0.4, inherit: -0.06, drag: 0.7, swirl: 1.0,
+          colors: [[0, p.bright, 0], [0.1, p.bright, 0.9], [0.85, p.main, 0.7], [1, "#ffffff", 0]] },
+        // Twirls of illusion
+        { tex: "twirls", blend: "add", rate: 8, rest: 0.5, life: [0.5, 0.8], size: [0.5, 1.6], spawn: 0.4,
+          vel: [0, 0, 0], jitter: 0, spin: 7, colors: [[0, p.bright, 0.9], [1, p.main, 0]] },
+        // Pops of starlight
+        { tex: "stars", blend: "add", rate: 14, rest: 0.4, life: [0.3, 0.6], size: [0.6, 0.1], spawn: 0.8,
+          vel: [0, 0, 0.3], jitter: 0.3, spin: 1, flicker: 0.5,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Goliath: every bounce lands like a giant's step, with shockwave rings, boulders and heavy dust.
+  titanStride: {
+    label: "Titan Stride", icon: "fa-solid fa-mountain-sun", sound: "thunder",
+    styles: {
+      stone: { label: "Stone Giant", colors: ["#e8e0d0", "#9a8a78", "#2a241c"] },
+      frost: { label: "Frost Giant", colors: ["#ffffff", "#9ad8ff", "#1a3a6a"] },
+      fire: { label: "Fire Giant", colors: ["#ffe0a0", "#ff6a1a", "#4a0a00"] },
+      storm: { label: "Storm Giant", colors: ["#ffffff", "#7ab8ff", "#1a1a4a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.25, pulse: 0.1, pulseSpeed: 2 }],
+      layers: [
+        // Shockwave rings spreading over the table
+        { tex: "ring", blend: "add", rate: 5, rest: 0.2, life: [0.5, 0.7], size: [1.0, 5.5], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.bright, 0.9], [1, p.main, 0]] },
+        // Boulders thrown up and crashing back
+        { tex: "stones", blend: "normal", rate: 10, rest: 0, life: [0.7, 1.1], size: [0.8, 0.7], spawn: 0.4,
+          vel: [0, 0, 3.4], jitter: 2.0, gravity: -12, drag: 0.85, spin: 6,
+          colors: [[0, p.main, 1], [0.8, p.dark, 1], [1, p.dark, 0]] },
+        // Heavy dust
+        { tex: "smoke", blend: "normal", rate: 16, rest: 0.1, life: [0.8, 1.4], size: [1.0, 3.2], spawn: 0.6,
+          vel: [0, 0, 0.3], jitter: 0.6, inherit: -0.06, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.dark, "#5a5248", 0.5), 0], [0.2, mix(p.dark, "#5a5248", 0.5), 0.45], [1, p.dark, 0]] },
+        // The giant's power flickering on the die
+        { tex: "glow", blend: "add", rate: 25, rest: 0.2, life: [0.4, 0.8], size: [0.35, 0.1], spawn: 0.6,
+          vel: [0, 0, 1.2], jitter: 0.4, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Halfling: lucky clovers tossed in the air and golden glints, for the die that refuses to land on a 1.
+  halflingLuck: {
+    label: "Halfling Luck", icon: "fa-solid fa-clover", sound: "stardust",
+    styles: {
+      lightfoot: { label: "Lightfoot", colors: ["#ffe68a", "#5ac83a", "#1a3a0a"] },
+      stout: { label: "Stout", colors: ["#ffd84a", "#c8742a", "#3a2008"] },
+      hearth: { label: "Hearth", colors: ["#ffe0a0", "#e04a3a", "#3a0a08"] },
+      ghostwise: { label: "Ghostwise", colors: ["#f0f0ff", "#8aa0d8", "#1a1a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.35, pulse: 0.1, pulseSpeed: 2.4 }],
+      layers: [
+        // Clovers tossed up and fluttering down
+        { tex: "leaves", blend: "normal", rate: 14, rest: 0.4, life: [1.1, 1.7], size: [0.55, 0.5], spawn: 0.5,
+          vel: [0, 0, 2.4], jitter: 1.4, inherit: -0.08, gravity: -3, drag: 0.5, spin: 5,
+          colors: [[0, p.main, 0], [0.1, p.main, 1], [0.75, p.main, 1], [1, p.dark, 0]] },
+        // Golden glints
+        { tex: "spark", blend: "add", rate: 40, rest: 0.4, life: [0.5, 1.1], size: [0.5, 0.1], spawn: 0.8,
+          vel: [0, 0, 0.5], jitter: 0.3, drag: 0.6, flicker: 0.7, spin: 1.5,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 1], [1, p.bright, 0]] },
+        // A warm glow on the die
+        { tex: "glow", blend: "add", rate: 18, rest: 0.4, life: [0.5, 0.9], size: [0.35, 0.1], spawn: 0.6,
+          vel: [0, 0, 0.4], jitter: 0.2, colors: [[0, p.bright, 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Human: a bright, steady streak that never wavers, trailing sparks and small stars.
+  heroicResolve: {
+    label: "Heroic Resolve", icon: "fa-solid fa-flag", sound: "comet",
+    styles: {
+      valor: { label: "Valor", colors: ["#fff8e0", "#ffc84a", "#6a3a00"] },
+      ambition: { label: "Ambition", colors: ["#ffe0e0", "#e0303a", "#3a0408"] },
+      wanderlust: { label: "Wanderlust", colors: ["#e8f8ff", "#4ab8ff", "#0a2a4a"] },
+      versatile: { label: "Versatile", colors: ["#f0fff0", "#3adf9a", "#0a3a2a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.35, pulse: 0.05 }],
+      ribbons: [
+        // The steady streak: a wide glow around a white-hot line
+        { width: 1.6, time: 0.55, blend: "add", alpha: 0.6, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.2, soft: 0.5, fadePow: 1.0, taper: 0.5 },
+        { width: 0.45, time: 0.55, blend: "add", alpha: 1, colors: ["#ffffff", p.bright, p.main],
+          core: "#ffffff", coreAmt: 0.8, noiseAmt: 0.05, soft: 0.2, fadePow: 0.8, taper: 0.5 }
+      ],
+      layers: [
+        // Sparks shed along the streak
+        { tex: "spark", blend: "add", rate: 50, rest: 0.1, life: [0.3, 0.6], size: [0.3, 0.08], spawn: 0.4,
+          vel: [0, 0, 0.8], jitter: 1.4, inherit: -0.15, drag: 0.5,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 1], [1, p.main, 0]] },
+        // Small stars
+        { tex: "stars", blend: "add", rate: 10, rest: 0.3, life: [0.4, 0.8], size: [0.6, 0.1], spawn: 0.8,
+          vel: [0, 0, 0.2], jitter: 0.2, spin: 1, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Orc: a surge of speed, with rushing streaks, war-cry rings bursting off the die and hot ash.
+  adrenalineRush: {
+    label: "Adrenaline Rush", icon: "fa-solid fa-person-running", sound: "thunder",
+    styles: {
+      warpaint: { label: "Warpaint", colors: ["#ffd0b0", "#e0401a", "#2a0604"] },
+      ironjaw: { label: "Ironjaw", colors: ["#e0f0d0", "#6a8a4a", "#141a0c"] },
+      bonepaint: { label: "Bonepaint", colors: ["#fffff0", "#d8ccb0", "#2a2418"] },
+      stormcry: { label: "Stormcry", colors: ["#e8f8ff", "#5ab8ff", "#0a1a2a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.4, pulse: 0.3, pulseSpeed: 8 }],
+      ribbons: [
+        // Rushing speed lines
+        { width: 2.2, time: 0.3, blend: "add", alpha: 0.6, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.6, noiseScale: [8, 1], scroll: 6, soft: 0.4, fadePow: 0.8, taper: 0.4,
+          strip: { row: 5, repeat: 5, scroll: 9, mask: 0.6, glow: 0.3 } }
+      ],
+      layers: [
+        // War-cry rings
+        { tex: "ring", blend: "add", rate: 5, rest: 0.2, life: [0.35, 0.5], size: [1.0, 4.6], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.bright, 1], [1, p.main, 0]] },
+        // Hot embers
+        { tex: "glow", blend: "add", rate: 50, rest: 0.2, life: [0.5, 0.9], size: [0.4, 0.1], spawn: 0.6,
+          vel: [0, 0, 1.4], jitter: 0.6, inherit: -0.1, drag: 0.7, flicker: 0.5,
+          colors: [[0, p.bright, 1], [0.4, p.main, 0.9], [1, p.dark, 0]] },
+        // Ash kicked up behind
+        { tex: "smoke", blend: "normal", rate: 10, rest: 0.1, life: [0.9, 1.5], size: [0.8, 2.6], spawn: 0.5,
+          vel: [0, 0, 0.4], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.dark, "#28282c", 0.5), 0], [0.2, mix(p.dark, "#28282c", 0.5), 0.45], [1, "#101012", 0]] }
+      ]
+    })
+  },
+
+  // Tiefling: hellfire tongues, brimstone smoke and the sigils of a fiendish bloodline.
+  infernalLegacy: {
+    label: "Infernal Legacy", icon: "fa-solid fa-fire-flame-simple", sound: "fire",
+    styles: {
+      infernal: { label: "Infernal", colors: ["#ffd0a0", "#ff3a1a", "#2a0204"] },
+      abyssal: { label: "Abyssal", colors: ["#e8ffb0", "#7adf1a", "#1a0420"] },
+      chthonic: { label: "Chthonic", colors: ["#e8d8ff", "#7a3ac8", "#08040e"] },
+      brimstone: { label: "Brimstone", colors: ["#fff0a0", "#ffb02a", "#3a1a04"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.8, alpha: 0.45, pulse: 0.15, pulseSpeed: 4, flicker: 0.2 }],
+      layers: [
+        // Hellfire tongues
+        { tex: "flames", blend: "add", rate: 60, rest: 0.25, life: [0.4, 0.75], size: [1.0, 0.4], spawn: 0.45,
+          vel: [0, 0, 2.2], jitter: 0.4, inherit: -0.06, drag: 0.6, spin: 0.4,
+          colors: [[0, p.bright, 0.9], [0.3, p.main, 0.85], [1, p.dark, 0]] },
+        // Brimstone smoke
+        { tex: "smoke", blend: "normal", rate: 20, rest: 0.4, life: [1.0, 1.6], size: [0.8, 2.6], spawn: 0.4,
+          vel: [0, 0, 1.2], jitter: 0.4, drag: 0.6, spin: 0.6, swirl: 0.6,
+          colors: [[0, p.dark, 0], [0.15, p.dark, 0.7], [1, p.dark, 0]] },
+        // Sigils of the bloodline
+        { tex: "glyphs", blend: "add", rate: 4, rest: 0.6, life: [0.9, 1.3], size: [1.0, 1.2], spawn: 0.8,
+          vel: [0, 0, 0.5], jitter: 0.1, spin: 0.8,
+          colors: [[0, p.main, 0], [0.2, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Half-Elf: two strands, one from each side of the family, weaving around each other.
+  twinHeritage: {
+    label: "Twin Heritage", icon: "fa-solid fa-handshake", sound: "charm",
+    styles: {
+      sunMoon: { label: "Sun & Moon", colors: ["#d8ecff", "#ffb84a", "#2a2440"] },
+      leafFlame: { label: "Leaf & Flame", colors: ["#c8ffb0", "#ff7a3a", "#2a1a0a"] },
+      seaSky: { label: "Sea & Sky", colors: ["#c8fff0", "#4a8aff", "#0a1a3a"] },
+      roseIvy: { label: "Rose & Ivy", colors: ["#ffc8e0", "#5adf7a", "#1a2a1a"] }
+    },
+    build: p => ({
+      auras: [{ color: mix(p.bright, p.main, 0.5), size: 2.4, alpha: 0.3, pulse: 0.1, pulseSpeed: 2 }],
+      ribbons: [
+        // One strand in each colour, out of phase
+        { width: 0.8, time: 0.65, blend: "add", alpha: 0.9, colors: ["#ffffff", p.bright, mix(p.bright, p.dark, 0.5)],
+          noiseAmt: 0.2, soft: 0.3, fadePow: 1.0, taper: 0.5, wave: { amp: 1.0, freq: 2.0, speed: 7 } },
+        { width: 0.8, time: 0.65, blend: "add", alpha: 0.9, colors: ["#ffffff", p.main, mix(p.main, p.dark, 0.5)],
+          noiseAmt: 0.2, soft: 0.3, fadePow: 1.0, taper: 0.5, wave: { amp: 1.0, freq: 2.0, speed: 7, phase: 3.14159 } }
+      ],
+      layers: [
+        // Motes of one side ...
+        { tex: "glow", blend: "add", rate: 20, rest: 0.4, life: [0.6, 1.1], size: [0.35, 0.1], spawn: 0.7,
+          vel: [0, 0, 0.5], jitter: 0.3, inherit: -0.08, flicker: 0.4, colors: [[0, p.bright, 1], [1, p.bright, 0]] },
+        // ... and of the other
+        { tex: "glow", blend: "add", rate: 20, rest: 0.4, life: [0.6, 1.1], size: [0.35, 0.1], spawn: 0.7,
+          vel: [0, 0, 0.5], jitter: 0.3, inherit: -0.08, flicker: 0.4, colors: [[0, p.main, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Half-Orc: Savage Attacks, with brutal slash marks off the die, flung droplets and a dark haze.
+  savageStrike: {
+    label: "Savage Strike", icon: "fa-solid fa-skull-crossbones", sound: "blade",
+    styles: {
+      blood: { label: "Blood", colors: ["#ffb0a8", "#c00a14", "#1a0002"] },
+      steel: { label: "Steel", colors: ["#ffffff", "#a8b0bc", "#202428"] },
+      bonecrusher: { label: "Bonecrusher", colors: ["#f0e8d0", "#a89a70", "#2a2010"] },
+      venom: { label: "Venom", colors: ["#e8ffb0", "#7adf1a", "#0a1a04"] }
+    },
+    build: p => ({
+      auras: [{ color: p.dark, size: 2.6, alpha: 0.5, pulse: 0.05, blend: "normal" }],
+      layers: [
+        // Brutal slash marks
+        { tex: "slashes", blend: "add", rate: 7, rest: 0.1, life: [0.25, 0.4], size: [1.8, 2.6], spawn: 0.2,
+          vel: [0, 0, 0], jitter: 0, inherit: 0.3,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 0.9], [1, p.main, 0]] },
+        // Flung droplets
+        { tex: "drops", blend: "normal", rate: 30, rest: 0.05, life: [0.5, 0.8], size: [0.4, 0.35], spawn: 0.4,
+          vel: [0, 0, 2.4], jitter: 2.4, gravity: -10, drag: 0.8, spin: 4,
+          colors: [[0, p.main, 1], [0.8, p.main, 0.9], [1, p.dark, 0]] },
+        // A dark, heavy haze
+        { tex: "smoke", blend: "normal", rate: 20, rest: 0.3, life: [0.9, 1.5], size: [0.8, 2.6], spawn: 0.4,
+          vel: [0, 0, 0.3], jitter: 0.4, inherit: -0.08, drag: 0.6, spin: 0.5,
+          colors: [[0, p.dark, 0], [0.15, p.dark, 0.6], [1, p.dark, 0]] }
+      ]
+    })
   }
 };
 
