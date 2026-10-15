@@ -1,4 +1,4 @@
-/* Dxcufgb's damage dice trails - the Dice trails window */
+/* Dxcufgb's dice trails - the Dice trails window */
 .dxdt-editor .window-content { padding: 0.75rem; }
 .dxdt-editor .dxdt-root { display: flex; flex-direction: column; }
 /* Both columns scroll inside a body that always fits on screen, so the footer with "Use for ticked rolls"
@@ -42,6 +42,10 @@
 .dxdt-editor .dxdt-footer { display: flex; flex: none; gap: 0.5rem; margin-top: 0.8rem; }
 .dxdt-editor .dxdt-footer button { flex: 1; }
 .dxdt-editor .dxdt-footer button.bright { flex: 1.5; }
+
+/* Whose trails: you or a character */
+.dxdt-editor .dxdt-owner { width: 100%; }
+.dxdt-editor .dxdt-owner select { width: 100%; }
 
 /* Kinds of roll */
 .dxdt-editor .dxdt-left h3 { width: 100%; margin-top: 0.6rem; }

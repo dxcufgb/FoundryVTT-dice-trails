@@ -26,9 +26,9 @@
         "Hint": "How loud the trail sounds are, on top of Foundry's Interface volume slider. 0 is silent."
       },
       "Editor": {
-        "Name": "Your trails for regular rolls",
+        "Name": "Trails for regular rolls",
         "Label": "Open the Dice trails window",
-        "Hint": "Design your own trails for attack rolls, checks, saving throws, initiative and other rolls that are not damage. Everyone at the table sees them on your rolls."
+        "Hint": "Design trails for attack rolls, checks, saving throws, initiative and other rolls that are not damage, for yourself or for each of your characters and tokens. Everyone at the table sees them on those rolls."
       },
       "ShowOthers": {
         "Name": "Show other players' trails",
@@ -36,7 +36,7 @@
       }
     },
     "Control": {
-      "Title": "Dice trails: your trails for regular rolls"
+      "Title": "Dice trails: for the selected token, or your own"
     },
     "Kind": {
       "attack": "Attack rolls",
@@ -61,7 +61,12 @@
       "TestRollHint": "Roll a d20 on the table with the trail in the editor",
       "PreviewHint": "The die flies, rests a moment and goes again. The trail follows your Trail intensity and Trail width settings.",
       "NoPreview": "The preview could not be started, see the console (F12).",
-      "Rolls": "Your rolls",
+      "TrailsFor": "Trails for",
+      "OwnerYou": "{name} (you)",
+      "OwnerToken": "{name} (this token)",
+      "OwnerYouHint": "Your own trails, for every roll you make that the character rolling has no trail for.",
+      "OwnerCharacterHint": "Rolls made as this character use its trails; a kind of roll it has no trail for uses its player's.",
+      "Rolls": "Rolls",
       "RollsHint": "which rolls get the trail",
       "NoTrail": "no trail",
       "EditKind": "Load this trail into the editor",
@@ -83,8 +88,8 @@
       "RemoveHint": "The ticked kinds of roll get no trail",
       "Reset": "Reset",
       "ResetHint": "Reset this layer's fine-tuning and effects",
-      "Applied": "Trail set for: {kinds}.",
-      "Removed": "Trail removed from: {kinds}.",
+      "Applied": "{owner}: trail set for {kinds}.",
+      "Removed": "{owner}: trail removed from {kinds}.",
       "Layers": "Layers",
       "LayersHint": "drawn left (bottom) to right (top)",
       "AddLayer": "Add",

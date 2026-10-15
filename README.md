@@ -1,4 +1,4 @@
-# Dxcufgb's damage dice trails
+# Dxcufgb's dice trails
 
 Gives [Dice So Nice](https://foundryvtt.com/packages/dice-so-nice) dice a streak of their damage type while they roll, so damage dice look charged with their element: a tail of fire, a jagged lightning bolt, a frost streak, black death-smoke and more. For every other roll (attacks, checks, saves, initiative, ...) you design your own trail in the **Dice trails** window, and everyone at the table sees it on your rolls.
 
@@ -40,7 +40,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 ## Your own trails for regular rolls
 
-Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's damage dice trails → Open the Dice trails window**. It works like a paint box:
+Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's dice trails → Open the Dice trails window**. With a token selected it opens on that character's trails; otherwise on your own. It works like a paint box:
 
 - **61 designs, each with several styles,** picked from a dropdown grouped by category (Elements, Magic, Light & Stars, Nature, Stone & Steel, Classes, Species, Backgrounds). 13 are made for the D&D classes, 12 for the D&D species and 16 for the D&D backgrounds; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
 
@@ -125,7 +125,8 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Other rolls | everything else that is not damage or healing: hit dice, plain `/roll` commands, tables, ... |
 
   The kind is read from the dnd5e and pf2e roll flags; in other systems rolls are *Other rolls* unless they are initiative. Damage and healing dice always keep their damage type trail.
-- **Everyone sees them.** Trails belong to your user, so they follow you to any computer, and other players see your trails on your rolls (each player can turn that off for themselves).
+- **A trail for every character.** At the top of the window, **Trails for** picks whose trails you are editing: your own, or a character or token you own (the GM owns them all). Select a token and open the window to edit that token's trails; its current trail is loaded. A roll made as a character uses that character's trail for that kind of roll, and its player's own trail for any kind it has none for. A linked character's trails are shared by all its tokens; an unlinked token (a monster, say) keeps its own, so every goblin can look different.
+- **Everyone sees them.** Your own trails belong to your user, so they follow you to any computer; characters keep theirs in the world. Everyone sees the trails on the rolls they belong to (each player can turn other players' trails off for themselves).
 - **Saved trails:** save the whole stack under a name and load it again later.
 - **Export / import:** **Export to file** saves the trail in the editor as a single `.dice-trail.json` file, with every image of your own packed inside it. **Import from file** in any other world or Foundry adds those images to that world (in `worlds/<world>/dxcufgbs-dice-trails/imported/`, each image only once), loads the trail into the editor and adds it to your saved trails. Importing images needs permission to upload files; otherwise ask the GM to import it. PNG, WebP, JPEG, GIF and AVIF images are packed; SVG images and web addresses that don't allow it are kept as links only.
 
@@ -155,7 +156,8 @@ All sounds are the module's own: `tools/make-sounds.py` synthesizes them from no
 
 ```js
 const api = game.modules.get("dxcufgbs-dice-trails").api;
-api.open();                                                   // the Dice trails window
+api.open();                                                   // the Dice trails window (selected token's, or yours)
+api.open(actor);                                              // the window on a character's trails
 api.preview("fire");                                          // roll dice with a damage type trail
 api.previewAll();                                             // every damage type in turn
 api.preview({ layers: [{ design: "flame", style: "blue" }] });   // roll dice with a custom trail
@@ -165,7 +167,8 @@ api.setTrail("attack", { layers: [                            // your trail for 
 ] });
 api.setTrail(["check", "save"], cfg);                         // several kinds at once
 api.clearTrail("attack");
-api.trails();                                                 // your trails by kind; api.trails(user) another user's
+api.setTrail("attack", cfg, actor); api.clearTrail("attack", actor);   // a character's trails (an Actor you own)
+api.trails();                                                 // your trails by kind; api.trails(actor) a character's
 api.designs; api.kinds; api.types;                            // designs and styles, kinds of roll, damage types
 api.sounds; api.playSound("thunder", 1);                      // the sound themes; play one's bounce hit (strength 0-1)
 api.presets();                                                // your saved trails

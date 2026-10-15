@@ -11,7 +11,7 @@ import {
 } from "./custom-trails.js";
 import {
   loadThree, renderContext, loadCustomTextures, setPreviewEffect, previewTrail,
-  trails, setTrail, clearTrail, presets, savePreset, deletePreset
+  trails, setTrail, clearTrail, ownerRef, ownerFromRef, presets, savePreset, deletePreset
 } from "./dice-trails.js";
 import { exportTrail, importTrail } from "./transfer.js";
 import { playHit } from "./trail-sounds.js";
@@ -28,6 +28,19 @@ const FORMAT = {
   int: v => `${Math.round(v)}`,
   mul: v => `${(Math.round(v * 100) / 100).toFixed(2)}×`
 };
+
+/** The character of the token you have selected, if you own it (it can then have trails of its own). */
+function selectedCharacter() {
+  const actor = canvas?.tokens?.controlled?.[0]?.actor;
+  return actor?.isOwner ? actor : null;
+}
+
+/** How an owner of trails is named in the window: you, a character, or an unlinked token. */
+function ownerLabel(owner) {
+  if (owner.documentName === "User") return game.i18n.format("DXDT.App.OwnerYou", { name: owner.name });
+  if (owner.isToken) return game.i18n.format("DXDT.App.OwnerToken", { name: owner.token?.name ?? owner.name });
+  return owner.name;
+}
 
 /**
  * The design dropdown: the designs by category (DESIGN_CATEGORIES), anything uncategorised under
@@ -190,21 +203,27 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
   /** The open window, if any. */
   static instance = null;
 
-  static open() {
+  /**
+   * Open the window on an owner's trails: a character (Actor) or a User. Without one it opens on the
+   * character of the selected token, if you own it, and otherwise on your own trails.
+   */
+  static open({ owner = null } = {}) {
     if (!game.modules.get("dice-so-nice")?.active) {
       ui.notifications.warn(game.i18n.localize("DXDT.App.NoDiceSoNice"));
       return null;
     }
-    this.instance ??= new this();
+    owner ??= selectedCharacter() ?? game.user;
+    if (this.instance) this.instance.#setOwner(owner);
+    else this.instance = new this({ owner });
     if (this.instance.rendered) this.instance.bringToFront();
     this.instance.render({ force: true });
     return this.instance;
   }
 
-  constructor(options = {}) {
+  constructor({ owner = game.user, ...options } = {}) {
     super(options);
-    const mine = trails();
-    const first = KINDS.map(k => mine[k]).find(Boolean);
+    this.owner = owner;
+    const first = this.#firstTrail();
     this.#setConfig(first ?? game.settings.get(MODULE_ID, "lastConfig"));
     this.kinds = new Set(KINDS);
     this.presetId = null;
@@ -222,6 +241,43 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     this.sel = Math.min(Math.max(0, sel), this.cfg.layers.length - 1);
   }
 
+  /** The first trail the owner has, to open the editor on. */
+  #firstTrail() {
+    const mine = trails(this.owner);
+    const first = KINDS.map(k => mine[k]).find(Boolean);
+    return first ? foundry.utils.deepClone(first) : null;
+  }
+
+  /** Edit another owner's trails: load the trail it has, keep the one in the editor if it has none. */
+  #setOwner(owner) {
+    if (!owner || owner === this.owner) return;
+    this.owner = owner;
+    const first = this.#firstTrail();
+    if (first) this.#setConfig(first);
+    this.presetId = null;
+    if (this.rendered) {
+      const title = this.window?.title;
+      if (title) title.textContent = this.title;
+      this.render({ parts: ["main"] });
+    }
+  }
+
+  get title() {
+    return `${game.i18n.localize("DXDT.App.Title")}: ${ownerLabel(this.owner ?? game.user)}`;
+  }
+
+  /** Who can be picked in the window: you, the owner being edited, your character and selected tokens you own. */
+  #owners() {
+    const list = [game.user, this.owner, game.user.character, ...(canvas?.tokens?.controlled ?? []).map(t => t.actor)];
+    const seen = new Set();
+    return list.filter(o => {
+      const ref = o && (o.documentName === "User" || o.isOwner) ? ownerRef(o) : null;
+      if (!ref || seen.has(ref)) return false;
+      seen.add(ref);
+      return true;
+    });
+  }
+
   /* -------------------------------------------- */
   /*  Rendering                                   */
   /* -------------------------------------------- */
@@ -235,14 +291,17 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     const motion = isCustom ? MOTIONS[layer.motion] : null;
     const saved = presets();
     if (this.presetId && !saved.some(p => p.id === this.presetId)) this.presetId = null;
-    const mine = trails();
+    const mine = trails(this.owner);
     const customLabel = game.i18n.localize("DXDT.App.CustomImage");
+    const current = ownerRef(this.owner);
 
     return {
       kinds: KINDS.map(k => ({
         id: k, label: game.i18n.localize(`DXDT.Kind.${k}`), hint: game.i18n.localize(`DXDT.KindHint.${k}`),
         trail: mine[k] ? trailLabel(mine[k], customLabel) : null, checked: this.kinds.has(k)
       })),
+      owners: this.#owners().map(o => ({ id: ownerRef(o), label: ownerLabel(o), selected: ownerRef(o) === current })),
+      isCharacter: this.owner.documentName !== "User",
       allChecked: this.kinds.size === KINDS.length,
       canApply: this.kinds.size > 0,
 
@@ -398,6 +457,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     }
 
     html.querySelector("select[name=design]")?.addEventListener("change", ev => this.#chooseDesign(ev.currentTarget.value));
+    html.querySelector("select[name=owner]")?.addEventListener("change", ev => this.#setOwner(ownerFromRef(ev.currentTarget.value)));
 
     await this.#mountPreview();
   }
@@ -669,7 +729,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
   /** Load the trail a kind of roll has into the editor and pick that kind. */
   static #onEditKind(event, target) {
     const kind = target.dataset.kind;
-    const cfg = trails()[kind];
+    const cfg = trails(this.owner)[kind];
     if (!cfg) return;
     this.#setConfig(foundry.utils.deepClone(cfg));
     this.kinds = new Set([kind]);
@@ -690,17 +750,21 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     }
     const kinds = KINDS.filter(k => this.kinds.has(k));
     if (!kinds.length) return ui.notifications.warn(game.i18n.localize("DXDT.App.NoKinds"));
-    await setTrail(kinds, cfg);
+    await setTrail(kinds, cfg, this.owner);
     await game.settings.set(MODULE_ID, "lastConfig", cfg);
-    ui.notifications.info(game.i18n.format("DXDT.App.Applied", { kinds: kinds.map(k => game.i18n.localize(`DXDT.Kind.${k}`)).join(", ") }));
+    ui.notifications.info(game.i18n.format("DXDT.App.Applied", {
+      owner: ownerLabel(this.owner), kinds: kinds.map(k => game.i18n.localize(`DXDT.Kind.${k}`)).join(", ")
+    }));
     this.render({ parts: ["main"] });
   }
 
   static async #onRemove() {
     const kinds = KINDS.filter(k => this.kinds.has(k));
     if (!kinds.length) return ui.notifications.warn(game.i18n.localize("DXDT.App.NoKinds"));
-    await clearTrail(kinds);
-    ui.notifications.info(game.i18n.format("DXDT.App.Removed", { kinds: kinds.map(k => game.i18n.localize(`DXDT.Kind.${k}`)).join(", ") }));
+    await clearTrail(kinds, this.owner);
+    ui.notifications.info(game.i18n.format("DXDT.App.Removed", {
+      owner: ownerLabel(this.owner), kinds: kinds.map(k => game.i18n.localize(`DXDT.Kind.${k}`)).join(", ")
+    }));
     this.render({ parts: ["main"] });
   }
 
