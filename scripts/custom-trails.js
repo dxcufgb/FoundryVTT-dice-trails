@@ -1815,6 +1815,24 @@ export const DESIGNS = {
   }
 };
 
+/**
+ * How the Dice trails window groups the designs in its dropdown, in this order. A design missing
+ * here is listed under "Other", so a new design always shows up.
+ */
+export const DESIGN_CATEGORIES = [
+  { label: "Elements", designs: ["flame", "fireTrail", "frost", "storm", "tide"] },
+  { label: "Magic", designs: ["smoke", "arcane", "ward", "charm", "song", "necrotic", "shadowWisp"] },
+  { label: "Light & Stars", designs: ["rays", "stardust", "starlight", "comet", "rainbow"] },
+  { label: "Nature, Stone & Steel", designs: ["petals", "stones", "blades"] },
+  { label: "Classes", designs: ["arcforge", "bloodRage", "encore", "divineHalo", "wildGrowth", "steelSparks", "flowingKi",
+    "sacredOath", "huntersMark", "shadowstep", "wildSurge", "eldritchPact", "spellscript"] },
+  { label: "Species", designs: ["heavenlyWings", "dragonBreath", "deepVein", "elvenGrace", "gnomishWhimsy", "titanStride",
+    "halflingLuck", "heroicResolve", "adrenalineRush", "infernalLegacy", "twinHeritage", "savageStrike"] },
+  { label: "Backgrounds", designs: ["templeIncense", "craftwork", "foolsGold", "backAlley", "showstopper", "harvest",
+    "nightWatch", "pathfinder", "loneCandle", "coinShower", "nobleCrest", "starChart", "seaSpray", "inkBlot",
+    "warBanner", "dustyRoad"] }
+];
+
 /* ======================================================================== */
 /*  Your own image                                                          */
 /* ======================================================================== */
