@@ -1,8 +1,10 @@
 /**
  * Default trails for characters: every character gets a trail made of its class, species and
  * background designs (one layer each, styled after its subclass, lineage or background where a
- * style has that name) for every kind of roll that is not damage. It is saved on the character
- * like a trail its player gave it, so it shows in the Dice trails window and can be changed there.
+ * style has that name) for every kind of roll that is not damage. A creature without a class (a
+ * monster, an NPC) gets its creature type's design instead, and one with none of these a plain
+ * Comet. It is saved on the character like a trail its player gave it, so it shows in the Dice
+ * trails window and can be changed there; until it is saved, rolls and the window use it anyway.
  *
  * The default is applied once per character and again when its class, species or background
  * changes; kinds of roll the player gave a trail of their own (or took the trail off) are left
@@ -37,6 +39,18 @@ const BACKGROUND_DESIGNS = [
   [/sailor|pirate/, "seaSpray"], [/scribe/, "inkBlot"], [/soldier/, "warBanner"], [/wayfarer/, "dustyRoad"]
 ];
 
+/** Design (and its style when the name has none) by creature type, for creatures without a class (dnd5e NPCs). */
+const CREATURE_DESIGNS = [
+  [/aberration/, "eldritchPact", "greatOldOne"], [/beast/, "wildGrowth", "grove"], [/celestial/, "heavenlyWings", "wings"],
+  [/construct/, "arcforge", "brass"], [/dragon/, "dragonBreath", "red"], [/elemental/, "storm", "thunder"],
+  [/\bfey\b/, "charm", "fae"], [/fiend/, "infernalLegacy", "infernal"], [/giant/, "titanStride", "stone"],
+  [/humanoid/, "heroicResolve", "valor"], [/monstrosity/, "savageStrike", "blood"], [/ooze/, "tide", "swamp"],
+  [/plant/, "wildGrowth", "spores"], [/undead/, "necrotic", "necrotic"]
+];
+
+/** The trail of a creature nothing else is known about. */
+const FALLBACK = { design: "comet", style: "silver" };
+
 /** Item types (dnd5e) whose changes can change a character's default trail. */
 const SOURCE_TYPES = new Set(["class", "subclass", "race", "background"]);
 
@@ -45,6 +59,13 @@ const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function designFor(table, text) {
   return table.find(([re]) => re.test(text))?.[1] ?? null;
+}
+
+/** A style of the design named in the text, else the given one (if it exists), else the design's first. */
+function styleOr(design, text, fallback) {
+  const styles = DESIGNS[design]?.styles ?? {};
+  const named = styleFor(design, text);
+  return named && named !== Object.keys(styles)[0] ? named : (styles[fallback] ? fallback : named);
 }
 
 /**
@@ -61,18 +82,29 @@ export function styleFor(design, text) {
 
 /**
  * The default trail for a character described by plain text: its class (and subclass), species and
- * background names or identifiers. Missing or unknown parts get no layer; null if none is known.
+ * background names or identifiers, and for a creature without a class its creature type and name.
+ * Missing or unknown parts get no layer; with no layer at all it is a plain Comet, so every character
+ * has a trail.
  */
-export function defaultTrail({ cls = "", subclass = "", species = "", background = "" } = {}) {
+export function defaultTrail({ cls = "", subclass = "", species = "", background = "", creature = "", name = "" } = {}) {
   const layers = [];
   const add = (design, text, extra = {}) => {
     if (design) layers.push({ design, style: styleFor(design, text), ...extra });
   };
   // The class is the main streak; species and background are lighter so three layers stay readable.
-  add(designFor(CLASS_DESIGNS, lower(cls)), subclass);
-  add(designFor(SPECIES_DESIGNS, lower(species)), species, { density: 0.6, alpha: 0.85 });
-  add(designFor(BACKGROUND_DESIGNS, lower(background)), background, { density: 0.6, alpha: 0.85 });
-  return layers.length ? normalizeConfig({ layers }) : null;
+  const clsDesign = designFor(CLASS_DESIGNS, lower(cls));
+  const speciesDesign = designFor(SPECIES_DESIGNS, lower(species));
+  add(clsDesign, subclass);
+  // Without a class, the creature type is the main streak (an elf humanoid is shown by its species instead).
+  const type = clsDesign ? null : CREATURE_DESIGNS.find(([re]) => re.test(lower(creature)));
+  if (type && !(speciesDesign && type[1] === "heroicResolve")) {
+    layers.push({ design: type[1], style: styleOr(type[1], `${name} ${creature}`, type[2]) });
+  }
+  // Species and background are lighter, unless one of them is the main streak.
+  const light = () => (layers.length ? { density: 0.6, alpha: 0.85 } : {});
+  add(speciesDesign, species, light());
+  add(designFor(BACKGROUND_DESIGNS, lower(background)), background, light());
+  return normalizeConfig({ layers: layers.length ? layers : [FALLBACK] });
 }
 
 /* ======================================================================== */
@@ -97,10 +129,18 @@ export function characterSources(actor) {
   const subclass = cls?.subclass
     ?? actor.items.find(i => i.type === "subclass" && id && i.system?.classIdentifier === id);
   const details = actor.system?.details ?? {};
-  const species = actor.items.find(i => i.type === "race") ?? (typeof details.race === "string" ? { name: details.race } : null);
+  // An NPC's creature type: {value: "humanoid", subtype: "elf", custom: ...} in dnd5e, or plain text.
+  const type = details.type ?? actor.system?.traits?.type ?? null;
+  const creature = typeof type === "string" ? type : [type?.value, type?.custom].filter(Boolean).join(" ");
+  const subtype = typeof type === "object" ? type?.subtype ?? "" : "";
+  const species = actor.items.find(i => i.type === "race")
+    ?? (typeof details.race === "string" && details.race ? { name: details.race } : subtype ? { name: subtype } : null);
   const background = actor.items.find(i => i.type === "background")
     ?? (typeof details.background === "string" ? { name: details.background } : null);
-  return { cls: itemText(cls), subclass: itemText(subclass), species: itemText(species), background: itemText(background) };
+  return {
+    cls: itemText(cls), subclass: itemText(subclass), species: itemText(species), background: itemText(background),
+    creature, name: actor.name ?? ""
+  };
 }
 
 /* ======================================================================== */
@@ -113,30 +153,62 @@ const same = (a, b) => JSON.stringify(normalizeConfig(a)) === JSON.stringify(nor
 function isWriter(actor) {
   const gm = game.users.activeGM;
   if (gm) return gm.isSelf;
+  // While the GM's own client is not counted as active yet (early in "ready"), it still writes.
+  if (game.user.isGM) return true;
   if (!actor.isOwner) return false;
   const owners = game.users.filter(u => u.active && !u.isGM && actor.testUserPermission(u, "OWNER"));
   owners.sort((a, b) => a.id.localeCompare(b.id));
   return owners[0]?.isSelf ?? false;
 }
 
+/** An Actor (a character, an NPC or an unlinked token's own actor) that can carry trails. */
+const isActor = doc => doc?.documentName === "Actor" && !doc.pack;
+
 /**
- * Give a character its default trail on every kind of roll that has none yet (the first time) or
- * still has the previous default (when its class, species or background changed).
+ * The update that saves an actor's default trail: on every kind of roll that has none yet (the first
+ * time) or still has the previous default (when its class, species or background changed), except
+ * the kinds in `skip`. null if there is nothing to save.
  */
-export async function applyDefaultTrail(actor) {
-  if (!actor || actor.pack || actor.isToken) return false;
+export function defaultTrailUpdate(actor, skip = []) {
+  if (!isActor(actor) || !enabled()) return null;
   const cfg = defaultTrail(characterSources(actor));
-  if (!cfg) return false;
   const prev = actor.getFlag(MODULE_ID, FLAG_DEFAULT);
-  if (prev?.layers && same(prev, cfg)) return false;
+  if (prev?.layers && same(prev, cfg)) return null;
   const current = actor.getFlag(MODULE_ID, FLAG_TRAILS) ?? {};
   const update = { [`flags.${MODULE_ID}.${FLAG_DEFAULT}`]: cfg };
   for (const k of KINDS) {
+    if (skip.includes(k)) continue;
     const cur = current[k]?.layers ? current[k] : null;
     // Before the first default every empty kind gets it; afterwards an empty kind was cleared on purpose.
     const take = prev?.layers ? cur && same(cur, prev) : !cur;
     if (take) update[`flags.${MODULE_ID}.${FLAG_TRAILS}.${k}`] = cfg;
   }
+  return update;
+}
+
+/**
+ * The default trail an actor shows on a kind of roll before it has been saved on it (null once it
+ * has been: from then on the saved trails count, and a kind taken off stays off).
+ */
+export function unsavedDefault(actor, kind) {
+  if (!isActor(actor) || !KINDS.includes(kind) || !enabled()) return null;
+  if (actor.getFlag(MODULE_ID, FLAG_DEFAULT)?.layers) return null;
+  return defaultTrail(characterSources(actor));
+}
+
+/** Whether an actor's trail for a kind of roll is its default trail: not saved yet, or saved and unchanged. */
+export function isDefaultTrail(actor, kind) {
+  if (!isActor(actor)) return false;
+  const cur = actor.getFlag(MODULE_ID, FLAG_TRAILS)?.[kind];
+  const prev = actor.getFlag(MODULE_ID, FLAG_DEFAULT);
+  if (!cur?.layers) return !prev?.layers && !!unsavedDefault(actor, kind);
+  return !!prev?.layers && same(cur, prev);
+}
+
+/** Save a character's default trail now. */
+export async function applyDefaultTrail(actor) {
+  const update = defaultTrailUpdate(actor);
+  if (!update) return false;
   await actor.update(update);
   return true;
 }
@@ -152,18 +224,37 @@ function enabled() {
 const pending = new Map();
 /** Apply an actor's default a moment later, once the items of an import or level-up have all landed. */
 function schedule(actor) {
-  if (!actor || actor.pack || actor.isToken || !enabled() || !isWriter(actor)) return;
-  clearTimeout(pending.get(actor.id));
-  pending.set(actor.id, setTimeout(() => {
-    pending.delete(actor.id);
-    const a = game.actors.get(actor.id);
+  if (!isActor(actor) || !enabled() || !isWriter(actor)) return;
+  const key = actor.uuid;
+  clearTimeout(pending.get(key));
+  pending.set(key, setTimeout(() => {
+    pending.delete(key);
+    // An unlinked token's actor is rebuilt on every change, so take its token's current one.
+    const a = actor.isToken ? actor.token?.actor : game.actors.get(actor.id);
     if (a) applyDefaultTrail(a).catch(err => console.error(`${MODULE_ID} | default trail for ${a.name}`, err));
   }, 250));
 }
 
-/** Give every character in the world its default trail. */
-export function applyAllDefaultTrails() {
-  for (const actor of game.actors ?? []) schedule(actor);
+/**
+ * Save the default trail on every actor in the world and on the unlinked tokens of the viewed scene
+ * (their own actors), in a few batched updates.
+ */
+export async function applyAllDefaultTrails() {
+  if (!enabled()) return;
+  try {
+    const updates = [];
+    for (const actor of game.actors ?? []) {
+      if (!isWriter(actor)) continue;
+      const update = defaultTrailUpdate(actor);
+      if (update) updates.push({ _id: actor.id, ...update });
+    }
+    for (let i = 0; i < updates.length; i += 100) {
+      await CONFIG.Actor.documentClass.updateDocuments(updates.slice(i, i + 100));
+    }
+    for (const token of canvas?.scene?.tokens ?? []) if (!token.actorLink && token.actor) schedule(token.actor);
+  } catch (err) {
+    console.error(`${MODULE_ID} | default trails`, err);
+  }
 }
 
 Hooks.once("init", () => {
@@ -184,8 +275,13 @@ Hooks.on("updateActor", (actor, changes) => {
 });
 // A user who logs in can become the one who writes (the GM, or the first owner while no GM is on).
 Hooks.on("userConnected", () => applyAllDefaultTrails());
+// Unlinked tokens keep their own actors: save theirs when they are placed, and those of a scene when it is viewed.
+Hooks.on("createToken", token => { if (!token.actorLink && token.actor) schedule(token.actor); });
+Hooks.on("canvasReady", cv => {
+  for (const token of cv?.scene?.tokens ?? []) if (!token.actorLink && token.actor) schedule(token.actor);
+});
 for (const hook of ["createItem", "updateItem", "deleteItem"]) {
   Hooks.on(hook, item => {
-    if (SOURCE_TYPES.has(item?.type) && item.parent?.documentName === "Actor") schedule(item.parent);
+    if (SOURCE_TYPES.has(item?.type) && isActor(item.parent)) schedule(item.parent);
   });
 }
