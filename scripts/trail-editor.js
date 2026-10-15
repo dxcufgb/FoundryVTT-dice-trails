@@ -459,7 +459,27 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     html.querySelector("select[name=design]")?.addEventListener("change", ev => this.#chooseDesign(ev.currentTarget.value));
     html.querySelector("select[name=owner]")?.addEventListener("change", ev => this.#setOwner(ownerFromRef(ev.currentTarget.value)));
 
+    requestAnimationFrame(() => this.#fitWidth());
     await this.#mountPreview();
+  }
+
+  /**
+   * Widen the window until nothing in it is cut off, up to the width of the screen. Whatever still does
+   * not fit scrolls inside the window.
+   */
+  #fitWidth() {
+    const html = this.element;
+    if (!html?.isConnected) return;
+    const overflow = Math.max(0, ...[".dxdt-body", ".dxdt-footer"].map(sel => {
+      const el = html.querySelector(sel);
+      return el ? el.scrollWidth - el.clientWidth : 0;
+    }));
+    if (overflow <= 0) return;
+    const current = html.offsetWidth;
+    const width = Math.min(current + overflow + 2, window.innerWidth - 16);
+    if (width <= current) return;
+    const left = Math.max(0, Math.min(this.position.left - (width - current) / 2, window.innerWidth - width));
+    this.setPosition({ width, left, height: "auto" });
   }
 
   #updateKindButtons() {

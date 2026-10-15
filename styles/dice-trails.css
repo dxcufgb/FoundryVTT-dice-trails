@@ -1,10 +1,16 @@
 /* Dxcufgb's dice trails - the Dice trails window */
-.dxdt-editor .window-content { padding: 0.75rem; }
-.dxdt-editor .dxdt-root { display: flex; flex-direction: column; }
+.dxdt-editor .window-content { padding: 0.75rem; overflow: auto; }
+.dxdt-editor .dxdt-root { display: flex; flex-direction: column; flex: none; }
 /* Both columns scroll inside a body that always fits on screen, so the footer with "Use for ticked rolls"
-   stays visible on short screens (the window cannot be resized). */
-.dxdt-editor .dxdt-body { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; }
-.dxdt-editor .dxdt-body > section { min-height: 0; max-height: max(16rem, calc(100vh - 10rem)); overflow-y: auto; }
+   stays visible on short screens (the window cannot be resized). The columns never get narrower than
+   their buttons: when they do not fit, the window widens (see #fitWidth), and on a screen too small for
+   that, the window scrolls. */
+.dxdt-editor .dxdt-body { display: grid; grid-template-columns: min-content minmax(min-content, 1fr); gap: 1rem; }
+.dxdt-editor .dxdt-body > section { min-height: 0; max-height: max(16rem, calc(100vh - 13rem)); overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; }
+/* Buttons keep their whole label on one line and are never squeezed or cut */
+.dxdt-editor button { white-space: nowrap; min-width: max-content; }
+.dxdt-editor .dxdt-test, .dxdt-editor .dxdt-transfer button, .dxdt-editor .dxdt-image-buttons button,
+.dxdt-editor .dxdt-styles button, .dxdt-editor .dxdt-footer button { height: auto; min-height: var(--button-size, 1.75rem); }
 .dxdt-editor .dxdt-left { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding-right: 0.35rem; }
 .dxdt-editor .dxdt-preview {
   width: 320px; height: 320px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;
@@ -40,8 +46,8 @@
 .dxdt-editor .dxdt-color input[type=color] { width: 3rem; height: 1.6rem; padding: 0; border: none; background: none; }
 .dxdt-editor .dxdt-check { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.4rem; }
 .dxdt-editor .dxdt-footer { display: flex; flex: none; gap: 0.5rem; margin-top: 0.8rem; }
-.dxdt-editor .dxdt-footer button { flex: 1; }
-.dxdt-editor .dxdt-footer button.bright { flex: 1.5; }
+.dxdt-editor .dxdt-footer button { flex: 1 0 auto; }
+.dxdt-editor .dxdt-footer button.bright { flex: 1.5 0 auto; }
 
 /* Whose trails: you or a character */
 .dxdt-editor .dxdt-owner { width: 100%; }
@@ -67,7 +73,7 @@
 .dxdt-editor .dxdt-presets button i { margin: 0; }
 .dxdt-editor .dxdt-layers { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .dxdt-editor .dxdt-layers button {
-  flex: 0 1 auto; width: auto; max-width: 11rem; display: flex; align-items: center; gap: 0.3rem; padding: 0 0.5rem;
+  flex: 0 1 auto; width: auto; max-width: 11rem; min-width: 0; display: flex; align-items: center; gap: 0.3rem; padding: 0 0.5rem;
 }
 .dxdt-editor .dxdt-layers button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dxdt-editor .dxdt-layers button img { width: 20px; height: 20px; border: none; object-fit: contain; flex: none; }
@@ -87,5 +93,5 @@
 .dxdt-editor .dxdt-image-src { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
 .dxdt-editor .dxdt-image-src .hint { text-align: left; }
 .dxdt-editor .dxdt-image-buttons { display: flex; gap: 0.3rem; }
-.dxdt-editor .dxdt-transfer { display: flex; gap: 0.3rem; width: 100%; }
-.dxdt-editor .dxdt-transfer button { flex: 1; min-width: 0; white-space: nowrap; }
+.dxdt-editor .dxdt-transfer { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0.3rem; align-self: stretch; }
+.dxdt-editor .dxdt-transfer button { width: auto; }
