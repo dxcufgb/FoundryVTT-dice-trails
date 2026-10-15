@@ -42,7 +42,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's damage dice trails → Open the Dice trails window**. It works like a paint box:
 
-- **33 designs, each with several styles.** The last 13 are made for the D&D classes; their styles include subclass names (Battle Smith, Storm Herald, Eldritch Knight, ...):
+- **45 designs, each with several styles.** 13 are made for the D&D classes and 12 for the D&D species; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
 
   | Design | Styles |
   | --- | --- |
@@ -79,6 +79,18 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Wild Surge (Sorcerer) | Wild Magic, Draconic, Storm, Aberrant |
   | Eldritch Pact (Warlock) | Eldritch, Fiend, Great Old One, Archfey |
   | Spellscript (Wizard) | Evocation, Abjuration, Necromancy, Illusion |
+  | Heavenly Wings (Aasimar) | Heavenly Wings, Inner Radiance, Necrotic Shroud, Dawn |
+  | Dragon Breath (Dragonborn) | Red, Blue, Green, Gold |
+  | Deep Vein (Dwarf) | Gold Vein, Mithral, Ruby, Emerald |
+  | Elven Grace (Elf) | High Elf, Wood Elf, Drow, Eladrin |
+  | Gnomish Whimsy (Gnome) | Forest Gnome, Rock Gnome, Deep Gnome, Illusion |
+  | Titan Stride (Goliath) | Stone Giant, Frost Giant, Fire Giant, Storm Giant |
+  | Halfling Luck (Halfling) | Lightfoot, Stout, Hearth, Ghostwise |
+  | Heroic Resolve (Human) | Valor, Ambition, Wanderlust, Versatile |
+  | Adrenaline Rush (Orc) | Warpaint, Ironjaw, Bonepaint, Stormcry |
+  | Infernal Legacy (Tiefling) | Infernal, Abyssal, Chthonic, Brimstone |
+  | Twin Heritage (Half-Elf) | Sun & Moon, Leaf & Flame, Sea & Sky, Rose & Ivy |
+  | Savage Strike (Half-Orc) | Blood, Steel, Bonecrusher, Venom |
 
 - **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
 - **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
@@ -119,7 +131,7 @@ All sounds are the module's own: `tools/make-sounds.py` synthesizes them from no
 - **Trail width** (0.25–2): how wide the streaks, glow and particles are. The default is a narrow streak about as wide as the die.
 - **Keep glowing after landing**: dice keep a faint aura on the table.
 - **Trail sounds**: on/off.
-- **Sound volume** (0–2): how loud the trail sounds are, on top of Foundry's Interface volume.
+- **Sound volume** (0–2, default 0.2): how loud the trail sounds are, on top of Foundry's Interface volume.
 - **Your trails for regular rolls**: opens the Dice trails window.
 - **Show other players' trails**: show the trails the other players designed on their rolls.
 
