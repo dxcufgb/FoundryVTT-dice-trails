@@ -597,7 +597,7 @@ export const DESIGNS = {
     })
   },
 
-  /* ---- Class trails: one for each D&D 5e class, with styles named for its subclasses ---- */
+  /* ---- Class trails: one for each D&D 5e class; their styles include subclass names ---- */
 
   // Artificer: brass sparks off a grinding wheel, hissing steam, small arcs and spinning cogs.
   arcforge: {
