@@ -167,6 +167,8 @@ export function applyAllDefaultTrails() {
 }
 
 Hooks.once("init", () => {
+  // World scope on purpose, unlike the other settings: one client (the GM, or an owner) writes the defaults
+  // for the whole world, so whether they are applied must not depend on that one client's own choice.
   game.settings.register(MODULE_ID, "defaultTrails", {
     name: "DXDT.Settings.DefaultTrails.Name", hint: "DXDT.Settings.DefaultTrails.Hint",
     scope: "world", config: true, type: Boolean, default: true,
@@ -176,6 +178,10 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", applyAllDefaultTrails);
 Hooks.on("createActor", actor => schedule(actor));
+// Species and background can also be plain text in the actor's details (and the original class an id there).
+Hooks.on("updateActor", (actor, changes) => {
+  if (changes?.system?.details) schedule(actor);
+});
 // A user who logs in can become the one who writes (the GM, or the first owner while no GM is on).
 Hooks.on("userConnected", () => applyAllDefaultTrails());
 for (const hook of ["createItem", "updateItem", "deleteItem"]) {
