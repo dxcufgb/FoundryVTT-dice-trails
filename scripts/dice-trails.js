@@ -1,5 +1,5 @@
 /**
- * Dxcufgb's damage dice trails (dxcufgbs-dice-trails) - Foundry VTT V13 + Dice So Nice 5
+ * Dxcufgb's dice trails (dxcufgbs-dice-trails) - Foundry VTT V13 + Dice So Nice 5
  *
  * Gives every 3D die rolled for a damage type a streak of its element that follows
  * its flight path (a tail of fire, a jagged bolt, frost, death-smoke, ...), plus an
@@ -23,10 +23,12 @@
  * DieEmitter.update) or lands. See trail-sounds.js; the files in sounds/ are the module's own (CC0).
  *
  * Custom trails for regular rolls (attacks, checks, saves, initiative, ...): every user designs
- * their own in the "Dice trails" window (Configure Settings -> Dxcufgb's damage dice trails, or the
+ * their own in the "Dice trails" window (Configure Settings -> Dxcufgb's dice trails, or the
  * button in the Token Controls) out of layers (Flame, Frost, Storm, Comet, ..., or an image of
- * their own), and gives them to kinds of roll. They are stored on the User, so the trails follow
- * them to any computer and everyone at the table sees them on that player's rolls.
+ * their own), and gives them to kinds of roll, for themselves (stored on the User, so they follow
+ * them to any computer) or for a character or token they own (stored on the Actor; an unlinked
+ * token's on that token). A roll made as a character uses its trail, else its player's, and
+ * everyone at the table sees it.
  * See custom-trails.js (designs, compiler) and trail-editor.js (the window).
  *
  * Preview from the console or a macro:
@@ -35,7 +37,7 @@
  *   game.modules.get("dxcufgbs-dice-trails").api.open()          // the Dice trails window
  */
 
-import { MODULE_ID, TAG, TAG_KIND, TAG_USER, FLAG_PRESETS, FLAG_TRAILS } from "./constants.js";
+import { MODULE_ID, TAG, TAG_KIND, TAG_USER, TAG_OWNER, FLAG_PRESETS, FLAG_TRAILS } from "./constants.js";
 import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } from "./custom-trails.js";
 import { DiceTrailsEditor } from "./trail-editor.js";
 import { exportTrail, importTrail } from "./transfer.js";
@@ -454,14 +456,15 @@ Hooks.once("init", () => {
     mod.api = {
       preview, previewAll, types: Object.keys(EFFECTS),
       sounds: THEMES, playSound: (theme, strength = 1) => playHit(theme, strength),
-      open: () => DiceTrailsEditor.open(),
+      open: (owner = null) => DiceTrailsEditor.open({ owner }),
       designs: DESIGNS, kinds: KINDS,
-      presets, savePreset, deletePreset, trails, setTrail, clearTrail, exportTrail, importTrail
+      presets, savePreset, deletePreset, trails, setTrail, clearTrail, ownerRef, ownerFromRef, exportTrail, importTrail
     };
   }
 });
 
-// A button in the Token Controls, next to the other per-player looks (rings, ...).
+// A button in the Token Controls, next to the other per-player looks (rings, ...). With a token selected it
+// opens that character's trails.
 Hooks.on("getSceneControlButtons", controls => {
   const tokens = controls.tokens;
   if (!tokens?.tools) return;
@@ -504,9 +507,10 @@ Hooks.on("diceSoNiceRollStart", (messageID, context) => {
 
     const user = context?.user ?? message?.author ?? message?.user ?? null;
     const kind = rollKind(message, rolls);
-    const cfg = kind ? trailFor(user, kind) : null;
+    const owner = kind ? trailOwner(message, user, kind) : null;
+    const cfg = trailFor(owner, kind);
     if (cfg && (user?.id === game.user.id || game.settings.get(MODULE_ID, "showOthers"))) {
-      for (const roll of rolls) tagged += tagCustom(roll, kind, user.id);
+      for (const roll of rolls) tagged += tagCustom(roll, kind, user?.id, owner !== user ? ownerRef(owner) : null);
     }
     if (tagged) startTicker();
   } catch (err) {
@@ -547,59 +551,98 @@ export function rollKind(message, rolls = []) {
   return "other";
 }
 
-/** Tag the dice of a roll that have no damage type yet with a user's custom trail. */
-function tagCustom(roll, kind, userId) {
+/** Tag the dice of a roll that have no damage type yet with a custom trail: a character's (ref) or the user's. */
+function tagCustom(roll, kind, userId, ref = null) {
   if (!roll?.terms) return 0;
   let n = 0;
   for (const term of roll.terms) {
-    if (Array.isArray(term?.rolls)) { for (const r of term.rolls) n += tagCustom(r, kind, userId); continue; }
-    if (term?.roll?.terms) { n += tagCustom(term.roll, kind, userId); continue; }
+    if (Array.isArray(term?.rolls)) { for (const r of term.rolls) n += tagCustom(r, kind, userId, ref); continue; }
+    if (term?.roll?.terms) { n += tagCustom(term.roll, kind, userId, ref); continue; }
     if (!(Array.isArray(term?.results) && typeof term.faces === "number")) continue;
     term.options ??= {};
     if (term.options[TAG]) continue;
     term.options[TAG] = CUSTOM;
     term.options[TAG_KIND] = kind;
     term.options[TAG_USER] = userId;
+    if (ref) term.options[TAG_OWNER] = ref;
     n++;
   }
   return n;
 }
 
 /* ======================================================================== */
-/*  Custom trails: storage (flags on the User)                              */
+/*  Custom trails: storage (flags on the User or on a character)            */
 /* ======================================================================== */
 
-/** A user's trails by kind of roll: {attack: trail, ...}. Missing kinds have none. */
-export function trails(user = game.user) {
-  const t = user?.getFlag?.(MODULE_ID, FLAG_TRAILS);
+/*
+ * Trails belong to an owner: a User (a player's own trails) or an Actor (a character's). A linked
+ * character's trails are on its Actor and shared by its tokens; an unlinked token's actor keeps its
+ * own on the token, so every token can have a different trail.
+ */
+
+/** The character a chat message speaks for (an unlinked token's own actor), if any. */
+function speakerActor(message) {
+  const speaker = message?.speaker;
+  if (!speaker?.actor && !speaker?.token) return null;
+  try {
+    return CONFIG.ChatMessage.documentClass.getSpeakerActor(speaker) ?? null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** Whose trail a roll gets: the character it is made as, if that has one for this kind; else the player's. */
+export function trailOwner(message, user, kind) {
+  const actor = speakerActor(message);
+  return actor && trailFor(actor, kind) ? actor : user;
+}
+
+/** A reference to an owner that fits in a die's options: a uuid, the token's for an unlinked token. */
+export function ownerRef(owner) {
+  return owner?.isToken && owner.token ? owner.token.uuid : owner?.uuid ?? null;
+}
+
+/** The owner (User or Actor) a reference made by ownerRef() points at, if it still exists. */
+export function ownerFromRef(ref) {
+  if (!ref) return null;
+  try {
+    const doc = foundry.utils.fromUuidSync(ref);
+    return doc?.documentName === "Token" ? doc.actor : doc ?? null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** An owner's trails by kind of roll: {attack: trail, ...}. Missing kinds have none. */
+export function trails(owner = game.user) {
+  const t = owner?.getFlag?.(MODULE_ID, FLAG_TRAILS);
   const out = {};
   if (t && typeof t === "object") for (const k of KINDS) if (t[k]?.layers) out[k] = normalizeConfig(t[k]);
   return out;
 }
 
-/** The trail a user has given this kind of roll, if any. */
-export function trailFor(user, kind) {
-  if (!user || !kind) return null;
-  const t = user.getFlag?.(MODULE_ID, FLAG_TRAILS);
+/** The trail an owner (User or Actor) has given this kind of roll, if any. */
+export function trailFor(owner, kind) {
+  if (!owner || !kind) return null;
+  const t = owner.getFlag?.(MODULE_ID, FLAG_TRAILS);
   return t?.[kind]?.layers ? normalizeConfig(t[kind]) : null;
 }
 
-/** Give one or more kinds of roll a trail (yours: trails are per user). */
-export async function setTrail(kinds, cfg) {
+/** Give one or more kinds of roll a trail, for an owner: you (default) or a character you own. */
+export async function setTrail(kinds, cfg, owner = game.user) {
   const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
-  if (!list.length) return false;
+  if (!list.length || !owner) return false;
   const data = normalizeConfig(cfg);
-  const next = { ...(game.user.getFlag(MODULE_ID, FLAG_TRAILS) ?? {}) };
-  for (const k of list) next[k] = data;
-  await game.user.setFlag(MODULE_ID, FLAG_TRAILS, next);
+  await owner.update(Object.fromEntries(list.map(k => [`flags.${MODULE_ID}.${FLAG_TRAILS}.${k}`, data])));
   return true;
 }
 
-export async function clearTrail(kinds) {
+/** Take the trail off one or more kinds of roll, for an owner: you (default) or a character you own. */
+export async function clearTrail(kinds, owner = game.user) {
   const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
-  const next = { ...(game.user.getFlag(MODULE_ID, FLAG_TRAILS) ?? {}) };
-  for (const k of list) delete next[k];
-  await game.user.setFlag(MODULE_ID, FLAG_TRAILS, next);
+  if (!list.length || !owner) return false;
+  // Updates merge into the flag, so a kind is removed with Foundry's "-=" deletion key.
+  await owner.update(Object.fromEntries(list.map(k => [`flags.${MODULE_ID}.${FLAG_TRAILS}.-=${k}`, null])));
   return true;
 }
 
@@ -645,7 +688,9 @@ function effectForDie(mesh) {
   if (EFFECTS[type]) return { def: EFFECTS[type], cfg: null };
   if (type === "preview") return previewDef ? { def: previewDef, cfg: null } : null;
   if (type === CUSTOM) {
-    const cfg = trailFor(game.users.get(mesh.options[TAG_USER]), mesh.options[TAG_KIND]);
+    const ref = mesh.options[TAG_OWNER];
+    const owner = (ref && ownerFromRef(ref)) || game.users.get(mesh.options[TAG_USER]);
+    const cfg = trailFor(owner, mesh.options[TAG_KIND]);
     return cfg ? { def: effectOf(cfg), cfg } : null;
   }
   return null;

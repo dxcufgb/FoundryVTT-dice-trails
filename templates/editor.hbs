@@ -5,6 +5,14 @@
       <button type="button" class="dxdt-test" data-action="testRoll" data-tooltip="{{localize 'DXDT.App.TestRollHint'}}"><i class="fa-solid fa-dice-d20"></i> {{localize "DXDT.App.TestRoll"}}</button>
       <p class="hint">{{localize "DXDT.App.PreviewHint"}}</p>
 
+      <h3>{{localize "DXDT.App.TrailsFor"}}</h3>
+      <div class="dxdt-owner">
+        <select name="owner" aria-label="{{localize 'DXDT.App.TrailsFor'}}">
+          {{#each owners}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+        </select>
+      </div>
+      <p class="hint">{{#if isCharacter}}{{localize "DXDT.App.OwnerCharacterHint"}}{{else}}{{localize "DXDT.App.OwnerYouHint"}}{{/if}}</p>
+
       <h3>{{localize "DXDT.App.Rolls"}} <small>{{localize "DXDT.App.RollsHint"}}</small></h3>
       <div class="dxdt-kinds">
         {{#each kinds}}
