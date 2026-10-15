@@ -1332,8 +1332,506 @@ export const DESIGNS = {
           colors: [[0, p.dark, 0], [0.15, p.dark, 0.6], [1, p.dark, 0]] }
       ]
     })
+  },
+
+  /* ---- Background trails: one for each D&D 5e (2024) background ---- */
+
+  // Acolyte: thin curls of incense smoke, candle motes rising and a holy symbol glowing on the table.
+  templeIncense: {
+    label: "Temple Incense", icon: "fa-solid fa-place-of-worship", sound: "radiant",
+    styles: {
+      sandalwood: { label: "Sandalwood", colors: ["#fff4d0", "#ffc84a", "#5a3a1a"] },
+      myrrh: { label: "Myrrh", colors: ["#ffe0c8", "#e0603a", "#3a1408"] },
+      moonshrine: { label: "Moonshrine", colors: ["#ffffff", "#a8c8ff", "#2a3458"] },
+      groveShrine: { label: "Grove Shrine", colors: ["#f0ffd8", "#7adf5a", "#1a3a14"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.3, pulse: 0.1, pulseSpeed: 1.6 }],
+      layers: [
+        // Incense smoke curling up in thin threads
+        { tex: "smoke", blend: "normal", rate: 22, rest: 0.6, life: [1.6, 2.4], size: [0.4, 2.2], spawn: 0.4,
+          vel: [0, 0, 1.4], jitter: 0.2, inherit: -0.05, drag: 0.7, spin: 1.2, swirl: 1.4,
+          colors: [[0, mix(p.bright, "#ffffff", 0.55), 0], [0.15, mix(p.bright, "#ffffff", 0.55), 0.35], [1, mix(p.bright, "#ffffff", 0.55), 0]] },
+        // Candle motes
+        { tex: "glow", blend: "add", rate: 30, rest: 0.4, life: [0.9, 1.5], size: [0.35, 0.1], spawn: 0.7,
+          vel: [0, 0, 1.2], jitter: 0.3, drag: 0.8, flicker: 0.5,
+          colors: [[0, p.bright, 1], [0.5, p.main, 0.8], [1, p.main, 0]] },
+        // A holy symbol glowing briefly beneath the die
+        { tex: "glyphs", blend: "add", rate: 2.5, rest: 0.8, life: [0.9, 1.1], size: [1.6, 2.4], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, spin: 0.6, colors: [[0, p.bright, 0.8], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Artisan: curling shavings, sparks off the tools, sawdust and the glint of a finished piece.
+  craftwork: {
+    label: "Craftwork", icon: "fa-solid fa-hammer", sound: "stone",
+    styles: {
+      woodwright: { label: "Woodwright", colors: ["#ffe8c0", "#c88a4a", "#3a2410"] },
+      smith: { label: "Smith", colors: ["#fff0c0", "#ff8a2a", "#2a2420"] },
+      glassblower: { label: "Glassblower", colors: ["#e8ffff", "#3ad8e0", "#0a2a3a"] },
+      potter: { label: "Potter", colors: ["#ffe0c8", "#c8603a", "#3a180a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.0, alpha: 0.2, pulse: 0.05 }],
+      layers: [
+        // Curled shavings tossed off the die
+        { tex: "twirls", blend: "normal", rate: 18, rest: 0.05, life: [0.8, 1.2], size: [0.6, 0.5], spawn: 0.4,
+          vel: [0, 0, 2.4], jitter: 1.6, inherit: -0.1, gravity: -7, drag: 0.6, spin: 8,
+          colors: [[0, p.bright, 1], [0.5, p.main, 1], [1, p.main, 0]] },
+        // Sparks off the tools
+        { tex: "spark", blend: "add", rate: 45, rest: 0.03, life: [0.3, 0.55], size: [0.3, 0.08], spawn: 0.3,
+          vel: [0, 0, 3], jitter: 3, inherit: 0.2, gravity: -12, drag: 0.7,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 1], [1, p.main, 0]] },
+        // Sawdust
+        { tex: "smoke", blend: "normal", rate: 10, rest: 0.1, life: [0.8, 1.3], size: [0.6, 2.0], spawn: 0.5,
+          vel: [0, 0, 0.3], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, p.main, 0], [0.2, p.main, 0.3], [1, p.main, 0]] },
+        // The glint of a finished piece
+        { tex: "flares", blend: "add", rate: 5, rest: 0.3, life: [0.2, 0.4], size: [1.2, 0.2], spawn: 0.6,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Charlatan: shiny coins tumble off the die and vanish in a puff before anyone can count them.
+  foolsGold: {
+    label: "Fool's Gold", icon: "fa-solid fa-masks-theater", sound: "charm",
+    styles: {
+      foolsGold: { label: "Fool's Gold", colors: ["#fff4b0", "#ffc83a", "#5a2a6a"] },
+      counterfeit: { label: "Counterfeit", colors: ["#ffffff", "#c8d0dc", "#3a2a4a"] },
+      snakeOil: { label: "Snake Oil", colors: ["#e8ffb0", "#7adf3a", "#3a0a3a"] },
+      masquerade: { label: "Masquerade", colors: ["#ffe0f8", "#ff5ad8", "#1a0a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.2, alpha: 0.3, pulse: 0.15, pulseSpeed: 4 }],
+      layers: [
+        // Coins that never land: they fade out mid-air
+        { tex: "coins", blend: "normal", rate: 12, rest: 0.3, life: [0.6, 0.9], size: [0.6, 0.55], spawn: 0.4,
+          vel: [0, 0, 2.2], jitter: 1.2, inherit: -0.08, gravity: -5, drag: 0.8, spin: 6,
+          colors: [[0, p.bright, 1], [0.7, p.main, 1], [1, p.main, 0]] },
+        // The puff they vanish into
+        { tex: "smoke", blend: "normal", rate: 20, rest: 0.4, life: [0.6, 1.0], size: [0.4, 1.8], spawn: 0.6,
+          vel: [0, 0, 0.8], jitter: 0.4, drag: 0.6, spin: 1,
+          colors: [[0, p.dark, 0], [0.3, p.dark, 0.7], [1, p.dark, 0]] },
+        // Glints
+        { tex: "spark", blend: "add", rate: 16, rest: 0.4, life: [0.2, 0.45], size: [0.6, 0.1], spawn: 0.7,
+          vel: [0, 0, 0], jitter: 0, spin: 1, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
+        // A twirl of misdirection
+        { tex: "twirls", blend: "add", rate: 4, rest: 0.4, life: [0.5, 0.7], size: [0.5, 1.6], spawn: 0.4,
+          vel: [0, 0, 0], jitter: 0, spin: 7, colors: [[0, p.bright, 0.8], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Criminal: low gutter smoke, a thrown knife, the scrape of a lockpick and a purse spilling coins.
+  backAlley: {
+    label: "Back Alley", icon: "fa-solid fa-user-ninja", sound: "blade",
+    styles: {
+      cutpurse: { label: "Cutpurse", colors: ["#fff0b0", "#c8a03a", "#0c0a0e"] },
+      smuggler: { label: "Smuggler", colors: ["#d8fff0", "#3aa8a0", "#06100e"] },
+      fence: { label: "Fence", colors: ["#f0d8ff", "#8a5ab8", "#0a0610"] },
+      thug: { label: "Thug", colors: ["#ffc8c0", "#b02a2a", "#0e0606"] }
+    },
+    build: p => ({
+      auras: [{ color: p.dark, size: 2.6, alpha: 0.5, pulse: 0.05, blend: "normal" }],
+      layers: [
+        // Gutter smoke hugging the table
+        { tex: "smoke", blend: "normal", rate: 35, rest: 0.4, life: [1.0, 1.6], size: [0.8, 2.8], spawn: 0.4,
+          vel: [0, 0, 0.1], jitter: 0.5, inherit: -0.1, drag: 0.6, spin: 0.5,
+          colors: [[0, p.dark, 0], [0.15, p.dark, 0.7], [1, p.dark, 0]] },
+        // A thrown knife, tumbling
+        { tex: "knives", blend: "normal", rate: 3, rest: 0, life: [0.5, 0.8], size: [0.9, 0.9], spawn: 0.3,
+          vel: [0, 0, 2.4], jitter: 1.6, inherit: -0.2, gravity: -8, spin: 14,
+          colors: [[0, p.bright, 1], [0.7, p.main, 0.9], [1, p.main, 0]] },
+        // Lockpick glints
+        { tex: "spark", blend: "add", rate: 12, rest: 0.2, life: [0.15, 0.3], size: [0.5, 0.1], spawn: 0.6,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
+        // Coins spilling from a cut purse
+        { tex: "coins", blend: "normal", rate: 6, rest: 0, life: [0.6, 0.9], size: [0.45, 0.45], spawn: 0.3,
+          vel: [0, 0, 0.6], jitter: 0.6, gravity: -9, spin: 6,
+          colors: [[0, p.bright, 1], [0.8, p.main, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Entertainer: curtain call, with confetti in three colours, spotlight rings and stage stars.
+  showstopper: {
+    label: "Showstopper", icon: "fa-solid fa-ticket", sound: "song",
+    styles: {
+      carnival: { label: "Carnival", colors: ["#ffe84a", "#ff4ad8", "#3ab8ff"] },
+      opera: { label: "Opera", colors: ["#fff0c0", "#e02a3a", "#6a0a1a"] },
+      jester: { label: "Jester", colors: ["#ffe0a0", "#3adf6a", "#a83aff"] },
+      moonlitStage: { label: "Moonlit Stage", colors: ["#ffffff", "#a8c0ff", "#6a4ab8"] }
+    },
+    build: p => {
+      // Confetti: the same flutter in each of the palette's three colours
+      const confetti = c => ({ tex: "shard", blend: "normal", rate: 14, rest: 0.4, life: [1.0, 1.6], size: [0.35, 0.3], spawn: 0.5,
+        vel: [0, 0, 2.6], jitter: 1.8, inherit: -0.08, gravity: -3, drag: 0.5, spin: 6, swirl: 0.6,
+        colors: [[0, c, 1], [0.8, c, 1], [1, c, 0]] });
+      return {
+        auras: [{ color: p.main, size: 2.4, alpha: 0.3, pulse: 0.2, pulseSpeed: 4 }],
+        layers: [
+          confetti(p.bright), confetti(p.main), confetti(p.dark),
+          // Spotlight rings
+          { tex: "ring", blend: "add", rate: 4, rest: 0.3, life: [0.5, 0.7], size: [0.8, 3.6], spawn: 0,
+            vel: [0, 0, 0], jitter: 0, colors: [[0, "#ffffff", 0.8], [1, p.bright, 0]] },
+          // Stage stars
+          { tex: "stars", blend: "add", rate: 16, rest: 0.4, life: [0.3, 0.6], size: [0.6, 0.1], spawn: 0.8,
+            vel: [0, 0, 0.2], jitter: 0.2, spin: 1, flicker: 0.6, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+        ]
+      };
+    }
+  },
+
+  // Farmer: chaff and seeds thrown up from a threshing floor, drifting in warm, dusty light.
+  harvest: {
+    label: "Harvest", icon: "fa-solid fa-wheat-awn", sound: "petals",
+    styles: {
+      wheat: { label: "Wheat", colors: ["#fff0b0", "#e0b04a", "#4a3010"] },
+      orchard: { label: "Orchard", colors: ["#ffe0c0", "#e0402a", "#2a4a10"] },
+      hayfield: { label: "Hayfield", colors: ["#f8f0d0", "#c8b878", "#3a3420"] },
+      pumpkinPatch: { label: "Pumpkin Patch", colors: ["#ffe0a0", "#ff8a1a", "#2a3a10"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.2, alpha: 0.22, pulse: 0.05 }],
+      layers: [
+        // Chaff fluttering down
+        { tex: "leaves", blend: "normal", rate: 20, rest: 0.4, life: [1.2, 1.8], size: [0.4, 0.35], spawn: 0.5,
+          vel: [0, 0, 1.8], jitter: 1.2, inherit: -0.1, gravity: -2, drag: 0.45, spin: 5, swirl: 0.6,
+          colors: [[0, p.main, 0], [0.1, p.main, 1], [0.7, p.main, 1], [1, p.dark, 0]] },
+        // Seeds drifting in the light
+        { tex: "glow", blend: "add", rate: 25, rest: 0.4, life: [0.9, 1.5], size: [0.22, 0.1], spawn: 0.7,
+          vel: [0, 0, 0.8], jitter: 0.3, drag: 0.7, swirl: 0.4, colors: [[0, p.bright, 1], [1, p.bright, 0]] },
+        // Dust from the threshing floor
+        { tex: "smoke", blend: "normal", rate: 12, rest: 0.2, life: [0.9, 1.5], size: [0.8, 2.8], spawn: 0.5,
+          vel: [0, 0, 0.2], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, p.bright, 0], [0.2, p.bright, 0.25], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Guard: a lantern on the walls, with flickering warm light, a watchful sweep and glints of mail.
+  nightWatch: {
+    label: "Night Watch", icon: "fa-solid fa-tower-observation", sound: "ward",
+    styles: {
+      lantern: { label: "Lantern", colors: ["#fff0c0", "#ffb04a", "#2a1a08"] },
+      cityWatch: { label: "City Watch", colors: ["#e8f4ff", "#5a9aff", "#0a1428"] },
+      gatehouseTorch: { label: "Gatehouse Torch", colors: ["#ffe0a0", "#ff5a1a", "#2a0a04"] },
+      moonwatch: { label: "Moonwatch", colors: ["#ffffff", "#c8d4e8", "#1a2030"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 3.0, alpha: 0.5, pulse: 0.15, pulseSpeed: 6, flicker: 0.3 }],
+      layers: [
+        // Lantern light rising off the die
+        { tex: "glow", blend: "add", rate: 40, rest: 0.4, life: [0.6, 1.1], size: [0.45, 0.1], spawn: 0.5,
+          vel: [0, 0, 1.6], jitter: 0.4, inherit: -0.06, drag: 0.7, flicker: 0.6,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 1], [1, p.main, 0]] },
+        // A watchful sweep
+        { tex: "ring", blend: "add", rate: 5, rest: 0.4, life: [0.6, 0.8], size: [0.6, 3.6], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.bright, 0.8], [1, p.main, 0]] },
+        // Glints of mail
+        { tex: "spark", blend: "add", rate: 12, rest: 0.2, life: [0.15, 0.3], size: [0.7, 0.1], spawn: 0.6,
+          vel: [0, 0, 0], jitter: 0, spin: 2, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Guide: a guiding star circles the die and shows the way, with trail wind and leaves behind.
+  pathfinder: {
+    label: "Pathfinder", icon: "fa-solid fa-compass", sound: "stardust",
+    styles: {
+      northStar: { label: "North Star", colors: ["#ffffff", "#9ad0ff", "#1a2a5a"] },
+      forestTrail: { label: "Forest Trail", colors: ["#f0ffd0", "#6ac83a", "#14300a"] },
+      desertRoad: { label: "Desert Road", colors: ["#fff0c8", "#e0a84a", "#4a2a10"] },
+      tundra: { label: "Tundra", colors: ["#ffffff", "#bfe8ff", "#3a5a7a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.2, alpha: 0.25, pulse: 0.05 }],
+      ribbons: [
+        // The trail wind
+        { width: 0.9, time: 0.6, blend: "add", alpha: 0.5, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.5, noiseScale: [4, 2], scroll: 1.5, soft: 0.5, fadePow: 1.1, taper: 0.5,
+          wave: { amp: 0.7, freq: 1.4, speed: 5 }, strip: { row: 2, repeat: 2, scroll: 2, mask: 0, glow: 0.5 } }
+      ],
+      layers: [
+        // The guiding star circling the die
+        { tex: "spark", blend: "add", rate: 3, rest: 1.0, life: [0.9, 1.2], size: [1.2, 0.8], spawn: 0,
+          orbit: { radius: 1.6, speed: 5, rise: 0, flat: true }, spin: 1,
+          colors: [[0, "#ffffff", 0], [0.1, "#ffffff", 1], [0.8, p.bright, 1], [1, p.bright, 0]] },
+        // Leaves blown along the trail
+        { tex: "leaves", blend: "normal", rate: 10, rest: 0.3, life: [1.2, 1.8], size: [0.5, 0.45], spawn: 0.5,
+          vel: [0, 0, 0.8], jitter: 0.8, inherit: -0.1, gravity: -1.2, drag: 0.5, spin: 3,
+          colors: [[0, p.main, 0], [0.1, p.main, 0.9], [1, p.dark, 0]] },
+        // Motes
+        { tex: "glow", blend: "add", rate: 20, rest: 0.4, life: [0.5, 1.0], size: [0.25, 0.1], spawn: 0.7,
+          vel: [0, 0, 0.4], jitter: 0.3, flicker: 0.4, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Hermit: one small candle flame on the die, cold mist and a few fireflies keeping it company.
+  loneCandle: {
+    label: "Lone Candle", icon: "fa-solid fa-campground", sound: "smoke",
+    styles: {
+      candle: { label: "Candle", colors: ["#fff0c0", "#ffa84a", "#3a2a20"] },
+      cave: { label: "Cave", colors: ["#e0f0ff", "#7a9ab8", "#141a20"] },
+      mountain: { label: "Mountain", colors: ["#f8f0ff", "#b8a8e0", "#2a2438"] },
+      marsh: { label: "Marsh", colors: ["#f0ffd0", "#9ac85a", "#1a2410"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.2, alpha: 0.45, pulse: 0.2, pulseSpeed: 9, flicker: 0.3 }],
+      layers: [
+        // The candle flame, riding on top of the die
+        { tex: "flames", blend: "add", rate: 6, rest: 1.0, life: [0.25, 0.4], size: [0.8, 0.5], spawn: 0,
+          orbit: { radius: 0, speed: 0, rise: 0.4, flat: true, lift: 1.1 },
+          colors: [[0, "#ffffff", 0.9], [0.4, p.bright, 0.9], [1, p.main, 0]] },
+        // Cold mist
+        { tex: "smoke", blend: "normal", rate: 10, rest: 0.6, life: [1.8, 2.6], size: [1.2, 3.6], spawn: 0.6,
+          vel: [0, 0, 0.1], jitter: 0.3, inherit: -0.04, drag: 0.6, spin: 0.3,
+          colors: [[0, mix(p.bright, "#ffffff", 0.55), 0], [0.3, mix(p.bright, "#ffffff", 0.55), 0.18], [1, mix(p.bright, "#ffffff", 0.55), 0]] },
+        // A few fireflies
+        { tex: "glow", blend: "add", rate: 8, rest: 1.0, life: [1.4, 2.2], size: [0.3, 0.18], spawn: 1.1,
+          vel: [0, 0, 0.3], jitter: 0.3, drag: 0.6, flicker: 0.85, swirl: 0.6,
+          colors: [[0, p.bright, 0], [0.2, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Merchant: business is good, coins spill and bounce off the die, catching the light as they spin.
+  coinShower: {
+    label: "Coin Shower", icon: "fa-solid fa-coins", sound: "stardust",
+    styles: {
+      gold: { label: "Gold", colors: ["#fff8c0", "#ffc83a", "#5a3a08"] },
+      silver: { label: "Silver", colors: ["#ffffff", "#c8d0dc", "#3a404a"] },
+      copper: { label: "Copper", colors: ["#ffe0c8", "#d8783a", "#3a1a08"] },
+      platinum: { label: "Platinum", colors: ["#ffffff", "#d8e8f0", "#4a5a6a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.3, pulse: 0.1, pulseSpeed: 3 }],
+      layers: [
+        // Coins spilling up and out
+        { tex: "coins", blend: "normal", rate: 26, rest: 0.1, life: [0.8, 1.3], size: [0.55, 0.5], spawn: 0.4,
+          vel: [0, 0, 3.2], jitter: 1.8, inherit: -0.1, gravity: -11, drag: 0.85, spin: 9,
+          colors: [[0, p.bright, 1], [0.85, p.main, 1], [1, p.main, 0]] },
+        // Light catching them
+        { tex: "spark", blend: "add", rate: 20, rest: 0.3, life: [0.2, 0.4], size: [0.7, 0.1], spawn: 0.7,
+          vel: [0, 0, 0], jitter: 0, spin: 1.5, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Noble: a velvet streak in house colours edged with gold thread, trailing gold dust and sparkle.
+  nobleCrest: {
+    label: "Noble Crest", icon: "fa-solid fa-crown", sound: "charm",
+    styles: {
+      royal: { label: "Royal", colors: ["#ffe08a", "#8a3aff", "#1a0a3a"] },
+      imperial: { label: "Imperial", colors: ["#ffe08a", "#d0203a", "#3a0410"] },
+      silverCourt: { label: "Silver Court", colors: ["#ffffff", "#4a7ad8", "#0a1a3a"] },
+      emeraldCourt: { label: "Emerald Court", colors: ["#ffe8a0", "#1aa860", "#062a18"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.3, pulse: 0.08, pulseSpeed: 1.6 }],
+      ribbons: [
+        // The velvet streak in the house colour
+        { width: 2.0, time: 0.6, blend: "normal", alpha: 0.75, colors: [p.main, mix(p.main, p.dark, 0.5), p.dark],
+          noiseAmt: 0.2, soft: 0.5, fadePow: 1.1, taper: 0.5, wave: { amp: 0.3, freq: 0.8, speed: 3 } },
+        // Gold thread along it
+        { width: 0.35, time: 0.6, blend: "add", alpha: 0.9, colors: ["#ffffff", p.bright, mix(p.bright, p.main, 0.5)],
+          noiseAmt: 0.05, soft: 0.2, fadePow: 0.9, taper: 0.5, sparkle: 0.4, wave: { amp: 0.3, freq: 0.8, speed: 3 } }
+      ],
+      layers: [
+        // Gold dust settling
+        { tex: "glow", blend: "add", rate: 35, rest: 0.4, life: [0.8, 1.4], size: [0.22, 0.08], spawn: 0.7,
+          vel: [0, 0, 0.3], jitter: 0.3, gravity: -0.5, drag: 0.7, flicker: 0.4,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 1], [1, p.bright, 0]] },
+        // Courtly sparkle
+        { tex: "stars", blend: "add", rate: 8, rest: 0.4, life: [0.3, 0.6], size: [0.7, 0.1], spawn: 0.8,
+          vel: [0, 0, 0], jitter: 0.1, spin: 1, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Sage: the die draws a constellation, a thin chart line pinned with stars, and an astrolabe ring.
+  starChart: {
+    label: "Star Chart", icon: "fa-solid fa-book-atlas", sound: "stardust",
+    styles: {
+      astronomer: { label: "Astronomer", colors: ["#ffffff", "#7ab0ff", "#1a2458"] },
+      archivist: { label: "Archivist", colors: ["#fff4d0", "#e0b05a", "#3a2a14"] },
+      seer: { label: "Seer", colors: ["#f4e0ff", "#b07aff", "#2a1048"] },
+      naturalist: { label: "Naturalist", colors: ["#e8ffe8", "#5adfa0", "#0a3024"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.2, alpha: 0.25, pulse: 0.05 }],
+      ribbons: [
+        // The chart line, long and thin
+        { width: 0.18, time: 1.1, blend: "add", alpha: 0.7, colors: ["#ffffff", p.bright, p.main],
+          noiseAmt: 0, soft: 0.2, fadePow: 1.0, taper: 0.2 }
+      ],
+      layers: [
+        // Stars pinned along the line, left where the die passed
+        { tex: "spark", blend: "add", rate: 9, rest: 0.4, life: [1.1, 1.5], size: [0.7, 0.35], spawn: 0.05,
+          vel: [0, 0, 0], jitter: 0, spin: 0.3, flicker: 0.25,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 1], [1, p.main, 0]] },
+        // Faint background stars
+        { tex: "glow", blend: "add", rate: 20, rest: 0.4, life: [0.8, 1.4], size: [0.2, 0.08], spawn: 1.0,
+          vel: [0, 0, 0], jitter: 0.1, flicker: 0.6, colors: [[0, p.bright, 1], [1, p.main, 0]] },
+        // An astrolabe ring now and then
+        { tex: "glyphs", blend: "add", rate: 1.5, rest: 0.6, life: [0.9, 1.1], size: [2.0, 2.6], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, spin: 0.5, colors: [[0, p.main, 0.7], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Sailor: salt spray flung off a bow wave, foam bubbles and a sea-wind streak rolling behind the die.
+  seaSpray: {
+    label: "Sea Spray", icon: "fa-solid fa-anchor", sound: "tide",
+    styles: {
+      openSea: { label: "Open Sea", colors: ["#ffffff", "#3a9ae0", "#0a2a4a"] },
+      tropic: { label: "Tropic", colors: ["#f0fffa", "#2ad8c8", "#064048"] },
+      stormSea: { label: "Storm Sea", colors: ["#e8eef4", "#6a8098", "#141c24"] },
+      pirate: { label: "Pirate", colors: ["#fff0c0", "#2a8a8a", "#0a1414"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.4, alpha: 0.25, pulse: 0.1, pulseSpeed: 2 }],
+      ribbons: [
+        // The rolling sea-wind streak
+        { width: 1.6, time: 0.6, blend: "add", alpha: 0.45, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.8, noiseScale: [5, 2], scroll: 2, soft: 0.6, fadePow: 1.1, taper: 0.4,
+          wave: { amp: 0.8, freq: 1.4, speed: 6 } }
+      ],
+      layers: [
+        // Salt spray
+        { tex: "drops", blend: "add", rate: 40, rest: 0.05, life: [0.5, 0.8], size: [0.3, 0.25], spawn: 0.4,
+          vel: [0, 0, 2.6], jitter: 2.2, inherit: -0.15, gravity: -10, drag: 0.8, spin: 2,
+          colors: [[0, "#ffffff", 0.9], [0.4, p.bright, 0.8], [1, p.main, 0]] },
+        // Foam bubbles
+        { tex: "bubbles", blend: "add", rate: 16, rest: 0.4, life: [0.7, 1.2], size: [0.25, 0.5], spawn: 0.6,
+          vel: [0, 0, 0.6], jitter: 0.3, drag: 0.7, swirl: 0.6,
+          colors: [[0, "#ffffff", 0], [0.1, "#ffffff", 0.8], [1, p.bright, 0]] },
+        // Sea mist
+        { tex: "smoke", blend: "normal", rate: 8, rest: 0.2, life: [0.8, 1.3], size: [0.8, 2.4], spawn: 0.5,
+          vel: [0, 0, 0.2], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.bright, "#ffffff", 0.55), 0], [0.2, mix(p.bright, "#ffffff", 0.55), 0.25], [1, mix(p.bright, "#ffffff", 0.55), 0]] }
+      ]
+    })
+  },
+
+  // Scribe: a quill stroke in ink follows the die, flicking droplets and blooming blots, with a glint of gilding.
+  inkBlot: {
+    label: "Ink Blot", icon: "fa-solid fa-feather-pointed", sound: "needle",
+    styles: {
+      ironGall: { label: "Iron Gall", colors: ["#c8d0f0", "#3a4a7a", "#06080e"] },
+      sepia: { label: "Sepia", colors: ["#f0dcc0", "#8a5a2a", "#1a1008"] },
+      vermilion: { label: "Vermilion", colors: ["#ffd0c0", "#d02a1a", "#2a0604"] },
+      goldLeaf: { label: "Gold Leaf", colors: ["#fff4c0", "#d8a83a", "#2a1e08"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.0, alpha: 0.2, pulse: 0.05, blend: "normal" }],
+      ribbons: [
+        // The quill stroke, drawn in ink rather than light
+        { width: 0.6, time: 0.7, blend: "normal", alpha: 0.9, colors: [p.main, p.main, p.dark],
+          noiseAmt: 0.15, soft: 0.25, fadePow: 1.0, taper: 0.7, wave: { amp: 0.3, freq: 0.6, speed: 2 } }
+      ],
+      layers: [
+        // Flicked droplets
+        { tex: "drops", blend: "normal", rate: 30, rest: 0.05, life: [0.5, 0.8], size: [0.35, 0.3], spawn: 0.4,
+          vel: [0, 0, 2.2], jitter: 2.0, gravity: -10, drag: 0.8, spin: 3,
+          colors: [[0, p.main, 1], [0.8, p.main, 0.9], [1, p.dark, 0]] },
+        // Blots blooming where the ink lands
+        { tex: "smoke", blend: "normal", rate: 14, rest: 0.2, life: [0.6, 1.0], size: [0.3, 1.4], spawn: 0.5,
+          vel: [0, 0, 0], jitter: 0.2, inherit: -0.04, spin: 0.4,
+          colors: [[0, p.main, 0.8], [1, p.dark, 0]] },
+        // A glint of gilding
+        { tex: "spark", blend: "add", rate: 10, rest: 0.2, life: [0.2, 0.4], size: [0.5, 0.1], spawn: 0.6,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Soldier: a regimental banner snapping behind the die, drumbeat rings, marching dust and embers.
+  warBanner: {
+    label: "War Banner", icon: "fa-solid fa-chess-rook", sound: "thunder",
+    styles: {
+      legion: { label: "Legion", colors: ["#ffe08a", "#c0202a", "#2a0408"] },
+      ironGuard: { label: "Iron Guard", colors: ["#e8f0ff", "#5a7aa8", "#141a24"] },
+      mercenary: { label: "Mercenary", colors: ["#ffd8a0", "#e0701a", "#141010"] },
+      highland: { label: "Highland", colors: ["#f0ffe0", "#2a8a4a", "#0a1a10"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.4, alpha: 0.25, pulse: 0.2, pulseSpeed: 4 }],
+      ribbons: [
+        // The banner: wide cloth in the regiment's colour, snapping in the wind
+        { width: 2.4, time: 0.6, blend: "normal", alpha: 0.85, colors: [p.main, p.main, mix(p.main, p.dark, 0.5)],
+          noiseAmt: 0.15, soft: 0.3, fadePow: 1.0, taper: 0.2, wave: { amp: 0.6, freq: 1.6, speed: 8 } },
+        // Its gold edging
+        { width: 0.25, time: 0.6, blend: "add", alpha: 0.9, colors: [p.bright, p.bright, p.main],
+          noiseAmt: 0, soft: 0.2, fadePow: 1.0, taper: 0.2, wave: { amp: 0.6, freq: 1.6, speed: 8 } }
+      ],
+      layers: [
+        // Marching dust
+        { tex: "smoke", blend: "normal", rate: 14, rest: 0.1, life: [0.8, 1.3], size: [0.8, 2.6], spawn: 0.5,
+          vel: [0, 0, 0.2], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.dark, "#5a5248", 0.5), 0], [0.2, mix(p.dark, "#5a5248", 0.5), 0.45], [1, p.dark, 0]] },
+        // Drumbeat rings
+        { tex: "ring", blend: "add", rate: 3.5, rest: 0.2, life: [0.45, 0.55], size: [1.0, 4.2], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.bright, 0.9], [1, p.main, 0]] },
+        // Embers
+        { tex: "glow", blend: "add", rate: 25, rest: 0.2, life: [0.5, 0.9], size: [0.3, 0.1], spawn: 0.6,
+          vel: [0, 0, 1.4], jitter: 0.4, flicker: 0.5, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Wayfarer: life on the road, with dust kicked up by every bounce, pebbles, a blown leaf and warm motes.
+  dustyRoad: {
+    label: "Dusty Road", icon: "fa-solid fa-road", sound: "stone",
+    styles: {
+      sunset: { label: "Sunset", colors: ["#ffe0b0", "#e08a4a", "#4a2a2a"] },
+      autumnRoad: { label: "Autumn Road", colors: ["#ffe8b0", "#c8702a", "#3a2010"] },
+      rainyRoad: { label: "Rainy Road", colors: ["#e0eef8", "#7a8ea0", "#1a222a"] },
+      nightRoad: { label: "Night Road", colors: ["#e8e8ff", "#6a6aa8", "#10101e"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.0, alpha: 0.2, pulse: 0.05 }],
+      layers: [
+        // Road dust
+        { tex: "smoke", blend: "normal", rate: 24, rest: 0.1, life: [1.0, 1.6], size: [1.0, 3.4], spawn: 0.5,
+          vel: [0, 0, 0.3], jitter: 0.5, inherit: -0.08, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.dark, "#5a5248", 0.5), 0], [0.2, mix(p.dark, "#5a5248", 0.5), 0.5], [1, p.dark, 0]] },
+        // Pebbles
+        { tex: "debris", blend: "normal", rate: 10, rest: 0, life: [0.6, 0.9], size: [0.5, 0.4], spawn: 0.4,
+          vel: [0, 0, 2.4], jitter: 1.6, gravity: -10, drag: 0.8, spin: 6,
+          colors: [[0, mix(p.dark, "#6a6458", 0.5), 1], [0.8, mix(p.dark, "#3a3630", 0.5), 0.95], [1, p.dark, 0]] },
+        // A leaf blown along
+        { tex: "leaves", blend: "normal", rate: 5, rest: 0.2, life: [1.2, 1.8], size: [0.5, 0.45], spawn: 0.5,
+          vel: [0, 0, 0.8], jitter: 0.8, inherit: -0.1, gravity: -1.2, drag: 0.5, spin: 3,
+          colors: [[0, p.main, 0], [0.1, p.main, 1], [1, p.dark, 0]] },
+        // Warm evening motes
+        { tex: "glow", blend: "add", rate: 18, rest: 0.4, life: [0.8, 1.4], size: [0.25, 0.1], spawn: 0.7,
+          vel: [0, 0, 0.5], jitter: 0.3, flicker: 0.5, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
   }
 };
+
+/**
+ * How the Dice trails window groups the designs in its dropdown, in this order. A design missing
+ * here is listed under "Other", so a new design always shows up.
+ */
+export const DESIGN_CATEGORIES = [
+  { label: "Elements", designs: ["flame", "fireTrail", "frost", "storm", "tide"] },
+  { label: "Magic", designs: ["smoke", "arcane", "ward", "charm", "song", "necrotic", "shadowWisp"] },
+  { label: "Light & Stars", designs: ["rays", "stardust", "starlight", "comet", "rainbow"] },
+  { label: "Nature, Stone & Steel", designs: ["petals", "stones", "blades"] },
+  { label: "Classes", designs: ["arcforge", "bloodRage", "encore", "divineHalo", "wildGrowth", "steelSparks", "flowingKi",
+    "sacredOath", "huntersMark", "shadowstep", "wildSurge", "eldritchPact", "spellscript"] },
+  { label: "Species", designs: ["heavenlyWings", "dragonBreath", "deepVein", "elvenGrace", "gnomishWhimsy", "titanStride",
+    "halflingLuck", "heroicResolve", "adrenalineRush", "infernalLegacy", "twinHeritage", "savageStrike"] },
+  { label: "Backgrounds", designs: ["templeIncense", "craftwork", "foolsGold", "backAlley", "showstopper", "harvest",
+    "nightWatch", "pathfinder", "loneCandle", "coinShower", "nobleCrest", "starChart", "seaSpray", "inkBlot",
+    "warBanner", "dustyRoad"] }
+];
 
 /* ======================================================================== */
 /*  Your own image                                                          */

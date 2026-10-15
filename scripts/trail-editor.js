@@ -7,7 +7,7 @@
 
 import { MODULE_ID, TAG } from "./constants.js";
 import {
-  DESIGNS, CUSTOM, MOTIONS, COLOR_MODES, KINDS, SOUNDS, MAX_LAYERS, normalizeConfig, normalizeLayer, layerLabel, trailLabel, compileTrail
+  DESIGNS, DESIGN_CATEGORIES, CUSTOM, MOTIONS, COLOR_MODES, KINDS, SOUNDS, MAX_LAYERS, normalizeConfig, normalizeLayer, layerLabel, trailLabel, compileTrail
 } from "./custom-trails.js";
 import {
   loadThree, renderContext, loadCustomTextures, setPreviewEffect, previewTrail,
@@ -28,6 +28,25 @@ const FORMAT = {
   int: v => `${Math.round(v)}`,
   mul: v => `${(Math.round(v * 100) / 100).toFixed(2)}×`
 };
+
+/**
+ * The design dropdown: the designs by category (DESIGN_CATEGORIES), anything uncategorised under
+ * "Other", and an image of your own last.
+ */
+function designGroups(current, customLabel) {
+  const option = id => ({ id, label: DESIGNS[id].label, active: id === current });
+  const listed = new Set();
+  const groups = [];
+  for (const c of DESIGN_CATEGORIES) {
+    const ids = c.designs.filter(id => DESIGNS[id] && !listed.has(id));
+    ids.forEach(id => listed.add(id));
+    if (ids.length) groups.push({ label: c.label, designs: ids.map(option) });
+  }
+  const rest = Object.keys(DESIGNS).filter(id => !listed.has(id));
+  if (rest.length) groups.push({ label: "Other", designs: rest.map(option) });
+  groups.push({ label: customLabel, designs: [{ id: CUSTOM, label: customLabel, active: current === CUSTOM }] });
+  return groups;
+}
 
 /* -------------------------------------------- */
 /*  Live preview: a die flying through the window */
@@ -134,7 +153,6 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     window: { title: "DXDT.App.Title", icon: "fa-solid fa-dice-d20", resizable: false },
     position: { width: 900, height: "auto" },
     actions: {
-      design: DiceTrailsEditor.#onDesign,
       style: DiceTrailsEditor.#onStyle,
       selectLayer: DiceTrailsEditor.#onSelectLayer,
       addLayer: DiceTrailsEditor.#onAddLayer,
@@ -242,10 +260,8 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       canMoveDown: this.sel > 0,
       canMoveUp: this.sel < this.cfg.layers.length - 1,
 
-      designs: [
-        ...Object.entries(DESIGNS).map(([id, d]) => ({ id, label: d.label, icon: d.icon, active: id === layer.design })),
-        { id: CUSTOM, label: customLabel, icon: "fa-solid fa-image", active: isCustom, custom: true }
-      ],
+      designGroups: designGroups(layer.design, customLabel),
+      designIcon: isCustom ? "fa-solid fa-image" : design.icon,
       isCustom,
       styles: design ? Object.entries(design.styles).map(([id, s]) => ({ id, label: s.label, active: id === layer.style })) : [],
       designLabel: design?.label ?? "",
@@ -381,6 +397,8 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     }
 
+    html.querySelector("select[name=design]")?.addEventListener("change", ev => this.#chooseDesign(ev.currentTarget.value));
+
     await this.#mountPreview();
   }
 
@@ -505,8 +523,8 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
   /*  Actions                                     */
   /* -------------------------------------------- */
 
-  static #onDesign(event, target) {
-    const id = target.dataset.design;
+  /** Give the current layer another design, keeping its fine-tuning and effects. */
+  #chooseDesign(id) {
     const old = this.layer;
     if (id === old.design || (id !== CUSTOM && !DESIGNS[id])) return;
     // Keep the fine-tuning and effects, change what is drawn.

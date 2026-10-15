@@ -409,9 +409,46 @@ def skulls():
     return [skull(0, 0.24), skull(0.25, 0.2), skull(-0.3, 0.26), skull(0.1, 0.22)]
 
 
+# ----------------------------------------------------------------------------- coins
+
+def coin(tilt, angle, face):
+    """A coin seen at a tilt (1: face on, small: nearly edge on), with a raised rim and a mark."""
+    cell = new_cell()
+    d = ImageDraw.Draw(cell)
+    rx, ry = S * 0.36, S * 0.36 * tilt
+    edge = S * 0.05 * (1 - tilt) + S * 0.012
+    # the edge (thickness) shows under the face when the coin is tilted
+    d.ellipse([C - rx, C - ry + edge, C + rx, C + ry + edge], fill=(150, 150, 150, 255))
+    d.ellipse([C - rx, C - ry, C + rx, C + ry], fill=(235, 235, 235, 255))
+    # raised rim
+    k = 0.8
+    d.ellipse([C - rx * k, C - ry * k, C + rx * k, C + ry * k], outline=(175, 175, 175, 255), width=int(S * 0.025))
+    # the mark: a star on one face, a crown-like bar on the other
+    if face == 0:
+        pts = []
+        for i in range(10):
+            a = -math.pi / 2 + i * math.pi / 5
+            r = (0.42 if i % 2 == 0 else 0.18) * rx
+            pts.append((C + math.cos(a) * r, C + math.sin(a) * r * tilt))
+        d.polygon(pts, fill=(190, 190, 190, 255))
+    else:
+        d.rectangle([C - rx * 0.32, C - ry * 0.1, C + rx * 0.32, C + ry * 0.12], fill=(190, 190, 190, 255))
+        for sx in (-0.28, 0, 0.28):
+            d.polygon([(C + rx * (sx - 0.08), C - ry * 0.1), (C + rx * sx, C - ry * 0.38), (C + rx * (sx + 0.08), C - ry * 0.1)], fill=(190, 190, 190, 255))
+    # a glint on the rim
+    d.arc([C - rx * 0.95, C - ry * 0.95, C + rx * 0.95, C + ry * 0.95], 200, 260, fill=(255, 255, 255, 255), width=int(S * 0.03))
+    if angle:
+        cell = cell.rotate(math.degrees(angle), resample=Image.BICUBIC, center=(C, C))
+    return shade(soften(cell, 1.0), 0.25)
+
+
+def coins():
+    return [coin(1.0, 0, 0), coin(0.55, 0.4, 1), coin(0.25, -0.3, 0), coin(0.8, 2.2, 1)]
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     for name, fn in [("leaves", leaves), ("petals", petals), ("snowflakes", snowflakes), ("notes", notes),
                      ("glyphs", glyphs), ("knives", knives), ("stones", stones), ("flares", flares),
-                     ("bubbles", bubbles), ("drops", drops), ("skulls", skulls)]:
+                     ("bubbles", bubbles), ("drops", drops), ("skulls", skulls), ("coins", coins)]:
         sheet(name, fn())

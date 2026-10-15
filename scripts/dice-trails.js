@@ -76,6 +76,8 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
  * layer fields (accent particles):
  *   tex        drawn: glow | spark | shard | bubble
  *              Kenney sprites: ring | heart | rune | smoke | bolts | stars | flames | twirls | slashes | debris
+ *              own sprites (tools/make-textures.py): leaves | petals | snowflakes | notes | glyphs | knives |
+ *              stones | flares | bubbles | drops | skulls | coins
  *              (sheets of 4 variants; each particle picks one)
  *   blend      add | normal
  *   rate       particles / second while the die flies (scaled by intensity)
@@ -739,12 +741,12 @@ function canvasTexture(draw, size = 64) {
  */
 const SPRITES = {
   ring: 1, heart: 1, rune: 1, smoke: 4, bolts: 4, stars: 4, flames: 4, twirls: 4, slashes: 4, debris: 4, strips: 8,
-  leaves: 4, petals: 4, snowflakes: 4, notes: 4, glyphs: 4, knives: 4, stones: 4, flares: 4, bubbles: 4, drops: 4, skulls: 4
+  leaves: 4, petals: 4, snowflakes: 4, notes: 4, glyphs: 4, knives: 4, stones: 4, flares: 4, bubbles: 4, drops: 4, skulls: 4, coins: 4
 };
 // The art fills only the middle of each sprite, so draw these larger to match the drawn ones.
 const SPRITE_SIZE = {
   ring: 1.1, heart: 1.3, rune: 1, smoke: 1.5, bolts: 1.7, stars: 2.2, flames: 1.9, twirls: 1.7, slashes: 1.6, debris: 1.5,
-  leaves: 1.3, petals: 1.4, snowflakes: 1.2, notes: 1.3, glyphs: 1.2, knives: 1.1, stones: 1.3, flares: 1.3, bubbles: 1.2, drops: 1.3, skulls: 1.4
+  leaves: 1.3, petals: 1.4, snowflakes: 1.2, notes: 1.3, glyphs: 1.2, knives: 1.1, stones: 1.3, flares: 1.3, bubbles: 1.2, drops: 1.3, skulls: 1.4, coins: 1.2
 };
 const FRAMES = {};   // texture name -> number of variants
 
