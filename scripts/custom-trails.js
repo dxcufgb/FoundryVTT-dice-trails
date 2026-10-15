@@ -595,6 +595,382 @@ export const DESIGNS = {
           colors: [[0, p.bright, 0.9], [1, p.main, 0]] }
       ]
     })
+  },
+
+  /* ---- Class trails: one for each D&D 5e class; their styles include subclass names ---- */
+
+  // Artificer: brass sparks off a grinding wheel, hissing steam, small arcs and spinning cogs.
+  arcforge: {
+    label: "Arcforge", icon: "fa-solid fa-gears", sound: "needle",
+    styles: {
+      brass: { label: "Brass", colors: ["#fff0c0", "#e0a03a", "#3a2408"] },
+      copper: { label: "Copper", colors: ["#ffe0c8", "#d8703a", "#2a1008"] },
+      alchemist: { label: "Alchemist", colors: ["#e8ffe0", "#5adf8a", "#0a2a1a"] },
+      battleSmith: { label: "Battle Smith", colors: ["#e8f4ff", "#4ab8ff", "#0a1a2a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.0, alpha: 0.25, pulse: 0.08 }],
+      arcs: [{ color: mix(p.bright, "#ffffff", 0.4), every: 0.12, count: 1, reach: [1.2, 2.2], restCount: 0 }],
+      layers: [
+        // Steam puffs rising off the die
+        { tex: "smoke", blend: "normal", rate: 22, rest: 0.4, life: [0.9, 1.5], size: [0.6, 2.4], spawn: 0.4,
+          vel: [0, 0, 1.6], jitter: 0.4, inherit: -0.06, drag: 0.6, spin: 0.6,
+          colors: [[0, mix(p.bright, "#ffffff", 0.55), 0], [0.15, mix(p.bright, "#ffffff", 0.55), 0.3], [1, mix(p.bright, "#ffffff", 0.55), 0]] },
+        // Grinding-wheel sparks thrown up and falling back to the table
+        { tex: "spark", blend: "add", rate: 70, rest: 0.05, life: [0.3, 0.6], size: [0.35, 0.1], spawn: 0.3,
+          vel: [0, 0, 3], jitter: 3, inherit: 0.2, gravity: -12, drag: 0.7,
+          colors: [[0, "#ffffff", 1], [0.25, p.bright, 1], [0.7, p.main, 0.8], [1, p.dark, 0]] },
+        // Small cogs turning around the die
+        { tex: "ring", blend: "add", rate: 5, rest: 0.6, life: [0.8, 1.2], size: [0.6, 0.8], spawn: 0,
+          orbit: { radius: 1.3, speed: 3, rise: 0.2 }, spin: 4,
+          colors: [[0, p.bright, 0], [0.15, p.bright, 0.9], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Barbarian: a heartbeat-pulsing aura, furious embers, ash and chunks of floor torn up by the die.
+  bloodRage: {
+    label: "Blood Rage", icon: "fa-solid fa-hand-fist", sound: "thunder",
+    styles: {
+      rage: { label: "Rage", colors: ["#ffd0a0", "#e0201a", "#3a0204"] },
+      berserker: { label: "Berserker", colors: ["#fff0c0", "#ff7a1a", "#5a1000"] },
+      stormHerald: { label: "Storm Herald", colors: ["#ffffff", "#7ac8ff", "#0a2a5a"] },
+      wildHeart: { label: "Wild Heart", colors: ["#f0e0b0", "#a8742a", "#2a1a08"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.0, alpha: 0.5, pulse: 0.35, pulseSpeed: 7 }],
+      layers: [
+        // Furious embers rising behind the die
+        { tex: "glow", blend: "add", rate: 80, rest: 0.2, life: [0.5, 1.1], size: [0.5, 0.1], spawn: 0.6,
+          vel: [0, 0, 1.4], jitter: 0.6, inherit: -0.08, drag: 0.7, flicker: 0.5, swirl: 0.6,
+          colors: [[0, p.bright, 1], [0.3, p.main, 0.9], [1, p.dark, 0]] },
+        // A hot core close behind the die
+        { tex: "glow", blend: "add", rate: 40, rest: 0.1, life: [0.15, 0.3], size: [1.2, 0.5], spawn: 0.2,
+          vel: [0, 0, 0], jitter: 0.2, colors: [[0, p.bright, 0.8], [1, p.main, 0]] },
+        // Ash smoke
+        { tex: "smoke", blend: "normal", rate: 12, rest: 0.2, life: [1.2, 2.0], size: [0.8, 2.8], spawn: 0.5,
+          vel: [0, 0, 0.6], jitter: 0.4, drag: 0.6, spin: 0.5,
+          colors: [[0, mix(p.dark, "#28282c", 0.5), 0], [0.2, mix(p.dark, "#28282c", 0.5), 0.45], [1, "#101012", 0]] },
+        // Chunks of floor kicked up and falling back
+        { tex: "debris", blend: "normal", rate: 14, rest: 0.05, life: [0.6, 1.0], size: [0.7, 0.6], spawn: 0.4,
+          vel: [0, 0, 3], jitter: 2.4, gravity: -11, drag: 0.8, spin: 8,
+          colors: [[0, mix(p.dark, "#5a5248", 0.5), 1], [0.8, mix(p.dark, "#3a3430", 0.5), 0.95], [1, p.dark, 0]] }
+      ]
+    })
+  },
+
+  // Bard: notes that sway and spin up off the die like a tune still playing, with stage-light twinkles.
+  encore: {
+    label: "Encore", icon: "fa-solid fa-guitar", sound: "song",
+    styles: {
+      ballad: { label: "Ballad", colors: ["#fff4d0", "#ffb84a", "#7a2a6a"] },
+      lullaby: { label: "Lullaby", colors: ["#f0f4ff", "#a8b8ff", "#3a3a8a"] },
+      jig: { label: "Jig", colors: ["#f0ffd0", "#6adf4a", "#0a4a3a"] },
+      dirge: { label: "Dirge", colors: ["#e8d8ff", "#7a4aa8", "#120818"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.4, alpha: 0.35, pulse: 0.15, pulseSpeed: 2 }],
+      layers: [
+        // Notes swaying upward and turning
+        { tex: "notes", blend: "add", rate: 16, rest: 0.8, life: [1.2, 2.0], size: [1.0, 0.8], spawn: 0.6,
+          vel: [0, 0, 1.2], jitter: 0.5, inherit: -0.05, drag: 0.7, spin: 1, swirl: 1.0,
+          colors: [[0, p.bright, 0], [0.1, p.bright, 1], [0.6, p.main, 0.9], [1, p.dark, 0]] },
+        // Stage-light twinkles
+        { tex: "spark", blend: "add", rate: 30, rest: 0.4, life: [0.6, 1.2], size: [0.4, 0.1], spawn: 0.9,
+          vel: [0, 0, 0.4], jitter: 0.3, drag: 0.6, flicker: 0.8, spin: 1,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 1], [1, p.main, 0]] },
+        // Small glints close to the die
+        { tex: "glow", blend: "add", rate: 20, rest: 0.3, life: [0.3, 0.6], size: [0.35, 0.1], spawn: 0.5,
+          vel: [0, 0, 0.2], jitter: 0.2, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Cleric: soft halos open around the die and blessed motes drift upward, calm rather than fiery.
+  divineHalo: {
+    label: "Divine Halo", icon: "fa-solid fa-hands-praying", sound: "radiant",
+    styles: {
+      life: { label: "Life", colors: ["#ffffff", "#ffe08a", "#c8902a"] },
+      light: { label: "Light", colors: ["#fff8e0", "#ffb02a", "#a83a00"] },
+      twilight: { label: "Twilight", colors: ["#f0e8ff", "#9a8aff", "#2a1a5a"] },
+      grave: { label: "Grave", colors: ["#f0fff8", "#8adfc0", "#1a3a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 3.2, alpha: 0.45, pulse: 0.1, pulseSpeed: 1.4 }],
+      layers: [
+        // Halos widening around the die
+        { tex: "ring", blend: "add", rate: 6, rest: 0.6, life: [0.9, 1.3], size: [0.8, 4.2], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.bright, 0.9], [1, p.main, 0]] },
+        // Blessed motes drifting up
+        { tex: "glow", blend: "add", rate: 40, rest: 0.4, life: [1.2, 2.0], size: [0.35, 0.15], spawn: 0.8,
+          vel: [0, 0, 1.2], jitter: 0.3, drag: 0.8, flicker: 0.6,
+          colors: [[0, p.bright, 1], [0.5, p.main, 0.8], [1, p.main, 0]] },
+        // A white core on the die
+        { tex: "glow", blend: "add", rate: 25, rest: 0.3, life: [0.2, 0.3], size: [1.3, 0.6], spawn: 0.1,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, "#ffffff", 0.7], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Druid: leaves tumble off the die while spores and fireflies drift up, as if it rolled through a forest.
+  wildGrowth: {
+    label: "Wild Growth", icon: "fa-solid fa-leaf", sound: "petals",
+    styles: {
+      grove: { label: "Grove", colors: ["#e8ffb0", "#5ab83a", "#1a3a0a"] },
+      autumn: { label: "Autumn", colors: ["#ffe0a0", "#e0701a", "#4a1a04"] },
+      moon: { label: "Moon", colors: ["#f0f0ff", "#a8c0e8", "#2a3a5a"] },
+      spores: { label: "Spores", colors: ["#f0e0ff", "#a85adf", "#2a1a10"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.2, alpha: 0.25, pulse: 0.08 }],
+      layers: [
+        // Tumbling leaves
+        { tex: "leaves", blend: "normal", rate: 18, rest: 0.6, life: [1.4, 2.2], size: [0.7, 0.6], spawn: 0.6,
+          vel: [0, 0, 1.2], jitter: 1.2, inherit: -0.1, gravity: -1.6, drag: 0.5, spin: 3, swirl: 0.8,
+          colors: [[0, p.main, 0], [0.1, p.main, 1], [0.7, mix(p.main, p.dark, 0.3), 1], [1, p.dark, 0]] },
+        // Spores and fireflies drifting up
+        { tex: "glow", blend: "add", rate: 30, rest: 0.5, life: [1.5, 2.5], size: [0.3, 0.15], spawn: 0.9,
+          vel: [0, 0, 0.6], jitter: 0.4, drag: 0.6, flicker: 0.7, swirl: 0.6,
+          colors: [[0, p.bright, 0], [0.15, p.bright, 1], [1, p.main, 0]] },
+        // Pollen glints
+        { tex: "spark", blend: "add", rate: 14, rest: 0.3, life: [0.4, 0.8], size: [0.3, 0.08], spawn: 0.7,
+          vel: [0, 0, 0.3], jitter: 0.3, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Fighter: sparks fly like a blade on a whetstone and bounce on the table, with quick slash arcs.
+  steelSparks: {
+    label: "Steel Sparks", icon: "fa-solid fa-shield", sound: "blade",
+    styles: {
+      forge: { label: "Forge", colors: ["#fff8d0", "#ffa02a", "#5a2000"] },
+      steel: { label: "Steel", colors: ["#ffffff", "#c8d4e0", "#3a4450"] },
+      champion: { label: "Champion", colors: ["#fffbe0", "#ffd84a", "#5a3a00"] },
+      eldritchKnight: { label: "Eldritch Knight", colors: ["#f0e0ff", "#8a5aff", "#1a0a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.0, alpha: 0.2, pulse: 0.05 }],
+      layers: [
+        // Whetstone sparks: thrown up and out, falling back to the table
+        { tex: "spark", blend: "add", rate: 110, rest: 0.03, life: [0.35, 0.7], size: [0.3, 0.1], spawn: 0.35,
+          vel: [0, 0, 3.5], jitter: 3.5, inherit: 0.25, gravity: -14, drag: 0.7,
+          colors: [[0, "#ffffff", 1], [0.2, p.bright, 1], [0.7, p.main, 0.8], [1, p.dark, 0]] },
+        // Bright glints on the die
+        { tex: "spark", blend: "add", rate: 14, rest: 0.1, life: [0.15, 0.3], size: [1.0, 0.2], spawn: 0.5,
+          vel: [0, 0, 0], jitter: 0, spin: 2, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
+        // Quick slash arcs
+        { tex: "slashes", blend: "add", rate: 5, rest: 0, life: [0.25, 0.35], size: [1.6, 2.2], spawn: 0.2,
+          vel: [0, 0, 0], jitter: 0, inherit: 0.3,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 0.9], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Monk: two ribbons of breath weave around each other behind the die, with soft wisps and ki rings.
+  flowingKi: {
+    label: "Flowing Ki", icon: "fa-solid fa-yin-yang", sound: "force",
+    styles: {
+      openHand: { label: "Open Hand", colors: ["#ffffff", "#8ad8ff", "#1a4a6a"] },
+      elements: { label: "Elements", colors: ["#fff4d0", "#3ad8c0", "#1a2a5a"] },
+      shadow: { label: "Shadow", colors: ["#d8d0ff", "#6a5aaa", "#08060f"] },
+      mercy: { label: "Mercy", colors: ["#fff0e8", "#e05a6a", "#2a0a10"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.6, alpha: 0.3, pulse: 0.2, pulseSpeed: 1.6 }],
+      ribbons: [
+        { width: 1.0, time: 0.6, blend: "add", alpha: 0.85, colors: [p.bright, p.main, p.dark],
+          core: "#ffffff", coreAmt: 0.25, noiseAmt: 0.25, soft: 0.4, fadePow: 1.0, taper: 0.6,
+          wave: { amp: 0.9, freq: 1.8, speed: 7 }, strip: { row: 3, repeat: 2, scroll: 2, mask: 0, glow: 0.5 } },
+        { width: 0.6, time: 0.6, blend: "add", alpha: 0.9, colors: ["#ffffff", p.bright, p.main],
+          noiseAmt: 0.15, soft: 0.3, fadePow: 1.0, taper: 0.5, wave: { amp: 0.9, freq: 1.8, speed: 7, phase: 3.14159 } }
+      ],
+      layers: [
+        // Soft wisps curling off the ribbons
+        { tex: "glow", blend: "add", rate: 30, rest: 0.3, life: [0.8, 1.4], size: [0.6, 1.4], spawn: 0.5,
+          vel: [0, 0, 0.3], jitter: 0.3, inherit: -0.12, drag: 0.6, swirl: 1.2,
+          colors: [[0, p.bright, 0.45], [1, p.main, 0]] },
+        // Ki rings breathing out from the die
+        { tex: "ring", blend: "add", rate: 5, rest: 0.4, life: [0.5, 0.7], size: [0.6, 3.2], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.bright, 0.7], [1, p.main, 0]] },
+        // Tiny bright motes
+        { tex: "spark", blend: "add", rate: 12, rest: 0.3, life: [0.3, 0.6], size: [0.3, 0.08], spawn: 0.7,
+          vel: [0, 0, 0.3], jitter: 0.3, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Paladin: a divine smite in motion, radiant flame licking upward, upright holy glints and rising sparks.
+  sacredOath: {
+    label: "Sacred Oath", icon: "fa-solid fa-chess-knight", sound: "ward",
+    styles: {
+      devotion: { label: "Devotion", colors: ["#ffffff", "#ffd84a", "#8a5a0a"] },
+      vengeance: { label: "Vengeance", colors: ["#ffe0d0", "#e0301a", "#2a0404"] },
+      ancients: { label: "Ancients", colors: ["#f0ffe0", "#7adf4a", "#1a4a0a"] },
+      oathbreaker: { label: "Oathbreaker", colors: ["#e0c8ff", "#7a2aa8", "#08020c"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 3.0, alpha: 0.45, pulse: 0.2, pulseSpeed: 3 }],
+      layers: [
+        // Radiant flame licking upward
+        { tex: "flames", blend: "add", rate: 70, rest: 0.25, life: [0.45, 0.8], size: [1.1, 0.4], spawn: 0.45,
+          vel: [0, 0, 2.4], jitter: 0.4, inherit: -0.06, drag: 0.6, spin: 0.4,
+          colors: [[0, "#ffffff", 1], [0.25, p.bright, 1], [0.6, p.main, 0.8], [1, p.dark, 0]] },
+        // Holy glints
+        { tex: "flares", blend: "add", rate: 8, rest: 0.4, life: [0.6, 0.9], size: [1.4, 0.4], spawn: 0.6,
+          vel: [0, 0, 0.8], jitter: 0.2, colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
+        // Rising sparks
+        { tex: "glow", blend: "add", rate: 30, rest: 0.3, life: [0.8, 1.3], size: [0.25, 0.1], spawn: 0.7,
+          vel: [0, 0, 2.0], jitter: 0.5, drag: 0.8, flicker: 0.5, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Ranger: arrow streaks whip past, forest leaves fall, and a hunter's mark closes in on the die.
+  huntersMark: {
+    label: "Hunter's Mark", icon: "fa-solid fa-bullseye", sound: "needle",
+    styles: {
+      hunter: { label: "Hunter", colors: ["#ffe0c8", "#e0302a", "#1a3a12"] },
+      gloomStalker: { label: "Gloom Stalker", colors: ["#d8d0ff", "#7a5aff", "#0a0814"] },
+      beastMaster: { label: "Beast Master", colors: ["#fff0c0", "#e0a02a", "#3a2a0a"] },
+      feyWanderer: { label: "Fey Wanderer", colors: ["#f0ffe8", "#ff7ad8", "#1a4a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.0, alpha: 0.22, pulse: 0.05 }],
+      ribbons: [
+        // An arrow's flight: a needle-thin streak with speed dashes
+        { width: 0.35, time: 0.35, blend: "add", alpha: 0.9, colors: ["#ffffff", p.bright, p.main],
+          core: "#ffffff", coreAmt: 0.6, noiseAmt: 0.05, soft: 0.2, fadePow: 0.8, taper: 0.7,
+          strip: { row: 5, repeat: 4, scroll: 8, mask: 0.6, glow: 0.2 } }
+      ],
+      layers: [
+        // Forest leaves falling behind
+        { tex: "leaves", blend: "normal", rate: 14, rest: 0.4, life: [1.2, 1.8], size: [0.5, 0.45], spawn: 0.6,
+          vel: [0, 0, 0.8], jitter: 1.0, inherit: -0.1, gravity: -1.8, drag: 0.5, spin: 3,
+          colors: [[0, p.dark, 0], [0.1, mix(p.dark, "#5a7a3a", 0.3), 1], [0.7, p.dark, 1], [1, p.dark, 0]] },
+        // The mark: a ring closing in on the die
+        { tex: "ring", blend: "add", rate: 2.5, rest: 1.2, life: [0.5, 0.6], size: [4.0, 1.0], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, colors: [[0, p.main, 0], [0.3, p.main, 1], [1, p.main, 0]] },
+        // Embers of the mark
+        { tex: "glow", blend: "add", rate: 20, rest: 0.3, life: [0.3, 0.6], size: [0.3, 0.1], spawn: 0.6,
+          vel: [0, 0, 0.3], jitter: 0.3, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Rogue: the die slips through its own smoke; a glint of a blade or a coin flashes and is gone.
+  shadowstep: {
+    label: "Shadowstep", icon: "fa-solid fa-mask", sound: "smoke",
+    styles: {
+      thief: { label: "Thief", colors: ["#fff0b0", "#ffd84a", "#0c0a10"] },
+      assassin: { label: "Assassin", colors: ["#ffd0d0", "#c01a2a", "#08040a"] },
+      arcaneTrickster: { label: "Arcane Trickster", colors: ["#e8d8ff", "#9a5aff", "#0a0614"] },
+      swashbuckler: { label: "Swashbuckler", colors: ["#e8fbff", "#3ab8ff", "#0a1420"] }
+    },
+    build: p => ({
+      auras: [{ color: p.dark, size: 2.6, alpha: 0.55, pulse: 0.05, blend: "normal" }],
+      layers: [
+        // The smoke the die slips through
+        { tex: "smoke", blend: "normal", rate: 45, rest: 0.4, life: [1.0, 1.8], size: [0.8, 2.8], spawn: 0.4,
+          vel: [0, 0, 0.4], jitter: 0.5, inherit: -0.1, drag: 0.6, spin: 0.6, swirl: 0.6,
+          colors: [[0, p.dark, 0], [0.15, p.dark, 0.75], [1, p.dark, 0]] },
+        // Glints of a blade or a coin
+        { tex: "spark", blend: "add", rate: 6, rest: 0.4, life: [0.2, 0.4], size: [0.8, 0.1], spawn: 0.9,
+          vel: [0, 0, 0], jitter: 0, spin: 1, colors: [[0, "#ffffff", 1], [0.5, p.bright, 1], [1, p.main, 0]] },
+        // Small daggers flicked up and tumbling back
+        { tex: "knives", blend: "normal", rate: 4, rest: 0, life: [0.5, 0.8], size: [0.8, 0.8], spawn: 0.4,
+          vel: [0, 0, 2.6], jitter: 1.4, gravity: -8, spin: 12,
+          colors: [[0, p.bright, 1], [0.7, p.main, 0.9], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Sorcerer: raw magic that will not behave, jittering sparks in drifting hues, popping bursts and stray arcs.
+  wildSurge: {
+    label: "Wild Surge", icon: "fa-solid fa-wand-sparkles", sound: "lightning",
+    styles: {
+      wildMagic: { label: "Wild Magic", colors: ["#fff0ff", "#ff4ad8", "#4a1aa8"] },
+      draconic: { label: "Draconic", colors: ["#fff0c0", "#ff6a1a", "#6a0a0a"] },
+      storm: { label: "Storm", colors: ["#ffffff", "#4ad8ff", "#1a3aa8"] },
+      aberrant: { label: "Aberrant", colors: ["#f0ffe0", "#8aff4a", "#4a0a6a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.4, pulse: 0.4, pulseSpeed: 9, flicker: 0.3 }],
+      arcs: [{ color: mix(p.bright, p.main, 0.3), every: 0.08, count: 2, reach: [1.4, 2.8], restCount: 1 }],
+      layers: [
+        // Jittering sparks in the main hue
+        { tex: "glow", blend: "add", rate: 45, rest: 0.3, life: [0.4, 0.9], size: [0.45, 0.1], spawn: 0.6,
+          vel: [0, 0, 0.4], jitter: 2.0, inherit: -0.08, drag: 0.4, flicker: 0.6,
+          colors: [[0, "#ffffff", 1], [0.2, p.main, 1], [1, p.main, 0]] },
+        // ... and in the far end of the palette, so the colours drift
+        { tex: "glow", blend: "add", rate: 35, rest: 0.3, life: [0.4, 0.9], size: [0.45, 0.1], spawn: 0.6,
+          vel: [0, 0, 0.4], jitter: 2.0, inherit: -0.08, drag: 0.4, flicker: 0.6,
+          colors: [[0, "#ffffff", 1], [0.2, mix(p.dark, "#ffffff", 0.35), 1], [1, mix(p.dark, p.main, 0.5), 0]] },
+        // Popping bursts flung out in every direction
+        { tex: "stars", blend: "add", rate: 16, rest: 0.2, life: [0.3, 0.5], size: [0.6, 0.1], spawn: 0.1,
+          vel: [0, 0, 0], jitter: 4.0, drag: 0.15, spin: 4,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Warlock: an eldritch blast beam crackles behind the die, wrapped in dark tendrils and pact glyphs.
+  eldritchPact: {
+    label: "Eldritch Pact", icon: "fa-solid fa-eye", sound: "necrotic",
+    styles: {
+      eldritch: { label: "Eldritch", colors: ["#f0d8ff", "#a83aff", "#08020f"] },
+      fiend: { label: "Fiend", colors: ["#ffe0c0", "#ff3a1a", "#1a0202"] },
+      greatOldOne: { label: "Great Old One", colors: ["#e0ffe8", "#3adf9a", "#06040f"] },
+      archfey: { label: "Archfey", colors: ["#ffe0ff", "#d85aff", "#0a1a2a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.35, pulse: 0.15, pulseSpeed: 4 }],
+      ribbons: [
+        // The eldritch blast: a crackling beam with a white core
+        { width: 1.2, time: 0.45, blend: "add", alpha: 0.9, colors: [p.bright, p.main, mix(p.main, p.dark, 0.6)],
+          core: "#ffffff", coreAmt: 0.55, noiseAmt: 0.5, noiseScale: [6, 2], scroll: 3, soft: 0.3, fadePow: 0.9,
+          taper: 0.6, jag: 0.15, sparkle: 0.3, strip: { row: 6, repeat: 0, scroll: 0, mask: 0.3, glow: 0.6 } }
+      ],
+      layers: [
+        // Dark tendrils curling around the beam
+        { tex: "smoke", blend: "normal", rate: 28, rest: 0.4, life: [1.0, 1.6], size: [0.6, 2.2], spawn: 0.4,
+          vel: [0, 0, 0.4], jitter: 0.4, inherit: -0.06, drag: 0.6, spin: 1.2, swirl: 1.6,
+          colors: [[0, p.dark, 0], [0.15, p.dark, 0.8], [1, p.dark, 0]] },
+        // Pact glyphs floating away
+        { tex: "glyphs", blend: "add", rate: 7, rest: 0.8, life: [1.2, 1.8], size: [0.8, 0.9], spawn: 0.8,
+          vel: [0, 0, 0.6], jitter: 0.2, drag: 0.7, spin: 0.5,
+          colors: [[0, p.main, 0], [0.2, p.bright, 1], [1, p.main, 0]] },
+        // Crackling motes
+        { tex: "glow", blend: "add", rate: 25, rest: 0.3, life: [0.4, 0.8], size: [0.3, 0.1], spawn: 0.6,
+          vel: [0, 0, 0.3], jitter: 0.4, flicker: 0.6, colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Wizard: runes written in light peel off the die and float away, leaving faint spell circles.
+  spellscript: {
+    label: "Spellscript", icon: "fa-solid fa-book-open", sound: "force",
+    styles: {
+      evocation: { label: "Evocation", colors: ["#e8f4ff", "#4a9aff", "#0a1a4a"] },
+      abjuration: { label: "Abjuration", colors: ["#f0fff8", "#3adfd8", "#0a3a3a"] },
+      necromancy: { label: "Necromancy", colors: ["#e0ffd0", "#7adf3a", "#0a1a08"] },
+      illusion: { label: "Illusion", colors: ["#ffe8ff", "#ff7ad8", "#2a0a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.35, pulse: 0.1, pulseSpeed: 2 }],
+      layers: [
+        // Runes peeling off and floating away
+        { tex: "rune", blend: "add", rate: 16, rest: 0.8, life: [1.4, 2.2], size: [0.8, 1.0], spawn: 0.6,
+          vel: [0, 0, 1.0], jitter: 0.3, inherit: -0.05, drag: 0.7, spin: 0.6,
+          colors: [[0, p.bright, 0], [0.15, p.bright, 1], [0.6, p.main, 0.8], [1, p.main, 0]] },
+        // Faint spell circles left on the table
+        { tex: "ring", blend: "add", rate: 4, rest: 0.5, life: [0.9, 1.1], size: [1.8, 2.6], spawn: 0,
+          vel: [0, 0, 0], jitter: 0, spin: 0.8, colors: [[0, p.main, 0.7], [1, p.main, 0]] },
+        // Arcane motes circling the die
+        { tex: "glow", blend: "add", rate: 25, rest: 0.6, life: [0.6, 1.0], size: [0.3, 0.1], spawn: 0,
+          orbit: { radius: 1.4, speed: 4, rise: 0.3 }, flicker: 0.4,
+          colors: [[0, p.bright, 1], [1, p.main, 0]] }
+      ]
+    })
   }
 };
 

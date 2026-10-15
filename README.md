@@ -42,7 +42,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's damage dice trails → Open the Dice trails window**. It works like a paint box:
 
-- **20 designs, each with several styles:**
+- **33 designs, each with several styles.** The last 13 are made for the D&D classes; their styles include subclass names (Battle Smith, Storm Herald, Eldritch Knight, ...):
 
   | Design | Styles |
   | --- | --- |
@@ -66,6 +66,19 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Fire Trail | Fire, Hellfire, Soulfire, Witchfire |
   | Starlight | Starlight, Moonsilver, Sungold, Rose Star |
   | Shadow Wisp | Shadow, Midnight, Ashen, Abyssal |
+  | Arcforge (Artificer) | Brass, Copper, Alchemist, Battle Smith |
+  | Blood Rage (Barbarian) | Rage, Berserker, Storm Herald, Wild Heart |
+  | Encore (Bard) | Ballad, Lullaby, Jig, Dirge |
+  | Divine Halo (Cleric) | Life, Light, Twilight, Grave |
+  | Wild Growth (Druid) | Grove, Autumn, Moon, Spores |
+  | Steel Sparks (Fighter) | Forge, Steel, Champion, Eldritch Knight |
+  | Flowing Ki (Monk) | Open Hand, Elements, Shadow, Mercy |
+  | Sacred Oath (Paladin) | Devotion, Vengeance, Ancients, Oathbreaker |
+  | Hunter's Mark (Ranger) | Hunter, Gloom Stalker, Beast Master, Fey Wanderer |
+  | Shadowstep (Rogue) | Thief, Assassin, Arcane Trickster, Swashbuckler |
+  | Wild Surge (Sorcerer) | Wild Magic, Draconic, Storm, Aberrant |
+  | Eldritch Pact (Warlock) | Eldritch, Fiend, Great Old One, Archfey |
+  | Spellscript (Wizard) | Evocation, Abjuration, Necromancy, Illusion |
 
 - **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
 - **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
