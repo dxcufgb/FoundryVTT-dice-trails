@@ -30,6 +30,10 @@
         "Label": "Open the Dice trails window",
         "Hint": "Design trails for attack rolls, checks, saving throws, initiative and other rolls that are not damage, for yourself or for each of your characters and tokens. Everyone at the table sees them on those rolls."
       },
+      "DefaultTrails": {
+        "Name": "Default trails from class, species and background",
+        "Hint": "Give every character a trail for all its rolls that are not damage, made of its class, species and background designs (styled after its subclass or lineage where one matches). It is saved on the character like a trail its player chose, so it shows in the Dice trails window and can be changed or taken off there; rolls its player gave another trail keep theirs. When the class, species or background changes, rolls still using the old default get the new one."
+      },
       "ShowOthers": {
         "Name": "Show other players' trails",
         "Hint": "Show the custom trails the other players designed on their rolls. Off: only your own trails and the damage type trails are drawn on this computer."

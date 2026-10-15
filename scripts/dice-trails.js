@@ -41,6 +41,7 @@ import { MODULE_ID, TAG, TAG_KIND, TAG_USER, TAG_OWNER, FLAG_PRESETS, FLAG_TRAIL
 import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } from "./custom-trails.js";
 import { DiceTrailsEditor } from "./trail-editor.js";
 import { exportTrail, importTrail } from "./transfer.js";
+import { applyDefaultTrail, defaultTrail, characterSources } from "./default-trails.js";
 import { DieSound, THEMES, bounceStrength, beginSoundFrame, endSoundFrame, playHit, preloadSounds, soundsOn, stopAllSounds } from "./trail-sounds.js";
 
 export { MODULE_ID };
@@ -458,7 +459,8 @@ Hooks.once("init", () => {
       sounds: THEMES, playSound: (theme, strength = 1) => playHit(theme, strength),
       open: (owner = null) => DiceTrailsEditor.open({ owner }),
       designs: DESIGNS, kinds: KINDS,
-      presets, savePreset, deletePreset, trails, setTrail, clearTrail, ownerRef, ownerFromRef, exportTrail, importTrail
+      presets, savePreset, deletePreset, trails, setTrail, clearTrail, ownerRef, ownerFromRef, exportTrail, importTrail,
+      defaultTrail: actor => defaultTrail(characterSources(actor)), applyDefaultTrail
     };
   }
 });
