@@ -41,7 +41,7 @@ import { MODULE_ID, TAG, TAG_KIND, TAG_USER, TAG_OWNER, FLAG_PRESETS, FLAG_TRAIL
 import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } from "./custom-trails.js";
 import { DiceTrailsEditor } from "./trail-editor.js";
 import { exportTrail, importTrail } from "./transfer.js";
-import { applyDefaultTrail, defaultTrail, characterSources } from "./default-trails.js";
+import { applyDefaultTrail, defaultTrail, characterSources, defaultTrailUpdate, unsavedDefault } from "./default-trails.js";
 import { DieSound, THEMES, bounceStrength, beginSoundFrame, endSoundFrame, playHit, preloadSounds, soundsOn, stopAllSounds } from "./trail-sounds.js";
 
 export { MODULE_ID };
@@ -615,19 +615,24 @@ export function ownerFromRef(ref) {
   }
 }
 
-/** An owner's trails by kind of roll: {attack: trail, ...}. Missing kinds have none. */
+/**
+ * An owner's trails by kind of roll: {attack: trail, ...}. Missing kinds have none. A character whose
+ * default trail (default-trails.js) is not saved on it yet has that on every kind it gave no trail.
+ */
 export function trails(owner = game.user) {
-  const t = owner?.getFlag?.(MODULE_ID, FLAG_TRAILS);
   const out = {};
-  if (t && typeof t === "object") for (const k of KINDS) if (t[k]?.layers) out[k] = normalizeConfig(t[k]);
+  for (const k of KINDS) {
+    const cfg = trailFor(owner, k);
+    if (cfg) out[k] = cfg;
+  }
   return out;
 }
 
-/** The trail an owner (User or Actor) has given this kind of roll, if any. */
+/** The trail an owner (User or Actor) has given this kind of roll, if any; a character's default until saved. */
 export function trailFor(owner, kind) {
   if (!owner || !kind) return null;
   const t = owner.getFlag?.(MODULE_ID, FLAG_TRAILS);
-  return t?.[kind]?.layers ? normalizeConfig(t[kind]) : null;
+  return t?.[kind]?.layers ? normalizeConfig(t[kind]) : unsavedDefault(owner, kind);
 }
 
 /** Give one or more kinds of roll a trail, for an owner: you (default) or a character you own. */
@@ -635,7 +640,11 @@ export async function setTrail(kinds, cfg, owner = game.user) {
   const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
   if (!list.length || !owner) return false;
   const data = normalizeConfig(cfg);
-  await owner.update(Object.fromEntries(list.map(k => [`flags.${MODULE_ID}.${FLAG_TRAILS}.${k}`, data])));
+  // A character's default trail is saved with it, so its other kinds keep showing it.
+  await owner.update({
+    ...defaultTrailUpdate(owner, list),
+    ...Object.fromEntries(list.map(k => [`flags.${MODULE_ID}.${FLAG_TRAILS}.${k}`, data]))
+  });
   return true;
 }
 
@@ -643,8 +652,12 @@ export async function setTrail(kinds, cfg, owner = game.user) {
 export async function clearTrail(kinds, owner = game.user) {
   const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
   if (!list.length || !owner) return false;
-  // Updates merge into the flag, so a kind is removed with Foundry's "-=" deletion key.
-  await owner.update(Object.fromEntries(list.map(k => [`flags.${MODULE_ID}.${FLAG_TRAILS}.-=${k}`, null])));
+  // Updates merge into the flag, so a kind is removed with Foundry's "-=" deletion key. A character's default
+  // trail is saved with it (on its other kinds), so the kind taken off stays off.
+  await owner.update({
+    ...defaultTrailUpdate(owner, list),
+    ...Object.fromEntries(list.map(k => [`flags.${MODULE_ID}.${FLAG_TRAILS}.-=${k}`, null]))
+  });
   return true;
 }
 

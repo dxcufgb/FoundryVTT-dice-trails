@@ -32,7 +32,7 @@
       },
       "DefaultTrails": {
         "Name": "Default trails from class, species and background",
-        "Hint": "Give every character a trail for all its rolls that are not damage, made of its class, species and background designs (styled after its subclass or lineage where one matches). It is saved on the character like a trail its player chose, so it shows in the Dice trails window and can be changed or taken off there; rolls its player gave another trail keep theirs. When the class, species or background changes, rolls still using the old default get the new one."
+        "Hint": "Give every character and token a trail for all its rolls that are not damage, made of its class, species and background designs (styled after its subclass or lineage where one matches); a monster or NPC without a class gets its creature type's design, and a character nothing is known about a silver Comet. It is saved on the character like a trail its player chose, so it shows in the Dice trails window and can be changed or taken off there; rolls its player gave another trail keep theirs. When the class, species or background changes, rolls still using the old default get the new one."
       },
       "ShowOthers": {
         "Name": "Show other players' trails",
