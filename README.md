@@ -40,7 +40,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 ## Your own trails for regular rolls
 
-Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's dice trails → Open the Dice trails window**. With a token selected it opens on that character's trails; otherwise on your own. It works like a paint box:
+Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's dice trails → Open the Dice trails window**. With a token selected that you own (the GM owns them all) it opens on that character's trails; otherwise on your own. It works like a paint box:
 
 - **61 designs, each with several styles,** picked from a dropdown grouped by category (Elements, Magic, Light & Stars, Nature, Stone & Steel, Classes, Species, Backgrounds). 13 are made for the D&D classes, 12 for the D&D species and 16 for the D&D backgrounds; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
 
