@@ -14,3 +14,5 @@ export const TAG_OWNER = "dxTrailOwner";
  */
 export const FLAG_PRESETS = "presets";
 export const FLAG_TRAILS = "trails";
+/** The default trail last given to a character from its class, species and background (default-trails.js). */
+export const FLAG_DEFAULT = "defaultTrail";
