@@ -381,6 +381,10 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     }
 
+    // The design picker scrolls: keep the chosen design in view.
+    const picked = html.querySelector(".dxdt-designs button.active");
+    if (picked) picked.parentElement.scrollTop = picked.offsetTop - 4;
+
     await this.#mountPreview();
   }
 

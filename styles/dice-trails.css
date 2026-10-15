@@ -1,8 +1,11 @@
 /* Dxcufgb's damage dice trails - the Dice trails window */
 .dxdt-editor .window-content { padding: 0.75rem; }
 .dxdt-editor .dxdt-root { display: flex; flex-direction: column; }
+/* Both columns scroll inside a body that always fits on screen, so the footer with "Use for ticked rolls"
+   stays visible on short screens (the window cannot be resized). */
 .dxdt-editor .dxdt-body { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; }
-.dxdt-editor .dxdt-left { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+.dxdt-editor .dxdt-body > section { min-height: 0; max-height: max(16rem, calc(100vh - 10rem)); overflow-y: auto; }
+.dxdt-editor .dxdt-left { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding-right: 0.35rem; }
 .dxdt-editor .dxdt-preview {
   width: 320px; height: 320px; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;
   background: radial-gradient(circle at 50% 45%, #2c3140 0%, #1b1e28 65%, #121318 100%);
@@ -14,7 +17,7 @@
 .dxdt-editor .hint { margin: 0; font-size: var(--font-size-12, 12px); opacity: 0.75; text-align: center; }
 .dxdt-editor h3 { margin: 0.4rem 0 0.3rem; font-size: var(--font-size-14, 14px); border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.15)); }
 .dxdt-editor h3 small { font-weight: normal; opacity: 0.6; margin-left: 0.3rem; }
-.dxdt-editor .dxdt-designs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.3rem; }
+.dxdt-editor .dxdt-designs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.3rem; position: relative; max-height: 15rem; overflow-y: auto; padding: 0.1rem 0.25rem 0.1rem 0; }
 .dxdt-editor .dxdt-designs button {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem;
   height: 3.4rem; padding: 0.2rem; font-size: var(--font-size-11, 11px); line-height: 1.1; white-space: normal;
@@ -37,7 +40,7 @@
 .dxdt-editor .dxdt-color select { flex: 1; }
 .dxdt-editor .dxdt-color input[type=color] { width: 3rem; height: 1.6rem; padding: 0; border: none; background: none; }
 .dxdt-editor .dxdt-check { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.4rem; }
-.dxdt-editor .dxdt-footer { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+.dxdt-editor .dxdt-footer { display: flex; flex: none; gap: 0.5rem; margin-top: 0.8rem; }
 .dxdt-editor .dxdt-footer button { flex: 1; }
 .dxdt-editor .dxdt-footer button.bright { flex: 1.5; }
 
@@ -54,7 +57,7 @@
 .dxdt-editor .dxdt-all { margin-top: 0.15rem; padding-top: 0.25rem; border-top: 1px dashed var(--color-border, rgba(255,255,255,0.15)); }
 
 /* Layers, saved trails and your own image */
-.dxdt-editor .dxdt-right { max-height: min(74vh, 700px); overflow-y: auto; padding-right: 0.35rem; }
+.dxdt-editor .dxdt-right { padding-right: 0.35rem; }
 .dxdt-editor .dxdt-presets { display: flex; gap: 0.3rem; width: 100%; }
 .dxdt-editor .dxdt-presets select { flex: 1; min-width: 0; }
 .dxdt-editor .dxdt-presets button { flex: 0 0 2rem; width: 2rem; padding: 0; }
