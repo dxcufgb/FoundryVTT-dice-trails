@@ -434,8 +434,8 @@ Hooks.once("init", () => {
   });
   game.settings.register(MODULE_ID, "soundVolume", {
     name: "DXDT.Settings.SoundVolume.Name", hint: "DXDT.Settings.SoundVolume.Hint",
-    scope: "client", config: true, type: Number, default: 1,
-    range: { min: 0, max: 2, step: 0.1 }
+    scope: "client", config: true, type: Number, default: 0.2,
+    range: { min: 0, max: 2, step: 0.05 }
   });
   game.settings.registerMenu(MODULE_ID, "editor", {
     name: "DXDT.Settings.Editor.Name", label: "DXDT.Settings.Editor.Label", hint: "DXDT.Settings.Editor.Hint",

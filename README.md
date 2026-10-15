@@ -119,7 +119,7 @@ All sounds are the module's own: `tools/make-sounds.py` synthesizes them from no
 - **Trail width** (0.25–2): how wide the streaks, glow and particles are. The default is a narrow streak about as wide as the die.
 - **Keep glowing after landing**: dice keep a faint aura on the table.
 - **Trail sounds**: on/off.
-- **Sound volume** (0–2): how loud the trail sounds are, on top of Foundry's Interface volume.
+- **Sound volume** (0–2, default 0.2): how loud the trail sounds are, on top of Foundry's Interface volume.
 - **Your trails for regular rolls**: opens the Dice trails window.
 - **Show other players' trails**: show the trails the other players designed on their rolls.
 

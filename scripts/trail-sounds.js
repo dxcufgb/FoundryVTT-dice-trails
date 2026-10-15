@@ -57,7 +57,7 @@ export function soundsOn() {
 
 function volumeSetting() {
   const v = Number(game.settings.get(MODULE_ID, "soundVolume"));
-  return Number.isFinite(v) ? Math.max(0, v) : 1;
+  return Number.isFinite(v) ? Math.max(0, v) : 0.2;
 }
 
 /** The module's volume, including Foundry's Interface volume when the audio context does not apply it itself. */
