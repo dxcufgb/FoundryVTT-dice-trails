@@ -42,7 +42,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's damage dice trails → Open the Dice trails window**. It works like a paint box:
 
-- **45 designs, each with several styles.** 13 are made for the D&D classes and 12 for the D&D species; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
+- **61 designs, each with several styles.** 13 are made for the D&D classes, 12 for the D&D species and 16 for the D&D backgrounds; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
 
   | Design | Styles |
   | --- | --- |
@@ -91,6 +91,22 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Infernal Legacy (Tiefling) | Infernal, Abyssal, Chthonic, Brimstone |
   | Twin Heritage (Half-Elf) | Sun & Moon, Leaf & Flame, Sea & Sky, Rose & Ivy |
   | Savage Strike (Half-Orc) | Blood, Steel, Bonecrusher, Venom |
+  | Temple Incense (Acolyte) | Sandalwood, Myrrh, Moonshrine, Grove Shrine |
+  | Craftwork (Artisan) | Woodwright, Smith, Glassblower, Potter |
+  | Fool's Gold (Charlatan) | Fool's Gold, Counterfeit, Snake Oil, Masquerade |
+  | Back Alley (Criminal) | Cutpurse, Smuggler, Fence, Thug |
+  | Showstopper (Entertainer) | Carnival, Opera, Jester, Moonlit Stage |
+  | Harvest (Farmer) | Wheat, Orchard, Hayfield, Pumpkin Patch |
+  | Night Watch (Guard) | Lantern, City Watch, Gatehouse Torch, Moonwatch |
+  | Pathfinder (Guide) | North Star, Forest Trail, Desert Road, Tundra |
+  | Lone Candle (Hermit) | Candle, Cave, Mountain, Marsh |
+  | Coin Shower (Merchant) | Gold, Silver, Copper, Platinum |
+  | Noble Crest (Noble) | Royal, Imperial, Silver Court, Emerald Court |
+  | Star Chart (Sage) | Astronomer, Archivist, Seer, Naturalist |
+  | Sea Spray (Sailor) | Open Sea, Tropic, Storm Sea, Pirate |
+  | Ink Blot (Scribe) | Iron Gall, Sepia, Vermilion, Gold Leaf |
+  | War Banner (Soldier) | Legion, Iron Guard, Mercenary, Highland |
+  | Dusty Road (Wayfarer) | Sunset, Autumn Road, Rainy Road, Night Road |
 
 - **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
 - **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
@@ -161,7 +177,7 @@ const { name, cfg } = await api.importTrail(file);            // read such a fil
 
 Code: [MIT](LICENSE).
 
-Particle and streak textures in `textures/`: the Kenney sprites (bolts, debris, flames, heart, ring, rune, slashes, smoke, stars, strips, twirls) are from the [Particle Pack](https://kenney.nl/assets/particle-pack) by Kenney (www.kenney.nl), [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain), see [textures/LICENSE-Kenney.txt](textures/LICENSE-Kenney.txt). The leaves, petals, snowflakes, notes, glyphs, knives, stones, flares, bubbles, drops and skulls are drawn by the module's own script (`tools/make-textures.py`) and dedicated to the public domain too (CC0 1.0), see [textures/LICENSE-CC0-generated.txt](textures/LICENSE-CC0-generated.txt).
+Particle and streak textures in `textures/`: the Kenney sprites (bolts, debris, flames, heart, ring, rune, slashes, smoke, stars, strips, twirls) are from the [Particle Pack](https://kenney.nl/assets/particle-pack) by Kenney (www.kenney.nl), [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain), see [textures/LICENSE-Kenney.txt](textures/LICENSE-Kenney.txt). The leaves, petals, snowflakes, notes, glyphs, knives, stones, flares, bubbles, drops, skulls and coins are drawn by the module's own script (`tools/make-textures.py`) and dedicated to the public domain too (CC0 1.0), see [textures/LICENSE-CC0-generated.txt](textures/LICENSE-CC0-generated.txt).
 
 Sound effects in `sounds/`: synthesized by the module's own script (`tools/make-sounds.py`), no recordings or third-party samples, dedicated to the public domain (CC0 1.0), see [sounds/LICENSE-CC0-generated.txt](sounds/LICENSE-CC0-generated.txt). Everything is free to use, change and share.
 
