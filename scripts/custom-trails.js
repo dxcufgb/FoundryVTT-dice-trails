@@ -510,6 +510,91 @@ export const DESIGNS = {
           colors: [[0, p.main, 0], [0.2, p.main, 0.45], [1, p.dark, 0]] }
       ]
     })
+  },
+
+  // Soft glowing fire puffs that swell, rise and cool from a white-hot core to embers and smoke.
+  // Also the fire damage trail (EFFECTS.fire in dice-trails.js builds it with the Fire style).
+  fireTrail: {
+    label: "Fire Trail", icon: "fa-solid fa-fire-flame-curved", sound: "fire",
+    styles: {
+      fire: { label: "Fire", colors: ["#fff0a0", "#ff7a1a", "#a01400"] },
+      hellfire: { label: "Hellfire", colors: ["#ffd0a0", "#ff2a1a", "#4a0008"] },
+      soulfire: { label: "Soulfire", colors: ["#e8ffff", "#2ad8d0", "#06304a"] },
+      witchfire: { label: "Witchfire", colors: ["#f4ffc0", "#8adf1a", "#1a3a04"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.8, alpha: 0.5, pulse: 0.12, flicker: 0.25 }],
+      layers: [
+        // The flame puffs: hot at birth, swelling and reddening as they rise and fall behind
+        { tex: "glow", blend: "add", rate: 110, rest: 0.15, life: [0.5, 1.1], size: [1.0, 2.4], spawn: 0.45,
+          vel: [0, 0, 1.6], jitter: 0.6, inherit: -0.08, drag: 0.7, flicker: 0.1,
+          colors: [[0, mix(p.bright, "#ffffff", 0.4), 0.9], [0.3, p.bright, 0.75], [0.6, p.main, 0.45], [1, p.dark, 0]] },
+        // A brighter core close behind the die
+        { tex: "glow", blend: "add", rate: 50, rest: 0.1, life: [0.2, 0.4], size: [0.9, 0.5], spawn: 0.25,
+          vel: [0, 0, 0.6], jitter: 0.3, drag: 0.5,
+          colors: [[0, "#ffffff", 0.9], [0.5, p.bright, 0.7], [1, p.main, 0]] },
+        // Thin smoke above the flames
+        { tex: "smoke", blend: "normal", rate: 8, rest: 0.3, life: [0.9, 1.4], size: [0.8, 2.2], spawn: 0.4,
+          vel: [0, 0, 1.8], jitter: 0.4, drag: 0.6, spin: 0.6,
+          colors: [[0, "#2a1c12", 0], [0.3, mix(p.dark, "#201818", 0.7), 0.3], [1, "#121212", 0]] }
+      ]
+    })
+  },
+
+  // Twinkling four-point sparkles shed by the die, lingering and drifting down to the table.
+  starlight: {
+    label: "Starlight", icon: "fa-solid fa-star", sound: "stardust",
+    styles: {
+      starlight: { label: "Starlight", colors: ["#ffffff", "#8cbeff", "#1c2f6b"] },
+      moonsilver: { label: "Moonsilver", colors: ["#ffffff", "#c8d4e8", "#3a4458"] },
+      sungold: { label: "Sungold", colors: ["#fffbe0", "#ffd04a", "#6a4000"] },
+      rosestar: { label: "Rose Star", colors: ["#fff0f6", "#ff8ac8", "#5a0a3a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.4, pulse: 0.1, pulseSpeed: 3 }],
+      layers: [
+        // The sparkles: a cross glint that twinkles and shrinks as it falls
+        { tex: "spark", blend: "add", rate: 70, rest: 0.2, life: [0.8, 1.8], size: [0.8, 0.15], spawn: 0.9,
+          vel: [0, 0, 0.4], jitter: 0.5, gravity: -0.8, drag: 0.7, spin: 1.5, flicker: 0.55,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 0.9], [1, p.main, 0]] },
+        // A soft halo around each cluster of sparkles
+        { tex: "glow", blend: "add", rate: 30, rest: 0.2, life: [0.8, 1.6], size: [1.6, 0.4], spawn: 0.9,
+          vel: [0, 0, 0.3], jitter: 0.4, gravity: -0.6, drag: 0.7,
+          colors: [[0, p.main, 0.3], [1, p.dark, 0]] },
+        // A few bigger stars
+        { tex: "stars", blend: "add", rate: 10, rest: 0.4, life: [0.5, 1.0], size: [1.0, 0.2], spawn: 0.8,
+          vel: [0, 0, 0.2], jitter: 0.3, gravity: -0.5, spin: 1, flicker: 0.3,
+          colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Dark smoke that swells and curls away from the die, with a faint glow inside it.
+  shadowWisp: {
+    label: "Shadow Wisp", icon: "fa-solid fa-ghost", sound: "smoke",
+    styles: {
+      shadow: { label: "Shadow", colors: ["#c9a8ff", "#4a1e7a", "#14061e"] },
+      midnight: { label: "Midnight", colors: ["#a8c4ff", "#1e2a6a", "#060a1e"] },
+      ashen: { label: "Ashen", colors: ["#d8d4d0", "#4a4644", "#121110"] },
+      abyssal: { label: "Abyssal", colors: ["#a8ffe0", "#0e4a44", "#020e0e"] }
+    },
+    build: p => ({
+      auras: [{ color: p.dark, size: 3.2, alpha: 0.55, pulse: 0.1, pulseSpeed: 2, blend: "normal" }],
+      layers: [
+        // The dark smoke: swelling puffs that curl around the die's path
+        { tex: "smoke", blend: "normal", rate: 40, rest: 0.4, life: [1.0, 1.8], size: [0.9, 3.0], spawn: 0.3,
+          vel: [0, 0, 0.8], jitter: 0.6, inherit: -0.05, drag: 0.6, spin: 0.8, swirl: 0.8,
+          colors: [[0, p.dark, 0], [0.15, p.dark, 0.6], [0.6, mix(p.dark, p.main, 0.3), 0.35], [1, p.dark, 0]] },
+        // A faint coloured glow inside the smoke
+        { tex: "glow", blend: "add", rate: 25, rest: 0.3, life: [0.6, 1.2], size: [1.2, 2.0], spawn: 0.4,
+          vel: [0, 0, 0.6], jitter: 0.4, drag: 0.6, swirl: 0.8,
+          colors: [[0, p.main, 0.35], [0.6, p.main, 0.15], [1, p.dark, 0]] },
+        // Tiny pale motes caught in it
+        { tex: "spark", blend: "add", rate: 8, rest: 0.3, life: [0.6, 1.2], size: [0.3, 0.08], spawn: 0.7,
+          vel: [0, 0, 0.8], jitter: 0.5, drag: 0.6, swirl: 1.2, flicker: 0.4,
+          colors: [[0, p.bright, 0.9], [1, p.main, 0]] }
+      ]
+    })
   }
 };
 
