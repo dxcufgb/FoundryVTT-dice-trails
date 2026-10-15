@@ -95,35 +95,11 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
  *   swirl      tangential speed around the die's vertical axis
  */
 const EFFECTS = {
-  // Signature: a real flame tail, orange all the way, with licking flame tongues, embers and smoke.
+  // Signature: soft glowing fire puffs that swell, rise and cool from white-hot to embers and smoke.
+  // The same look as the Fire Trail design (Fire style), so players can pick it for their own rolls too.
   fire: {
     sound: "fire",
-    aura: { color: "#ff6a00", size: 3.0, alpha: 0.6, pulse: 0.14, flicker: 0.3 },
-    ribbons: [
-      // Smoke trailing far behind the flames
-      { width: 3.2, time: 1.1, blend: "normal", alpha: 0.45, colors: ["#3a2618", "#241c16", "#101010"],
-        noiseAmt: 1.3, noiseScale: [4, 3], scroll: 1.5, soft: 0.55, fadePow: 1.3, taper: 0.4 },
-      // The fire tail: licking flames, yellow at the die, orange, deep red at the tips
-      { width: 3.8, time: 0.7, blend: "add", alpha: 1, colors: ["#ffc23a", "#ff4a00", "#8a0800"],
-        core: "#ffe28a", coreAmt: 0.35, noiseAmt: 2.6, noiseScale: [5, 3], scroll: 6, colorNoise: 0.6,
-        soft: 0.45, fadePow: 0.8, taper: 0.45, flicker: 0.15,
-        strip: { row: 6, repeat: 0, mask: 0.35, glow: 0.5 } },
-      // Hot yellow core right behind the die
-      { width: 1.2, time: 0.35, blend: "add", alpha: 0.9, colors: ["#fff2b0", "#ffc23a", "#ff6a00"],
-        core: "#fff6d0", coreAmt: 0.6, noiseAmt: 0.7, noiseScale: [8, 2], scroll: 6, soft: 0.3, fadePow: 0.9, taper: 0.8,
-        strip: { row: 7, repeat: 0, mask: 0.5, glow: 0.4 } }
-    ],
-    layers: [
-      { tex: "flames", blend: "add", rate: 28, rest: 0.8, life: [0.25, 0.5], size: [1.1, 0.4], spawn: 0.35,
-        vel: [0, 0, 2.6], jitter: 0.5, drag: 0.6, flicker: 0.2,
-        colors: [[0, "#ffd24a", 0.95], [0.4, "#ff6a00", 0.85], [1, "#8a1000", 0]] },
-      { tex: "spark", blend: "add", rate: 45, rest: 0.3, life: [0.6, 1.2], size: [0.35, 0.06], spawn: 0.8,
-        vel: [0, 0, 3.4], jitter: 2.6, gravity: -1.2, drag: 0.6, spin: 6,
-        colors: [[0, "#ffe27a", 1], [0.5, "#ff8a1a", 0.9], [1, "#ff2a00", 0]] },
-      { tex: "smoke", blend: "normal", rate: 10, rest: 0.5, life: [0.9, 1.4], size: [0.6, 1.8], spawn: 0.3,
-        vel: [0, 0, 1.4], jitter: 0.3, drag: 0.6, spin: 0.8,
-        colors: [[0, "#2a1c12", 0], [0.2, "#2a1c12", 0.45], [1, "#121212", 0]] }
-    ]
+    ...DESIGNS.fireTrail.build({ bright: "#fff0a0", main: "#ff7a1a", dark: "#a01400" })
   },
 
   // Signature: pale icy streak in freezing mist, falling ice shards and snow glints.

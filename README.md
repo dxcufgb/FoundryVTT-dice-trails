@@ -18,7 +18,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 | Type | Streak |
 | --- | --- |
-| Fire | Orange flame tail with licking flame tongues, rising embers and smoke |
+| Fire | Glowing fire puffs that swell and rise, cooling from white-hot to deep red, with thin smoke |
 | Cold | Pale icy streak in freezing mist, falling ice shards and snow glints |
 | Lightning | Thin, violently jagged white bolt in a crackling blue glow, with arcs jumping off the die |
 | Thunder | Dark indigo roar with big white shockwave rings bursting off the die |
@@ -42,7 +42,7 @@ Every die rolled for a damage type drags a streak of that element along its flig
 
 Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's damage dice trails → Open the Dice trails window**. It works like a paint box:
 
-- **17 designs, each with several styles:**
+- **20 designs, each with several styles:**
 
   | Design | Styles |
   | --- | --- |
@@ -63,6 +63,9 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Bard's Song | Golden, Silver, Rose, Azure |
   | Knives | Steel, Assassin, Gilded, Spectral |
   | Orbiting Stones | Granite, Sandstone, Obsidian, Jade |
+  | Fire Trail | Fire, Hellfire, Soulfire, Witchfire |
+  | Starlight | Starlight, Moonsilver, Sungold, Rose Star |
+  | Shadow Wisp | Shadow, Midnight, Ashen, Abyssal |
 
 - **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
 - **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
