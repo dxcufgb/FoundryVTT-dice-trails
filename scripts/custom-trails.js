@@ -1839,11 +1839,11 @@ export const DESIGNS = {
         // Embers that swirl up, flicker and fade far behind the die
         { tex: "spark", blend: "add", rate: 45, rest: 0.5, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.6,
           vel: [0, 0, 2.6], jitter: 1.4, drag: 0.75, swirl: 0.8, flicker: 0.6,
-          colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.95], [0.7, p.main, 0.7], [1, p.dark, 0]] },
+          colors: linger([[0, "#ffffff", 1], [0.3, p.bright, 0.95], [0.7, p.main, 0.7], [1, p.dark, 0]]) },
         // Dark smoke rising behind
         { tex: "smoke", blend: "normal", rate: 10, rest: 0.3, life: [1.2, 2.0], size: [0.8, 2.6], spawn: 0.4,
           vel: [0, 0, 2.0], jitter: 0.4, drag: 0.6, spin: 0.6,
-          colors: [[0, "#2a1c12", 0], [0.3, mix(p.dark, "#1a1414", 0.7), 0.32], [1, "#101010", 0]] }
+          colors: linger([[0, "#2a1c12", 0], [0.3, mix(p.dark, "#1a1414", 0.7), 0.32], [1, "#101010", 0]]) }
       ]
     })
   },
@@ -1863,7 +1863,7 @@ export const DESIGNS = {
         // Freezing mist that hangs behind the die
         { tex: "smoke", blend: "add", rate: 18, rest: 0.5, life: [1.2, 2.0], size: [1.0, 2.8], spawn: 0.5,
           vel: [0, 0, 0.3], jitter: 0.3, drag: 0.5, spin: 0.4,
-          colors: [[0, p.bright, 0], [0.3, p.main, 0.3], [1, p.dark, 0]] },
+          colors: linger([[0, p.bright, 0], [0.3, p.main, 0.3], [1, p.dark, 0]]) },
         // Ice shards flung off, tumbling down to the table
         { tex: "shard", blend: "add", rate: 40, rest: 0.3, life: [0.5, 1.0], size: [0.7, 0.25], spawn: 0.6,
           vel: [0, 0, 1.2], jitter: 2.0, gravity: -8, drag: 0.7, spin: 6, flicker: 0.3,
@@ -1871,7 +1871,7 @@ export const DESIGNS = {
         // Snowflakes that spin slowly down
         { tex: "snowflakes", blend: "add", rate: 12, rest: 0.6, life: [1.2, 2.0], size: [0.7, 0.5], spawn: 0.9,
           vel: [0, 0, 0.4], jitter: 0.6, gravity: -1.2, drag: 0.6, spin: 1.5,
-          colors: [[0, "#ffffff", 0], [0.15, "#ffffff", 0.95], [0.7, p.bright, 0.7], [1, p.main, 0]] },
+          colors: linger([[0, "#ffffff", 0], [0.15, "#ffffff", 0.95], [0.7, p.bright, 0.7], [1, p.main, 0]]) },
         // Frost glints
         { tex: "spark", blend: "add", rate: 20, rest: 0.6, life: [0.2, 0.45], size: [0.9, 0.1], spawn: 0.8,
           jitter: 0.2, flicker: 0.4,
@@ -1908,11 +1908,11 @@ export const DESIGNS = {
         // The ionised path left behind, glowing as it fades
         { tex: "glow", blend: "add", rate: 70, rest: 0, life: [1.2, 2.0], size: [0.7, 0.2], spawn: 0.15,
           flicker: 0.5,
-          colors: [[0, "#ffffff", 0.9], [0.15, p.bright, 0.7], [0.5, p.main, 0.4], [1, p.dark, 0]] },
+          colors: linger([[0, "#ffffff", 0.9], [0.15, p.bright, 0.7], [0.5, p.main, 0.4], [1, p.dark, 0]]) },
         // Crackles still jumping along it
         { tex: "spark", blend: "add", rate: 22, rest: 0, life: [1.2, 2.0], size: [0.7, 0.15], spawn: 0.35,
           flicker: 0.9,
-          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] }
+          colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) }
       ]
     })
   },
@@ -1932,7 +1932,7 @@ export const DESIGNS = {
         // The storm cloud, dragged along behind the die
         { tex: "smoke", blend: "normal", rate: 18, rest: 0.5, life: [1.2, 2.0], size: [1.0, 3.0], spawn: 0.5,
           vel: [0, 0, 0.6], jitter: 0.5, drag: 0.6, spin: 0.8,
-          colors: [[0, p.dark, 0], [0.25, mix(p.dark, p.main, 0.25), 0.6], [1, mix(p.dark, "#000000", 0.5), 0]] },
+          colors: linger([[0, p.dark, 0], [0.25, mix(p.dark, p.main, 0.25), 0.6], [1, mix(p.dark, "#000000", 0.5), 0]]) },
         // Flashes inside the cloud
         { tex: "glow", blend: "add", rate: 8, rest: 0.3, life: [0.05, 0.12], size: [2.5, 3.0], spawn: 0.8,
           flicker: 0.8,
@@ -1970,7 +1970,7 @@ export const DESIGNS = {
         // Caustic fumes
         { tex: "smoke", blend: "normal", rate: 12, rest: 0.5, life: [1.2, 2.0], size: [0.6, 2.2], spawn: 0.4,
           vel: [0, 0, 1.2], jitter: 0.3, drag: 0.6, spin: 1,
-          colors: [[0, p.main, 0], [0.3, mix(p.dark, p.main, 0.4), 0.35], [1, p.dark, 0]] },
+          colors: linger([[0, p.main, 0], [0.3, mix(p.dark, p.main, 0.4), 0.35], [1, p.dark, 0]]) },
         // A sizzling glow on the die
         { tex: "glow", blend: "add", rate: 30, rest: 0.2, life: [0.15, 0.3], size: [1.1, 0.5], spawn: 0.3,
           flicker: 0.3,
@@ -1978,7 +1978,7 @@ export const DESIGNS = {
         // A glowing smear left on the die's path
         { tex: "glow", blend: "add", rate: 35, rest: 0, life: [1.2, 2.0], size: [0.6, 0.3], spawn: 0.3,
           flicker: 0.2,
-          colors: [[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]] }
+          colors: linger([[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]]) }
       ]
     })
   },
@@ -1998,7 +1998,7 @@ export const DESIGNS = {
         // The toxic cloud, curling as it lingers
         { tex: "smoke", blend: "normal", rate: 20, rest: 0.8, life: [1.2, 2.0], size: [0.8, 3.0], spawn: 0.5,
           vel: [0, 0, 0.4], jitter: 0.3, drag: 0.55, swirl: 0.6, spin: 0.5,
-          colors: [[0, p.main, 0], [0.25, p.main, 0.5], [0.7, p.dark, 0.4], [1, p.dark, 0]] },
+          colors: linger([[0, p.main, 0], [0.25, p.main, 0.5], [0.7, p.dark, 0.4], [1, p.dark, 0]]) },
         // Glowing spores drifting in it
         { tex: "glow", blend: "add", rate: 18, rest: 0.8, life: [1.0, 1.8], size: [0.25, 0.1], spawn: 1.0,
           vel: [0, 0, 0.5], jitter: 0.5, drag: 0.5, swirl: 1.2, flicker: 0.4,
@@ -2027,7 +2027,7 @@ export const DESIGNS = {
         // The black shroud trailing behind
         { tex: "smoke", blend: "normal", rate: 22, rest: 0.6, life: [1.2, 2.0], size: [1.2, 2.6], spawn: 0.4,
           vel: [0, 0, 0.3], inherit: -0.06, jitter: 0.3, drag: 0.6, spin: 0.7,
-          colors: [[0, "#000000", 0], [0.25, mix(p.dark, "#000000", 0.7), 0.7], [1, "#000000", 0]] },
+          colors: linger([[0, "#000000", 0], [0.25, mix(p.dark, "#000000", 0.7), 0.7], [1, "#000000", 0]]) },
         // Ghost-flames licking off the die
         { tex: "flames", blend: "add", rate: 30, rest: 0.4, life: [0.3, 0.6], size: [1.2, 0.5], spawn: 0.4,
           vel: [0, 0, 1.6], jitter: 0.3, drag: 0.6, flicker: 0.3,
@@ -2070,7 +2070,7 @@ export const DESIGNS = {
         // Motes of light rising
         { tex: "glow", blend: "add", rate: 40, rest: 0.6, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.6,
           vel: [0, 0, 1.8], jitter: 0.5, drag: 0.6, flicker: 0.3,
-          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] }
+          colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) }
       ]
     })
   },
@@ -2097,7 +2097,7 @@ export const DESIGNS = {
         // Crystal splinters shed along the die's path
         { tex: "shard", blend: "add", rate: 32, rest: 0, life: [1.2, 2.0], size: [0.45, 0.1], spawn: 0.4,
           jitter: 0.3, drag: 0.5, spin: 2, flicker: 0.3,
-          colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.8], [1, p.main, 0]] },
+          colors: linger([[0, "#ffffff", 1], [0.3, p.bright, 0.8], [1, p.main, 0]]) },
         // Sparks pushed out by the force
         { tex: "spark", blend: "add", rate: 30, rest: 0.3, life: [0.2, 0.4], size: [0.6, 0.1], spawn: 0.3,
           jitter: 3.5, drag: 0.2,
@@ -2129,7 +2129,7 @@ export const DESIGNS = {
         // Thought-motes
         { tex: "glow", blend: "add", rate: 40, rest: 0.5, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.5,
           jitter: 0.8, swirl: 1.5, flicker: 0.5,
-          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] },
+          colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) },
         // Ripples of will
         { tex: "ring", blend: "add", rate: 4, rest: 0.6, life: [0.6, 0.9], size: [0.8, 4.0], spawn: 0,
           colors: [[0, p.bright, 0.7], [0.5, p.main, 0.4], [1, p.dark, 0]] }
@@ -2160,7 +2160,7 @@ export const DESIGNS = {
         // Dust cloud
         { tex: "smoke", blend: "normal", rate: 14, rest: 0.2, life: [1.2, 2.0], size: [0.8, 2.6], spawn: 0.4,
           vel: [0, 0, 0.5], jitter: 0.5, drag: 0.6, spin: 0.5,
-          colors: [[0, p.bright, 0], [0.2, p.bright, 0.45], [1, p.main, 0]] },
+          colors: linger([[0, p.bright, 0], [0.2, p.bright, 0.45], [1, p.main, 0]]) },
         // Dust rings thudding out
         { tex: "ring", blend: "normal", rate: 3, rest: 0, life: [0.35, 0.5], size: [0.8, 4.5], spawn: 0,
           colors: [[0, p.bright, 0.7], [1, p.main, 0]] }
@@ -2182,10 +2182,10 @@ export const DESIGNS = {
       layers: [
         // The needle line: many tiny glows left exactly on the die's path
         { tex: "glow", blend: "add", rate: 120, rest: 0, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.05,
-          colors: [[0, "#ffffff", 1], [0.2, p.bright, 0.9], [0.6, p.main, 0.5], [1, p.dark, 0]] },
+          colors: linger([[0, "#ffffff", 1], [0.2, p.bright, 0.9], [0.6, p.main, 0.5], [1, p.dark, 0]]) },
         // A soft glow along it
         { tex: "glow", blend: "add", rate: 60, rest: 0, life: [1.2, 2.0], size: [0.9, 0.4], spawn: 0.08,
-          colors: [[0, p.bright, 0.35], [1, p.dark, 0]] },
+          colors: linger([[0, p.bright, 0.35], [1, p.dark, 0]]) },
         // Speed glints shooting back
         { tex: "spark", blend: "add", rate: 18, rest: 0, life: [0.1, 0.2], size: [1.2, 0.2], spawn: 0.4,
           inherit: -0.3,
@@ -2214,7 +2214,7 @@ export const DESIGNS = {
           colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.9], [0.7, p.main, 0.6], [1, p.dark, 0]] },
         // The blade's streak, fading from white to blood
         { tex: "glow", blend: "add", rate: 90, rest: 0, life: [1.2, 2.0], size: [0.5, 0.12], spawn: 0.1,
-          colors: [[0, "#ffffff", 0.9], [0.2, p.bright, 0.7], [0.6, p.main, 0.4], [1, p.dark, 0]] },
+          colors: linger([[0, "#ffffff", 0.9], [0.2, p.bright, 0.7], [0.6, p.main, 0.4], [1, p.dark, 0]]) },
         // Steel sparks
         { tex: "spark", blend: "add", rate: 30, rest: 0.1, life: [0.15, 0.35], size: [0.5, 0.08], spawn: 0.3,
           jitter: 3.0, gravity: -5, drag: 0.3, flicker: 0.4,
@@ -2242,7 +2242,7 @@ export const DESIGNS = {
         // Leaves fluttering off
         { tex: "leaves", blend: "normal", rate: 10, rest: 0.6, life: [1.2, 2.0], size: [0.7, 0.6], spawn: 0.7,
           vel: [0, 0, 0.6], jitter: 0.5, gravity: -0.8, drag: 0.6, spin: 2,
-          colors: [[0, p.main, 0], [0.15, mix(p.main, p.bright, 0.3), 0.95], [0.8, p.main, 0.85], [1, p.dark, 0]] },
+          colors: linger([[0, p.main, 0], [0.15, mix(p.main, p.bright, 0.3), 0.95], [0.8, p.main, 0.85], [1, p.dark, 0]]) },
         // Little hearts rising
         { tex: "heart", blend: "add", rate: 5, rest: 1.0, life: [1.0, 1.4], size: [1.1, 1.6], spawn: 0.7,
           vel: [0, 0, 1.6], jitter: 0.3, drag: 0.7,
@@ -2250,7 +2250,7 @@ export const DESIGNS = {
         // Motes of life-light curling up
         { tex: "glow", blend: "add", rate: 36, rest: 0.9, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.8,
           vel: [0, 0, 1.5], jitter: 0.5, drag: 0.5, swirl: 0.8, flicker: 0.3,
-          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.85], [1, p.main, 0]] },
+          colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.85], [1, p.main, 0]]) },
         // A soft halo blooming out
         { tex: "ring", blend: "add", rate: 2, rest: 1.0, life: [0.9, 1.2], size: [1.0, 3.5], spawn: 0,
           colors: [[0, p.bright, 0.6], [1, p.main, 0]] }
@@ -2284,10 +2284,10 @@ export const DESIGNS = {
           colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
         // A shimmering wake left behind, with glinting plates
         { tex: "glow", blend: "add", rate: 60, rest: 0, life: [1.2, 2.0], size: [0.8, 0.25], spawn: 0.3,
-          colors: [[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]] },
+          colors: linger([[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]]) },
         { tex: "shard", blend: "add", rate: 16, rest: 0, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.4,
           spin: 1.5, flicker: 0.4,
-          colors: [[0, "#ffffff", 0.9], [0.4, p.bright, 0.6], [1, p.main, 0]] }
+          colors: linger([[0, "#ffffff", 0.9], [0.4, p.bright, 0.6], [1, p.main, 0]]) }
       ]
     })
   }
@@ -2431,6 +2431,25 @@ function rgbToHex([r, g, b]) {
   return "#" + [r, g, b].map(v => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, "0")).join("");
 }
 /** Mix two hex colours: t = 0 gives a, t = 1 gives b. */
+/**
+ * A long tail's colours: keeps the gradient's colours but holds it near full strength until 80% of
+ * the particle's life and only then fades it out, so the tail lingers on the table for a while.
+ */
+export function linger(stops) {
+  const peak = Math.max(...stops.map(s => s[2]));
+  const top = stops.findIndex(s => s[2] === peak);
+  const held = stops.filter(s => s[0] < 0.8).map((s, i) => [s[0], s[1], i < top ? s[2] : Math.max(s[2], peak * 0.9)]);
+  return [...held, [0.8, gradientColor(stops, 0.8), peak * 0.85], [1, stops[stops.length - 1][1], 0]];
+}
+
+/** The colour of a [t, hex, alpha] gradient at t. */
+function gradientColor(stops, t) {
+  let i = 0;
+  while (i < stops.length - 2 && t > stops[i + 1][0]) i++;
+  const [t0, c0] = stops[i], [t1, c1] = stops[Math.min(i + 1, stops.length - 1)];
+  return mix(c0, c1, t1 > t0 ? Math.min(1, Math.max(0, (t - t0) / (t1 - t0))) : 0);
+}
+
 export function mix(a, b, t) {
   const A = hexToRgb(a), B = hexToRgb(b);
   return rgbToHex(A.map((v, i) => v + (B[i] - v) * t));

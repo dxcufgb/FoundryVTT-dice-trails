@@ -14,7 +14,7 @@ https://github.com/dxcufgb/FoundryVTT-dice-trails/releases/latest/download/modul
 
 ## Damage type trails
 
-Every die rolled for a damage type leaves a long tail of that element along its flight path (up to about two seconds of it, densest when the die is fast), with a glowing aura around the die. Each damage type's trail is also a design in the Dice trails window (category *Damage Types*), so players can put it, or one of its other styles, on their own rolls:
+Every die rolled for a damage type leaves a long tail of that element along its flight path (up to about two seconds of it, densest when the die is fast, lingering at full strength before it fades), with a glowing aura around the die. Each damage type's trail is also a design in the Dice trails window (category *Damage Types*), so players can put it, or one of its other styles, on their own rolls:
 
 | Type | Trail | Look |
 | --- | --- | --- |
