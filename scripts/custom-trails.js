@@ -1891,16 +1891,24 @@ export const DESIGNS = {
     },
     build: p => ({
       auras: [{ color: p.main, size: 3.2, alpha: 0.6, pulse: 0.05, flicker: 0.7 }],
-      arcs: [{ color: p.bright, every: 0.05, count: 3, reach: [1.4, 3.0], restCount: 1 }],
+      // Short forking branches crackling off the die
+      arcs: [{ color: p.bright, every: 0.06, count: 4, reach: [0.8, 2.2], restCount: 1 }],
       ribbons: [
-        // Electric glow around the bolt
-        { width: 2.2, time: 0.8, blend: "add", alpha: 0.55, colors: [p.bright, p.main, p.dark],
-          noiseAmt: 0.4, noiseScale: [10, 2], scroll: 8, soft: 0.5, fadePow: 0.9, taper: 0.5,
-          bands: 7, bandAmt: 0.15, bandSpeed: 12, flicker: 0.6,
+        // Electric glow around the bolt, ragged and flickering
+        { width: 2.2, time: 0.8, blend: "add", alpha: 0.5, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.8, noiseScale: [8, 3], scroll: 6, colorNoise: 0.2, soft: 0.6, fadePow: 0.9, taper: 0.5,
+          bands: 5, bandAmt: 0.25, bandSpeed: 9, flicker: 0.6,
+          wave: { amp: 0.3, freq: 2.7, speed: 4 },
           strip: { row: 0, repeat: 1.2, scroll: 5, mask: 0.3, glow: 1.4 } },
-        // The jagged bolt: it follows the die's path, so it shrinks back into the die when it stops
-        { width: 0.4, time: 0.8, blend: "add", alpha: 1, colors: ["#ffffff", mix(p.bright, "#ffffff", 0.5), p.main],
-          core: "#ffffff", coreAmt: 1, noiseAmt: 0.1, soft: 0.25, fadePow: 0.7, taper: 0.4, jag: 1.3, flicker: 0.35 }
+        // The bolt: kinks at uneven distances, a slight meander and an uneven width. It follows the
+        // die's path, so it shrinks back into the die when the die stops.
+        { width: 0.45, time: 0.8, blend: "add", alpha: 1, colors: ["#ffffff", mix(p.bright, "#ffffff", 0.5), p.main],
+          core: "#ffffff", coreAmt: 1, noiseAmt: 0.35, noiseScale: [14, 1], scroll: 3, soft: 0.25, fadePow: 0.7,
+          taper: 0.55, jag: 1.1, jagStep: [2, 7], wave: { amp: 0.3, freq: 2.7, speed: 4 }, flicker: 0.4 },
+        // A thinner strand forking along the bolt with its own kinks
+        { width: 0.2, time: 0.6, blend: "add", alpha: 0.7, colors: ["#ffffff", p.bright, p.main],
+          core: "#ffffff", coreAmt: 0.6, noiseAmt: 0.3, noiseScale: [16, 1], soft: 0.3, fadePow: 0.8,
+          taper: 0.7, jag: 1.7, jagStep: [1, 5], flicker: 0.6 }
       ],
       layers: [
         // Crackling bolts that flash around the die

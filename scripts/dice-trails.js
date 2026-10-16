@@ -69,6 +69,7 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
  *   noiseAmt   how ragged the edges are       scroll  how fast the pattern flows (negative: toward the die)
  *   bands/bandAmt/bandSpeed  pulses along the streak   sparkle  twinkling glints
  *   jag        lightning zig-zag (u)          wave    { amp, freq, speed } weaving motion
+ *   jagStep    points between the zig-zag's kinks (default 4), or [min, max] for an uneven, more natural bolt
  *   strip      { row, repeat, scroll, mask, glow }  a streak texture (textures/strips.png, rows 0-7)
  *              laid along the streak. repeat 0 stretches it head-to-tail once, otherwise it
  *              tiles `repeat` times and flows at `scroll`. mask: how much it cuts the streak's
@@ -1218,13 +1219,13 @@ class Ribbon {
       this.jagTimer -= dt;
       if (this.jagTimer <= 0) {
         this.jagTimer = 0.045;
-        // Random kinks every few points, straight segments in between: a real zig-zag.
-        const step = 4;
-        let prev = 0, next = Math.random() * 2 - 1;
+        // Random kinks every few points (jagStep, or a random count in [min, max]), straight segments in between.
+        const [s0, s1] = Array.isArray(d.jagStep) ? d.jagStep : [d.jagStep ?? 4, d.jagStep ?? 4];
+        let prev = 0, next = Math.random() * 2 - 1, step = 0, k = 0;
         for (let i = 0; i < this.pts.length; i++) {
-          if (i % step === 0) { prev = next; next = Math.random() * 2 - 1; }
-          const f = (i % step) / step;
-          this.pts[i].j = prev + (next - prev) * f;
+          if (k >= step) { prev = next; next = Math.random() * 2 - 1; step = Math.max(1, Math.round(rand(s0, s1))); k = 0; }
+          this.pts[i].j = prev + (next - prev) * (k / step);
+          k++;
         }
       }
     }
