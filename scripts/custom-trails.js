@@ -1947,12 +1947,12 @@ export const DESIGNS = {
         { tex: "glow", blend: "add", rate: 8, rest: 0.3, life: [0.05, 0.12], size: [2.5, 3.0], spawn: 0.8,
           flicker: 0.8,
           colors: [[0, "#ffffff", 0.8], [1, p.bright, 0]] },
-        // Big shockwaves booming off the die
-        { tex: "ring", blend: "add", rate: 6, rest: 0.4, life: [0.35, 0.5], size: [0.6, 6.0], spawn: 0,
-          colors: [[0, "#ffffff", 1], [0.35, p.bright, 0.6], [1, p.main, 0]] },
-        // Quick inner ripples
-        { tex: "ring", blend: "add", rate: 12, rest: 0.2, life: [0.2, 0.3], size: [0.4, 2.5], spawn: 0,
-          colors: [[0, p.bright, 0.7], [1, p.main, 0]] }
+        // Big shockwaves booming off the die, spreading slowly and lingering on its path
+        { tex: "ring", blend: "add", rate: 6, rest: 0.4, life: [1.4, 2.0], size: [0.6, 6.0], spawn: 0,
+          colors: linger([[0, "#ffffff", 1], [0.25, p.bright, 0.7], [1, p.main, 0]]) },
+        // Inner ripples
+        { tex: "ring", blend: "add", rate: 12, rest: 0.2, life: [0.8, 1.2], size: [0.4, 2.5], spawn: 0,
+          colors: linger([[0, p.bright, 0.7], [1, p.main, 0]]) }
       ]
     })
   },
