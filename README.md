@@ -14,13 +14,13 @@ https://github.com/dxcufgb/FoundryVTT-dice-trails/releases/latest/download/modul
 
 ## Damage type trails
 
-Every die rolled for a damage type leaves a long tail of that element along its flight path (up to about two seconds of it, densest when the die is fast, lingering at full strength before it fades), with a glowing aura around the die. Each damage type's trail is also a design in the Dice trails window (category *Damage Types*), so players can put it, or one of its other styles, on their own rolls:
+Every die rolled for a damage type leaves a long tail of that element along its flight path (two to three seconds of it, densest when the die is fast; it stays at nearly full strength and size until the last moment, then fades), with a glowing aura around the die. Each damage type's trail is also a design in the Dice trails window (category *Damage Types*), so players can put it, or one of its other styles, on their own rolls:
 
 | Type | Trail | Look |
 | --- | --- | --- |
 | Fire | Emberstorm | Flame tongues around a white-hot core, embers swirling up into a long tail, dark smoke |
 | Cold | Hoarfrost | Ice shards tumbling down, snowflakes spinning through a long freezing mist |
-| Lightning | Static Surge | Arcs and crackling bolts on the die, hot sparks, and a long ionised path that keeps crackling |
+| Lightning | Static Surge | A jagged bolt trailing the die that shrinks back into it as it lands, arcs, hot sparks and a long crackling path |
 | Thunder | Thunderhead | A long dark storm cloud lit by flashes, with shockwave rings booming off the die |
 | Acid | Corrosion | Glowing drops dripping off, popping bubbles, caustic fumes and a glowing smear on the die's path |
 | Poison | Miasma | A thick toxic cloud that curls and lingers, full of glowing spores |
@@ -30,7 +30,7 @@ Every die rolled for a damage type leaves a long tail of that element along its 
 | Psychic | Mindstorm | Mind-swirls circling the die, thought-glyphs drifting off, ripples of will and a long tail of motes |
 | Bludgeoning | Rockfall | Rock chips and pebbles flung up in a long dust cloud, with dust rings thudding out |
 | Piercing | Needlepoint | A long, needle-thin line of light on the die's path, speed glints and a bright point |
-| Slashing | Crimson Edge | Slash marks, steel sparks, flung drops and a long blade streak fading to blood |
+| Slashing | Crimson Edge | Slash marks around the die that leave a long trail of slash stripes fading to blood, steel sparks and flung drops |
 | Healing | Lifebloom | Leaves and little hearts drifting up in a long, rising trail of life-light |
 | Temp HP | Aegis | A shield bubble around the die, crystal plates spiralling in it, a long shimmering wake |
 

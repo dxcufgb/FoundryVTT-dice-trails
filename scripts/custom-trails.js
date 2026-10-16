@@ -1837,11 +1837,11 @@ export const DESIGNS = {
           vel: [0, 0, 0.4], jitter: 0.2, drag: 0.5,
           colors: [[0, "#ffffff", 0.9], [0.5, p.bright, 0.6], [1, p.main, 0]] },
         // Embers that swirl up, flicker and fade far behind the die
-        { tex: "spark", blend: "add", rate: 45, rest: 0.5, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.6,
+        { tex: "spark", blend: "add", rate: 45, rest: 0.5, life: [2.0, 3.0], size: [0.4, 0.32], spawn: 0.6,
           vel: [0, 0, 2.6], jitter: 1.4, drag: 0.75, swirl: 0.8, flicker: 0.6,
           colors: linger([[0, "#ffffff", 1], [0.3, p.bright, 0.95], [0.7, p.main, 0.7], [1, p.dark, 0]]) },
         // Dark smoke rising behind
-        { tex: "smoke", blend: "normal", rate: 10, rest: 0.3, life: [1.2, 2.0], size: [0.8, 2.6], spawn: 0.4,
+        { tex: "smoke", blend: "normal", rate: 10, rest: 0.3, life: [2.0, 3.0], size: [0.8, 2.6], spawn: 0.4,
           vel: [0, 0, 2.0], jitter: 0.4, drag: 0.6, spin: 0.6,
           colors: linger([[0, "#2a1c12", 0], [0.3, mix(p.dark, "#1a1414", 0.7), 0.32], [1, "#101010", 0]]) }
       ]
@@ -1861,7 +1861,7 @@ export const DESIGNS = {
       auras: [{ color: p.bright, size: 3.0, alpha: 0.45, pulse: 0.06 }],
       layers: [
         // Freezing mist that hangs behind the die
-        { tex: "smoke", blend: "add", rate: 18, rest: 0.5, life: [1.2, 2.0], size: [1.0, 2.8], spawn: 0.5,
+        { tex: "smoke", blend: "add", rate: 18, rest: 0.5, life: [2.0, 3.0], size: [1.0, 2.8], spawn: 0.5,
           vel: [0, 0, 0.3], jitter: 0.3, drag: 0.5, spin: 0.4,
           colors: linger([[0, p.bright, 0], [0.3, p.main, 0.3], [1, p.dark, 0]]) },
         // Ice shards flung off, tumbling down to the table
@@ -1869,7 +1869,7 @@ export const DESIGNS = {
           vel: [0, 0, 1.2], jitter: 2.0, gravity: -8, drag: 0.7, spin: 6, flicker: 0.3,
           colors: [[0, "#ffffff", 1], [0.4, p.bright, 0.95], [1, p.main, 0]] },
         // Snowflakes that spin slowly down
-        { tex: "snowflakes", blend: "add", rate: 12, rest: 0.6, life: [1.2, 2.0], size: [0.7, 0.5], spawn: 0.9,
+        { tex: "snowflakes", blend: "add", rate: 12, rest: 0.6, life: [2.0, 3.0], size: [0.7, 0.56], spawn: 0.9,
           vel: [0, 0, 0.4], jitter: 0.6, gravity: -1.2, drag: 0.6, spin: 1.5,
           colors: linger([[0, "#ffffff", 0], [0.15, "#ffffff", 0.95], [0.7, p.bright, 0.7], [1, p.main, 0]]) },
         // Frost glints
@@ -1880,7 +1880,7 @@ export const DESIGNS = {
     })
   },
 
-  // Lightning damage: arcs leap off the die between crackling bolts, scattering hot sparks.
+  // Lightning damage: a jagged bolt trails the die and pulls back into it when it lands; arcs and sparks.
   staticSurge: {
     label: "Static Surge", icon: "fa-solid fa-bolt", sound: "lightning",
     styles: {
@@ -1892,6 +1892,16 @@ export const DESIGNS = {
     build: p => ({
       auras: [{ color: p.main, size: 3.2, alpha: 0.6, pulse: 0.05, flicker: 0.7 }],
       arcs: [{ color: p.bright, every: 0.05, count: 3, reach: [1.4, 3.0], restCount: 1 }],
+      ribbons: [
+        // Electric glow around the bolt
+        { width: 2.2, time: 0.8, blend: "add", alpha: 0.55, colors: [p.bright, p.main, p.dark],
+          noiseAmt: 0.4, noiseScale: [10, 2], scroll: 8, soft: 0.5, fadePow: 0.9, taper: 0.5,
+          bands: 7, bandAmt: 0.15, bandSpeed: 12, flicker: 0.6,
+          strip: { row: 0, repeat: 1.2, scroll: 5, mask: 0.3, glow: 1.4 } },
+        // The jagged bolt: it follows the die's path, so it shrinks back into the die when it stops
+        { width: 0.4, time: 0.8, blend: "add", alpha: 1, colors: ["#ffffff", mix(p.bright, "#ffffff", 0.5), p.main],
+          core: "#ffffff", coreAmt: 1, noiseAmt: 0.1, soft: 0.25, fadePow: 0.7, taper: 0.4, jag: 1.3, flicker: 0.35 }
+      ],
       layers: [
         // Crackling bolts that flash around the die
         { tex: "bolts", blend: "add", rate: 50, rest: 0.3, life: [0.06, 0.14], size: [1.6, 1.1], spawn: 0.5,
@@ -1906,11 +1916,11 @@ export const DESIGNS = {
           flicker: 0.7,
           colors: [[0, "#ffffff", 0.9], [1, p.main, 0]] },
         // The ionised path left behind, glowing as it fades
-        { tex: "glow", blend: "add", rate: 70, rest: 0, life: [1.2, 2.0], size: [0.7, 0.2], spawn: 0.15,
+        { tex: "glow", blend: "add", rate: 70, rest: 0, life: [2.0, 3.0], size: [0.7, 0.56], spawn: 0.15,
           flicker: 0.5,
           colors: linger([[0, "#ffffff", 0.9], [0.15, p.bright, 0.7], [0.5, p.main, 0.4], [1, p.dark, 0]]) },
         // Crackles still jumping along it
-        { tex: "spark", blend: "add", rate: 22, rest: 0, life: [1.2, 2.0], size: [0.7, 0.15], spawn: 0.35,
+        { tex: "spark", blend: "add", rate: 22, rest: 0, life: [2.0, 3.0], size: [0.7, 0.56], spawn: 0.35,
           flicker: 0.9,
           colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) }
       ]
@@ -1930,7 +1940,7 @@ export const DESIGNS = {
       auras: [{ color: p.main, size: 3.2, alpha: 0.45, pulse: 0.35, pulseSpeed: 10 }],
       layers: [
         // The storm cloud, dragged along behind the die
-        { tex: "smoke", blend: "normal", rate: 18, rest: 0.5, life: [1.2, 2.0], size: [1.0, 3.0], spawn: 0.5,
+        { tex: "smoke", blend: "normal", rate: 18, rest: 0.5, life: [2.0, 3.0], size: [1.0, 3], spawn: 0.5,
           vel: [0, 0, 0.6], jitter: 0.5, drag: 0.6, spin: 0.8,
           colors: linger([[0, p.dark, 0], [0.25, mix(p.dark, p.main, 0.25), 0.6], [1, mix(p.dark, "#000000", 0.5), 0]]) },
         // Flashes inside the cloud
@@ -1968,7 +1978,7 @@ export const DESIGNS = {
           vel: [0, 0, 0.6], jitter: 0.4, drag: 0.5, flicker: 0.2,
           colors: [[0, p.bright, 0.4], [0.85, p.main, 0.9], [1, p.bright, 0]] },
         // Caustic fumes
-        { tex: "smoke", blend: "normal", rate: 12, rest: 0.5, life: [1.2, 2.0], size: [0.6, 2.2], spawn: 0.4,
+        { tex: "smoke", blend: "normal", rate: 12, rest: 0.5, life: [2.0, 3.0], size: [0.6, 2.2], spawn: 0.4,
           vel: [0, 0, 1.2], jitter: 0.3, drag: 0.6, spin: 1,
           colors: linger([[0, p.main, 0], [0.3, mix(p.dark, p.main, 0.4), 0.35], [1, p.dark, 0]]) },
         // A sizzling glow on the die
@@ -1976,7 +1986,7 @@ export const DESIGNS = {
           flicker: 0.3,
           colors: [[0, p.bright, 0.8], [1, p.main, 0]] },
         // A glowing smear left on the die's path
-        { tex: "glow", blend: "add", rate: 35, rest: 0, life: [1.2, 2.0], size: [0.6, 0.3], spawn: 0.3,
+        { tex: "glow", blend: "add", rate: 35, rest: 0, life: [2.0, 3.0], size: [0.6, 0.48], spawn: 0.3,
           flicker: 0.2,
           colors: linger([[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]]) }
       ]
@@ -1996,7 +2006,7 @@ export const DESIGNS = {
       auras: [{ color: p.main, size: 3.2, alpha: 0.35, pulse: 0.18, pulseSpeed: 2 }],
       layers: [
         // The toxic cloud, curling as it lingers
-        { tex: "smoke", blend: "normal", rate: 20, rest: 0.8, life: [1.2, 2.0], size: [0.8, 3.0], spawn: 0.5,
+        { tex: "smoke", blend: "normal", rate: 20, rest: 0.8, life: [2.0, 3.0], size: [0.8, 3], spawn: 0.5,
           vel: [0, 0, 0.4], jitter: 0.3, drag: 0.55, swirl: 0.6, spin: 0.5,
           colors: linger([[0, p.main, 0], [0.25, p.main, 0.5], [0.7, p.dark, 0.4], [1, p.dark, 0]]) },
         // Glowing spores drifting in it
@@ -2025,7 +2035,7 @@ export const DESIGNS = {
                 inner: { color: p.main, size: 1.4, alpha: 0.35 } }],
       layers: [
         // The black shroud trailing behind
-        { tex: "smoke", blend: "normal", rate: 22, rest: 0.6, life: [1.2, 2.0], size: [1.2, 2.6], spawn: 0.4,
+        { tex: "smoke", blend: "normal", rate: 22, rest: 0.6, life: [2.0, 3.0], size: [1.2, 2.6], spawn: 0.4,
           vel: [0, 0, 0.3], inherit: -0.06, jitter: 0.3, drag: 0.6, spin: 0.7,
           colors: linger([[0, "#000000", 0], [0.25, mix(p.dark, "#000000", 0.7), 0.7], [1, "#000000", 0]]) },
         // Ghost-flames licking off the die
@@ -2068,7 +2078,7 @@ export const DESIGNS = {
           jitter: 0.25, spin: 1.5,
           colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] },
         // Motes of light rising
-        { tex: "glow", blend: "add", rate: 40, rest: 0.6, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.6,
+        { tex: "glow", blend: "add", rate: 40, rest: 0.6, life: [2.0, 3.0], size: [0.4, 0.32], spawn: 0.6,
           vel: [0, 0, 1.8], jitter: 0.5, drag: 0.6, flicker: 0.3,
           colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) }
       ]
@@ -2095,7 +2105,7 @@ export const DESIGNS = {
           orbit: { radius: 1.4, speed: 7, helix: true }, spin: 3,
           colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.9], [1, p.main, 0]] },
         // Crystal splinters shed along the die's path
-        { tex: "shard", blend: "add", rate: 32, rest: 0, life: [1.2, 2.0], size: [0.45, 0.1], spawn: 0.4,
+        { tex: "shard", blend: "add", rate: 32, rest: 0, life: [2.0, 3.0], size: [0.45, 0.36], spawn: 0.4,
           jitter: 0.3, drag: 0.5, spin: 2, flicker: 0.3,
           colors: linger([[0, "#ffffff", 1], [0.3, p.bright, 0.8], [1, p.main, 0]]) },
         // Sparks pushed out by the force
@@ -2127,7 +2137,7 @@ export const DESIGNS = {
           vel: [0, 0, 1.0], jitter: 0.4, drag: 0.6, flicker: 0.2, spin: 0.5,
           colors: [[0, p.bright, 0], [0.2, p.bright, 0.9], [1, p.main, 0]] },
         // Thought-motes
-        { tex: "glow", blend: "add", rate: 40, rest: 0.5, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.5,
+        { tex: "glow", blend: "add", rate: 40, rest: 0.5, life: [2.0, 3.0], size: [0.35, 0.28], spawn: 0.5,
           jitter: 0.8, swirl: 1.5, flicker: 0.5,
           colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) },
         // Ripples of will
@@ -2158,7 +2168,7 @@ export const DESIGNS = {
           vel: [0, 0, 3.0], jitter: 2.0, gravity: -14, drag: 0.8, spin: 6,
           colors: [[0, mix(p.main, p.bright, 0.3), 1], [0.8, p.main, 0.95], [1, p.dark, 0]] },
         // Dust cloud
-        { tex: "smoke", blend: "normal", rate: 14, rest: 0.2, life: [1.2, 2.0], size: [0.8, 2.6], spawn: 0.4,
+        { tex: "smoke", blend: "normal", rate: 14, rest: 0.2, life: [2.0, 3.0], size: [0.8, 2.6], spawn: 0.4,
           vel: [0, 0, 0.5], jitter: 0.5, drag: 0.6, spin: 0.5,
           colors: linger([[0, p.bright, 0], [0.2, p.bright, 0.45], [1, p.main, 0]]) },
         // Dust rings thudding out
@@ -2181,10 +2191,10 @@ export const DESIGNS = {
       auras: [{ color: p.bright, size: 1.8, alpha: 0.5, pulse: 0.05 }],
       layers: [
         // The needle line: many tiny glows left exactly on the die's path
-        { tex: "glow", blend: "add", rate: 120, rest: 0, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.05,
+        { tex: "glow", blend: "add", rate: 90, rest: 0, life: [2.0, 3.0], size: [0.35, 0.28], spawn: 0.05,
           colors: linger([[0, "#ffffff", 1], [0.2, p.bright, 0.9], [0.6, p.main, 0.5], [1, p.dark, 0]]) },
         // A soft glow along it
-        { tex: "glow", blend: "add", rate: 60, rest: 0, life: [1.2, 2.0], size: [0.9, 0.4], spawn: 0.08,
+        { tex: "glow", blend: "add", rate: 60, rest: 0, life: [2.0, 3.0], size: [0.9, 0.72], spawn: 0.08,
           colors: linger([[0, p.bright, 0.35], [1, p.dark, 0]]) },
         // Speed glints shooting back
         { tex: "spark", blend: "add", rate: 18, rest: 0, life: [0.1, 0.2], size: [1.2, 0.2], spawn: 0.4,
@@ -2197,7 +2207,7 @@ export const DESIGNS = {
     })
   },
 
-  // Slashing damage: crescent slash marks cut the air, steel sparks fly and drops are flung off.
+  // Slashing damage: slash marks cut the air round the die and leave a long trail of stripes; sparks and drops.
   crimsonEdge: {
     label: "Crimson Edge", icon: "fa-solid fa-khanda", sound: "blade",
     styles: {
@@ -2212,9 +2222,9 @@ export const DESIGNS = {
         // Slash marks
         { tex: "slashes", blend: "add", rate: 12, rest: 0.2, life: [0.18, 0.32], size: [1.4, 2.2], spawn: 0.4,
           colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.9], [0.7, p.main, 0.6], [1, p.dark, 0]] },
-        // The blade's streak, fading from white to blood
-        { tex: "glow", blend: "add", rate: 90, rest: 0, life: [1.2, 2.0], size: [0.5, 0.12], spawn: 0.1,
-          colors: linger([[0, "#ffffff", 0.9], [0.2, p.bright, 0.7], [0.6, p.main, 0.4], [1, p.dark, 0]]) },
+        // A trail of slash stripes left along the die's path, fading from white to blood
+        { tex: "slashes", blend: "add", rate: 40, rest: 0, life: [2.0, 3.0], size: [1.3, 1.04], spawn: 0.25,
+          colors: linger([[0, "#ffffff", 0.95], [0.2, p.bright, 0.85], [0.6, p.main, 0.6], [1, p.dark, 0]]) },
         // Steel sparks
         { tex: "spark", blend: "add", rate: 30, rest: 0.1, life: [0.15, 0.35], size: [0.5, 0.08], spawn: 0.3,
           jitter: 3.0, gravity: -5, drag: 0.3, flicker: 0.4,
@@ -2240,7 +2250,7 @@ export const DESIGNS = {
       auras: [{ color: p.main, size: 3.2, alpha: 0.5, pulse: 0.14, pulseSpeed: 2 }],
       layers: [
         // Leaves fluttering off
-        { tex: "leaves", blend: "normal", rate: 10, rest: 0.6, life: [1.2, 2.0], size: [0.7, 0.6], spawn: 0.7,
+        { tex: "leaves", blend: "normal", rate: 10, rest: 0.6, life: [2.0, 3.0], size: [0.7, 0.6], spawn: 0.7,
           vel: [0, 0, 0.6], jitter: 0.5, gravity: -0.8, drag: 0.6, spin: 2,
           colors: linger([[0, p.main, 0], [0.15, mix(p.main, p.bright, 0.3), 0.95], [0.8, p.main, 0.85], [1, p.dark, 0]]) },
         // Little hearts rising
@@ -2248,7 +2258,7 @@ export const DESIGNS = {
           vel: [0, 0, 1.6], jitter: 0.3, drag: 0.7,
           colors: [[0, "#ffffff", 0], [0.15, p.bright, 0.95], [1, p.main, 0]] },
         // Motes of life-light curling up
-        { tex: "glow", blend: "add", rate: 36, rest: 0.9, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.8,
+        { tex: "glow", blend: "add", rate: 36, rest: 0.9, life: [2.0, 3.0], size: [0.35, 0.28], spawn: 0.8,
           vel: [0, 0, 1.5], jitter: 0.5, drag: 0.5, swirl: 0.8, flicker: 0.3,
           colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.85], [1, p.main, 0]]) },
         // A soft halo blooming out
@@ -2283,9 +2293,9 @@ export const DESIGNS = {
           flicker: 0.4,
           colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
         // A shimmering wake left behind, with glinting plates
-        { tex: "glow", blend: "add", rate: 60, rest: 0, life: [1.2, 2.0], size: [0.8, 0.25], spawn: 0.3,
+        { tex: "glow", blend: "add", rate: 60, rest: 0, life: [2.0, 3.0], size: [0.8, 0.64], spawn: 0.3,
           colors: linger([[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]]) },
-        { tex: "shard", blend: "add", rate: 16, rest: 0, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.4,
+        { tex: "shard", blend: "add", rate: 16, rest: 0, life: [2.0, 3.0], size: [0.4, 0.32], spawn: 0.4,
           spin: 1.5, flicker: 0.4,
           colors: linger([[0, "#ffffff", 0.9], [0.4, p.bright, 0.6], [1, p.main, 0]]) }
       ]
@@ -2433,7 +2443,8 @@ function rgbToHex([r, g, b]) {
 /** Mix two hex colours: t = 0 gives a, t = 1 gives b. */
 /**
  * A long tail's colours: keeps the gradient's colours but holds it near full strength until 80% of
- * the particle's life and only then fades it out, so the tail lingers on the table for a while.
+ * the particle's life and only then fades it out, so the tail lingers on the table for a while. Tail layers
+ * also live 2-3 seconds and barely shrink, so they stay visible until they fade.
  */
 export function linger(stops) {
   const peak = Math.max(...stops.map(s => s[2]));

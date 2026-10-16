@@ -114,7 +114,7 @@ const EFFECTS = {
     ...DESIGNS.hoarfrost.build({ bright: "#f0fcff", main: "#8fdcff", dark: "#1f5fb8" })
   },
 
-  // Signature: arcs and crackling bolts on the die, sparks, and a long ionised path that keeps crackling.
+  // Signature: a jagged bolt trailing the die that shrinks back into it as it lands, arcs, sparks and a long crackling path.
   // The same look as the Static Surge design, so players can pick it (and its other styles) for their own rolls too.
   lightning: {
     sound: "lightning",
@@ -184,7 +184,7 @@ const EFFECTS = {
     ...DESIGNS.needlepoint.build({ bright: "#ffffff", main: "#a8c0e8", dark: "#3a5080" })
   },
 
-  // Signature: slash marks, steel sparks, flung drops and a long blade streak fading to blood.
+  // Signature: slash marks round the die leaving a long trail of slash stripes, steel sparks and flung drops.
   // The same look as the Crimson Edge design, so players can pick it (and its other styles) for their own rolls too.
   slashing: {
     sound: "blade",
