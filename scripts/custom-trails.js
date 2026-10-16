@@ -1977,10 +1977,14 @@ export const DESIGNS = {
         { tex: "bubbles", blend: "add", rate: 18, rest: 0.8, life: [0.4, 0.9], size: [0.25, 0.6], spawn: 0.7,
           vel: [0, 0, 0.6], jitter: 0.4, drag: 0.5, flicker: 0.2,
           colors: [[0, p.bright, 0.4], [0.85, p.main, 0.9], [1, p.bright, 0]] },
-        // Caustic fumes
-        { tex: "smoke", blend: "normal", rate: 12, rest: 0.5, life: [2.0, 3.0], size: [0.6, 2.2], spawn: 0.4,
-          vel: [0, 0, 1.2], jitter: 0.3, drag: 0.6, spin: 1,
-          colors: linger([[0, p.main, 0], [0.3, mix(p.dark, p.main, 0.4), 0.35], [1, p.dark, 0]]) },
+        // Caustic fumes, thick and slow to clear
+        { tex: "smoke", blend: "normal", rate: 26, rest: 0.6, life: [2.0, 3.0], size: [0.9, 3.0], spawn: 0.4,
+          vel: [0, 0, 0.7], jitter: 0.3, drag: 0.6, spin: 0.8,
+          colors: linger([[0, p.main, 0], [0.2, mix(p.dark, p.main, 0.6), 0.6], [0.7, mix(p.dark, p.main, 0.3), 0.5], [1, p.dark, 0]]) },
+        // A caustic glow inside the fumes
+        { tex: "smoke", blend: "add", rate: 12, rest: 0.4, life: [2.0, 3.0], size: [0.8, 2.4], spawn: 0.4,
+          vel: [0, 0, 0.5], jitter: 0.2, drag: 0.6, spin: 0.6,
+          colors: linger([[0, p.bright, 0], [0.2, p.main, 0.3], [1, p.dark, 0]]) },
         // A sizzling glow on the die
         { tex: "glow", blend: "add", rate: 30, rest: 0.2, life: [0.15, 0.3], size: [1.1, 0.5], spawn: 0.3,
           flicker: 0.3,
