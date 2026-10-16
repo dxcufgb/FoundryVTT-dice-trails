@@ -69,6 +69,7 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
  *   noiseAmt   how ragged the edges are       scroll  how fast the pattern flows (negative: toward the die)
  *   bands/bandAmt/bandSpeed  pulses along the streak   sparkle  twinkling glints
  *   jag        lightning zig-zag (u)          wave    { amp, freq, speed } weaving motion
+ *   jagStep    points between the zig-zag's kinks (default 4), or [min, max] for an uneven, more natural bolt
  *   strip      { row, repeat, scroll, mask, glow }  a streak texture (textures/strips.png, rows 0-7)
  *              laid along the streak. repeat 0 stretches it head-to-tail once, otherwise it
  *              tiles `repeat` times and flows at `scroll`. mask: how much it cuts the streak's
@@ -100,304 +101,109 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
  *   swirl      tangential speed around the die's vertical axis
  */
 const EFFECTS = {
-  // Signature: soft glowing fire puffs that swell, rise and cool from white-hot to embers and smoke.
-  // The same look as the Fire Trail design (Fire style), so players can pick it for their own rolls too.
+  // Signature: flame tongues round a white-hot core, embers swirling up into a long tail and dark smoke.
+  // The same look as the Emberstorm design, so players can pick it (and its other styles) for their own rolls too.
   fire: {
     sound: "fire",
-    ...DESIGNS.fireTrail.build({ bright: "#fff0a0", main: "#ff7a1a", dark: "#a01400" })
+    ...DESIGNS.emberstorm.build({ bright: "#fff1a8", main: "#ff6a10", dark: "#8a1000" })
   },
 
-  // Signature: pale icy streak in freezing mist, falling ice shards and snow glints.
+  // Signature: ice shards tumbling down, snowflakes spinning through a long freezing mist.
+  // The same look as the Hoarfrost design, so players can pick it (and its other styles) for their own rolls too.
   cold: {
     sound: "frost",
-    aura: { color: "#bff4ff", size: 3.0, alpha: 0.5, pulse: 0.06 },
-    ribbons: [
-      // Freezing mist
-      { width: 3.4, time: 0.9, blend: "add", alpha: 0.4, colors: ["#e8fbff", "#8fdcff", "#2f7fd1"],
-        noiseAmt: 1.1, noiseScale: [4, 2], scroll: 0.8, soft: 0.65, fadePow: 1.3, taper: 0.3 },
-      // Frost streak: icy striations that glint
-      { width: 1.5, time: 0.55, blend: "add", alpha: 0.95, colors: ["#e6fbff", "#7fd8ff", "#1f6fd1"],
-        core: "#ffffff", coreAmt: 0.5, noiseAmt: 0.7, noiseScale: [14, 1.2], scroll: 0.6, colorNoise: 0.25,
-        soft: 0.18, fadePow: 1.0, taper: 0.8, sparkle: 1.0,
-        strip: { row: 3, repeat: 1.5, scroll: 0.8, mask: 0, glow: 0.7 } }
-    ],
-    layers: [
-      { tex: "shard", blend: "add", rate: 34, rest: 0.4, life: [0.6, 1.2], size: [0.6, 0.2], spawn: 0.7,
-        vel: [0, 0, 0.5], jitter: 1.3, gravity: -3, drag: 0.5, spin: 4, flicker: 0.3,
-        colors: [[0, "#ffffff", 1], [0.4, "#bff0ff", 0.95], [1, "#4aa8ff", 0]] },
-      { tex: "stars", blend: "add", rate: 16, rest: 0.8, life: [0.25, 0.5], size: [0.9, 0.1], spawn: 0.9,
-        vel: [0, 0, 0], jitter: 0.2, spin: 1,
-        colors: [[0, "#ffffff", 1], [1, "#9fe2ff", 0]] }
-    ]
+    ...DESIGNS.hoarfrost.build({ bright: "#f0fcff", main: "#8fdcff", dark: "#1f5fb8" })
   },
 
-  // Signature: a thin, violently jagged bolt with arcs jumping off the die, crackling blue.
+  // Signature: a jagged bolt trailing the die that shrinks back into it as it lands, arcs, sparks and a long crackling path.
+  // The same look as the Static Surge design, so players can pick it (and its other styles) for their own rolls too.
   lightning: {
     sound: "lightning",
-    aura: { color: "#6fb4ff", size: 3.3, alpha: 0.6, pulse: 0.05, flicker: 0.7 },
-    arcs: { color: "#cfe8ff", every: 0.04, count: 3, reach: [1.6, 3.4], restCount: 1 },
-    ribbons: [
-      // Electric glow around the bolt
-      { width: 2.2, time: 0.4, blend: "add", alpha: 0.6, colors: ["#bfe0ff", "#3f8cff", "#1a2cff"],
-        noiseAmt: 0.4, noiseScale: [10, 2], scroll: 8, soft: 0.5, fadePow: 0.9, taper: 0.5,
-        bands: 7, bandAmt: 0.15, bandSpeed: 12, flicker: 0.6,
-        strip: { row: 0, repeat: 1.2, scroll: 5, mask: 0.3, glow: 1.4 } },
-      // Jagged white-hot bolt
-      { width: 0.35, time: 0.4, blend: "add", alpha: 1, colors: ["#ffffff", "#e6f4ff", "#7fb8ff"],
-        core: "#ffffff", coreAmt: 1, noiseAmt: 0.1, soft: 0.25, fadePow: 0.7, taper: 0.4, jag: 1.3, flicker: 0.35 }
-    ],
-    layers: [
-      { tex: "bolts", blend: "add", rate: 40, rest: 0.3, life: [0.06, 0.16], size: [1.3, 1.0], spawn: 0.4,
-        vel: [0, 0, 0], jitter: 1.5, drag: 0.1, flicker: 0.5,
-        colors: [[0, "#ffffff", 1], [0.5, "#8fc4ff", 0.9], [1, "#2f5bff", 0]] }
-    ]
+    ...DESIGNS.staticSurge.build({ bright: "#e6f4ff", main: "#4f9cff", dark: "#1a2aa8" })
   },
 
-  // Signature: a dark indigo roar with big white shockwave rings bursting off the die.
+  // Signature: a long dark storm cloud lit by flashes, with shockwave rings booming off the die.
+  // The same look as the Thunderhead design, so players can pick it (and its other styles) for their own rolls too.
   thunder: {
     sound: "thunder",
-    aura: { color: "#4a4dff", size: 3.2, alpha: 0.45, pulse: 0.35, pulseSpeed: 10 },
-    ribbons: [
-      { width: 2.4, time: 0.5, blend: "add", alpha: 0.9, colors: ["#b8bcff", "#4a4dff", "#14106a"],
-        core: "#e8eaff", coreAmt: 0.3, noiseAmt: 0.5, noiseScale: [5, 2], scroll: 3, soft: 0.35, fadePow: 1.1,
-        taper: 0.5, bands: 5, bandAmt: 0.55, bandSpeed: 6 }
-    ],
-    layers: [
-      { tex: "ring", blend: "add", rate: 9, rest: 0.5, life: [0.4, 0.55], size: [0.6, 5.5], spawn: 0,
-        vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#ffffff", 1], [0.35, "#c8caff", 0.6], [1, "#4a4dff", 0]] },
-      { tex: "ring", blend: "add", rate: 4, rest: 0.2, life: [0.6, 0.8], size: [1.0, 8.0], spawn: 0,
-        vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#8f92ff", 0.5], [1, "#2a1d9f", 0]] }
-    ]
+    ...DESIGNS.thunderhead.build({ bright: "#d8daff", main: "#5a5dff", dark: "#16123a" })
   },
 
-  // Signature: neon yellow-green streak dripping sizzling droplets, caustic fumes.
+  // Signature: glowing drops dripping off, popping bubbles, caustic fumes and a glowing smear on its path.
+  // The same look as the Corrosion design, so players can pick it (and its other styles) for their own rolls too.
   acid: {
     sound: "acid",
-    aura: { color: "#c8ff1a", size: 2.8, alpha: 0.45, pulse: 0.12 },
-    ribbons: [
-      // Caustic fumes
-      { width: 2.6, time: 0.75, blend: "normal", alpha: 0.35, colors: ["#9ad12a", "#6a9a1e", "#3a5a10"],
-        noiseAmt: 1.2, noiseScale: [4, 3], scroll: 1.2, soft: 0.6, fadePow: 1.3, taper: 0.3 },
-      // Bubbling acid streak
-      { width: 1.6, time: 0.55, blend: "add", alpha: 1, colors: ["#f4ff7a", "#c8ff1a", "#4f8f00"],
-        core: "#fbffc8", coreAmt: 0.4, noiseAmt: 0.9, noiseScale: [9, 4], scroll: 2.2, colorNoise: 0.3,
-        soft: 0.25, fadePow: 1.0, taper: 0.7, sparkle: 0.35,
-        strip: { row: 2, repeat: 2, scroll: 1.5, mask: 0, glow: 0.6 } }
-    ],
-    layers: [
-      // Droplets that drip off and fall
-      { tex: "bubble", blend: "add", rate: 36, rest: 0.4, life: [0.5, 0.9], size: [0.5, 0.3], spawn: 0.5,
-        vel: [0, 0, 0.6], jitter: 1.0, gravity: -9, drag: 0.7,
-        colors: [[0, "#f4ff9a", 1], [0.5, "#c8ff1a", 0.95], [1, "#4f8f00", 0]] },
-      { tex: "smoke", blend: "add", rate: 8, rest: 0.6, life: [0.6, 1.0], size: [0.5, 1.4], spawn: 0.4,
-        vel: [0, 0, 1.0], jitter: 0.3, drag: 0.6, spin: 1,
-        colors: [[0, "#c8ff1a", 0], [0.3, "#9ad12a", 0.35], [1, "#3a5a10", 0]] }
-    ]
+    ...DESIGNS.corrosion.build({ bright: "#f6ffa0", main: "#b8ff1a", dark: "#3a6a00" })
   },
 
-  // Signature: a thick, billowing green toxic cloud that lingers, sickly purple at the edges.
+  // Signature: a thick, glowing toxic cloud that curls and lingers, full of glowing spores.
+  // The same look as the Miasma design, so players can pick it (and its other styles) for their own rolls too.
   poison: {
     sound: "poison",
-    aura: { color: "#3adf4a", size: 3.2, alpha: 0.35, pulse: 0.18, pulseSpeed: 2 },
-    ribbons: [
-      { width: 3.6, time: 1.1, blend: "normal", alpha: 0.6, colors: ["#4fd63a", "#2f8a2a", "#4b2a6a"],
-        noiseAmt: 1.5, noiseScale: [4, 3], scroll: 1.0, colorNoise: 0.35, soft: 0.6, fadePow: 1.1, taper: 0.2 },
-      { width: 0.9, time: 0.5, blend: "add", alpha: 0.7, colors: ["#b8ff6a", "#3aff3a", "#1a6a1a"],
-        noiseAmt: 0.6, noiseScale: [6, 2], scroll: 2, soft: 0.4, fadePow: 1.0, taper: 0.8 }
-    ],
-    layers: [
-      { tex: "smoke", blend: "normal", rate: 16, rest: 0.7, life: [1.0, 1.7], size: [0.6, 2.2], spawn: 0.4,
-        vel: [0, 0, 0.5], jitter: 0.35, drag: 0.6, spin: 0.6,
-        colors: [[0, "#3aa82a", 0], [0.25, "#2f8a2a", 0.55], [0.7, "#4b2a6a", 0.35], [1, "#2a1a3a", 0]] },
-      { tex: "glow", blend: "add", rate: 14, rest: 0.5, life: [0.8, 1.4], size: [0.3, 0.12], spawn: 0.9,
-        vel: [0, 0, 0.4], jitter: 0.6, drag: 0.5, flicker: 0.3,
-        colors: [[0, "#b8ff6a", 0.9], [1, "#3aff3a", 0]] }
-    ]
+    ...DESIGNS.miasma.build({ bright: "#c8ff7a", main: "#3ab82a", dark: "#3a1a5a" })
   },
 
-  // Signature: black death-smoke pulled INTO the die, with ghostly green soul-wisps.
+  // Signature: a long black shroud lit by ghost-light, ghost-flames, spectral skulls and souls drawn in to the die.
+  // The same look as the Grave Shroud design, so players can pick it (and its other styles) for their own rolls too.
   necrotic: {
     sound: "necrotic",
-    aura: { color: "#050008", size: 3.6, alpha: 0.75, pulse: 0.12, pulseSpeed: 2.5, blend: "normal",
-            inner: { color: "#3affb0", size: 1.5, alpha: 0.35 } },
-    ribbons: [
-      // Black death-smoke that flows back into the die (negative scroll)
-      { width: 3.2, time: 0.95, blend: "normal", alpha: 0.85, colors: ["#050008", "#0a0a10", "#000000"],
-        noiseAmt: 1.5, noiseScale: [5, 3], scroll: -1.8, soft: 0.5, fadePow: 1.1, taper: 0.3 },
-      // Ghostly soul-fire at its edges
-      { width: 1.2, time: 0.6, blend: "add", alpha: 0.7, colors: ["#b0ffe0", "#3affb0", "#004a3a"],
-        noiseAmt: 1.0, noiseScale: [7, 3], scroll: -2.4, colorNoise: 0.3, soft: 0.3, fadePow: 1.0, taper: 0.6,
-        strip: { row: 4, repeat: 1.5, scroll: -1.5, mask: 0, glow: 0.9 } }
-    ],
-    layers: [
-      { tex: "smoke", blend: "normal", rate: 16, rest: 0.8, life: [0.7, 1.1], size: [1.6, 0.4], spawn: { ring: 1.8 },
-        vel: [0, 0, 0], jitter: 0.1, inward: 1.6, swirl: 2.0, spin: 1.5,
-        colors: [[0, "#000000", 0], [0.3, "#050008", 0.75], [1, "#000000", 0]] },
-      { tex: "glow", blend: "add", rate: 16, rest: 0.8, life: [0.6, 1.1], size: [0.4, 0.1], spawn: { ring: 1.9 },
-        vel: [0, 0, 0], jitter: 0.2, inward: 2.0, swirl: 2.6,
-        colors: [[0, "#3affb0", 0.0], [0.3, "#6affc8", 0.9], [1, "#1a8a6a", 0]] }
-    ]
+    ...DESIGNS.graveShroud.build({ bright: "#c8ffe0", main: "#3affa0", dark: "#003a2a" })
   },
 
-  // Signature: a wide golden sunbeam with a white-gold core, bursting with star glints.
+  // Signature: a halo and blazing core, star glints and a long tail of rising light.
+  // The same look as the Sunburst design, so players can pick it (and its other styles) for their own rolls too.
   radiant: {
     sound: "radiant",
-    aura: { color: "#ffe066", size: 4.0, alpha: 0.7, pulse: 0.15, pulseSpeed: 4 },
-    ribbons: [
-      { width: 3.4, time: 0.6, blend: "add", alpha: 0.5, colors: ["#fff0b0", "#ffc21a", "#ff8a00"],
-        noiseAmt: 0.3, noiseScale: [3, 1], scroll: 1, soft: 0.7, fadePow: 1.2, taper: 0.4 },
-      { width: 1.2, time: 0.5, blend: "add", alpha: 1, colors: ["#fffbe6", "#ffe066", "#ffb400"],
-        core: "#ffffff", coreAmt: 0.7, noiseAmt: 0.15, soft: 0.25, fadePow: 0.9, taper: 0.7, sparkle: 0.8,
-        strip: { row: 3, repeat: 2, scroll: 3, mask: 0, glow: 0.6 } }
-    ],
-    layers: [
-      { tex: "stars", blend: "add", rate: 26, rest: 0.8, life: [0.3, 0.6], size: [1.4, 0.2], spawn: 0.6,
-        vel: [0, 0, 0], jitter: 0.25, spin: 1.5,
-        colors: [[0, "#ffffff", 1], [0.5, "#ffe680", 0.8], [1, "#ffb400", 0]] }
-    ]
+    ...DESIGNS.sunburst.build({ bright: "#fffbe0", main: "#ffd84a", dark: "#c06a00" })
   },
 
-  // Signature: magenta-violet arcane energy with arcane swirls orbiting the die.
+  // Signature: lingering pulse rings closing in on the die's path, crystal shards spiralling round it, a long tail of splinters.
+  // The same look as the Kinetic Pulse design, so players can pick it (and its other styles) for their own rolls too.
   force: {
     sound: "force",
-    aura: { color: "#c04dff", size: 3.2, alpha: 0.55, pulse: 0.12, pulseSpeed: 5 },
-    ribbons: [
-      { width: 1.9, time: 0.5, blend: "add", alpha: 1, colors: ["#eab8ff", "#c04dff", "#4a0f9f"],
-        core: "#f6e0ff", coreAmt: 0.4, noiseAmt: 0.25, noiseScale: [4, 1], scroll: 2, soft: 0.25, fadePow: 1.0,
-        taper: 0.6, bands: 6, bandAmt: 0.35, bandSpeed: 7,
-        strip: { row: 2, repeat: 2.5, scroll: 4, mask: 0, glow: 0.9 } }
-    ],
-    layers: [
-      { tex: "twirls", blend: "add", rate: 26, rest: 1.0, life: [0.5, 0.9], size: [1.0, 0.4], spawn: 0,
-        orbit: { radius: 1.3, speed: 9, rise: 0.3 }, spin: 7,
-        colors: [[0, "#f6e0ff", 1], [0.5, "#c04dff", 0.95], [1, "#6a0fcf", 0]] }
-    ]
+    ...DESIGNS.kineticPulse.build({ bright: "#f4e0ff", main: "#c04dff", dark: "#3a0a8a" })
   },
 
-  // Signature: two hot-pink strands weaving around each other, with spinning mind-swirls.
+  // Signature: mind-swirls circling the die and a long tail of them turning on its path, thought-glyphs and ripples.
+  // The same look as the Mindstorm design, so players can pick it (and its other styles) for their own rolls too.
   psychic: {
     sound: "psychic",
-    aura: { color: "#ff4fb8", size: 3.2, alpha: 0.5, pulse: 0.22, pulseSpeed: 3 },
-    ribbons: [
-      { width: 1.7, time: 0.6, blend: "add", alpha: 0.95, colors: ["#ffc8ea", "#ff4fb8", "#8a1a6a"],
-        core: "#ffe6f6", coreAmt: 0.3, noiseAmt: 0.45, noiseScale: [5, 2], scroll: 1.5, soft: 0.3, fadePow: 1.0,
-        taper: 0.6, bands: 4, bandAmt: 0.6, bandSpeed: 3, wave: { amp: 1.0, freq: 2.2, speed: 8 },
-        strip: { row: 3, repeat: 2, scroll: 2, mask: 0, glow: 0.7 } },
-      { width: 0.8, time: 0.6, blend: "add", alpha: 0.9, colors: ["#ffe0f4", "#ff8ad6", "#c04d9f"],
-        noiseAmt: 0.2, soft: 0.3, fadePow: 1.0, taper: 0.5, wave: { amp: 1.0, freq: 2.2, speed: 8, phase: 3.14159 } }
-    ],
-    layers: [
-      { tex: "twirls", blend: "add", rate: 9, rest: 0.8, life: [0.6, 0.9], size: [0.6, 3.0], spawn: 0,
-        vel: [0, 0, 0], jitter: 0, spin: 5,
-        colors: [[0, "#ffc8ea", 0.8], [0.5, "#ff4fb8", 0.45], [1, "#8a1a6a", 0]] }
-    ]
+    ...DESIGNS.mindstorm.build({ bright: "#ffe0f4", main: "#ff4fb8", dark: "#5a0a4a" })
   },
 
-  // Signature: a heavy dust cloud, flying rock chips and dust rings where it hits.
+  // Signature: rock chips and pebbles flung up in a thick dust cloud, grit left on the path, dust rings thudding out.
+  // The same look as the Rockfall design, so players can pick it (and its other styles) for their own rolls too.
   bludgeoning: {
     sound: "stone",
-    aura: { color: "#c9a878", size: 2.4, alpha: 0.2, pulse: 0.05, blend: "normal" },
-    ribbons: [
-      { width: 3.0, time: 0.7, blend: "normal", alpha: 0.65, colors: ["#c8ae88", "#8a7456", "#4a3e30"],
-        noiseAmt: 1.4, noiseScale: [4, 3], scroll: 0.8, soft: 0.6, fadePow: 1.1, taper: 0.3 }
-    ],
-    layers: [
-      { tex: "debris", blend: "normal", rate: 16, rest: 0.05, life: [0.4, 0.8], size: [1.0, 0.8], spawn: 0.5,
-        vel: [0, 0, 2.2], jitter: 2.4, gravity: -10, drag: 0.8, spin: 8,
-        colors: [[0, "#6a5a48", 1], [0.8, "#4a3e32", 0.95], [1, "#2e2620", 0]] },
-      { tex: "smoke", blend: "normal", rate: 10, rest: 0.1, life: [0.6, 1.0], size: [0.6, 2.0], spawn: 0.4,
-        vel: [0, 0, 0.6], jitter: 0.6, drag: 0.6, spin: 0.5,
-        colors: [[0, "#b8a080", 0], [0.2, "#a08868", 0.5], [1, "#5a4a3a", 0]] },
-      { tex: "ring", blend: "normal", rate: 3, rest: 0, life: [0.35, 0.5], size: [0.8, 4.0], spawn: 0,
-        vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#c8ae88", 0.7], [1, "#6a5a48", 0]] }
-    ]
+    ...DESIGNS.rockfall.build({ bright: "#d8c8a8", main: "#8a7456", dark: "#3a3026" })
   },
 
-  // Signature: a needle-thin, razor-straight silver streak with speed dashes and a glinting point.
+  // Signature: a long, needle-thin line of light on the die's path, speed glints and a bright point.
+  // The same look as the Needlepoint design, so players can pick it (and its other styles) for their own rolls too.
   piercing: {
     sound: "needle",
-    aura: { color: "#dfe8ff", size: 1.8, alpha: 0.5, pulse: 0.05 },
-    ribbons: [
-      { width: 0.9, time: 0.45, blend: "add", alpha: 0.4, colors: ["#e6f0ff", "#9fb8e8", "#4a6aa8"],
-        noiseAmt: 0, soft: 0.6, fadePow: 0.8, taper: 0.5 },
-      { width: 0.3, time: 0.45, blend: "add", alpha: 1, colors: ["#ffffff", "#e8f0ff", "#8aa6d6"],
-        core: "#ffffff", coreAmt: 1, noiseAmt: 0, soft: 0.2, fadePow: 0.6, taper: 0.3,
-        strip: { row: 5, repeat: 3, scroll: 7, mask: 0.8, glow: 0 } }
-    ],
-    layers: [
-      { tex: "stars", blend: "add", rate: 5, rest: 0.5, life: [0.12, 0.2], size: [1.8, 0.6], spawn: 0,
-        vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#ffffff", 1], [1, "#b8c8ff", 0]] },
-      { tex: "stars", blend: "add", rate: 12, rest: 0.2, life: [0.15, 0.3], size: [0.6, 0.1], spawn: 0.3,
-        vel: [0, 0, 0], jitter: 0.1,
-        colors: [[0, "#ffffff", 1], [1, "#8aa6d6", 0]] }
-    ]
+    ...DESIGNS.needlepoint.build({ bright: "#ffffff", main: "#a8c0e8", dark: "#3a5080" })
   },
 
-  // Signature: crimson slash marks cutting the air around a silver-and-red swing.
+  // Signature: slash marks round the die leaving a long trail of slash stripes, steel sparks and flung drops.
+  // The same look as the Crimson Edge design, so players can pick it (and its other styles) for their own rolls too.
   slashing: {
     sound: "blade",
-    aura: { color: "#ff2a2a", size: 2.6, alpha: 0.35, pulse: 0.08 },
-    ribbons: [
-      { width: 1.7, time: 0.45, blend: "add", alpha: 0.65, colors: ["#ff8a8a", "#ff1a1a", "#5a0000"],
-        noiseAmt: 0.3, soft: 0.5, fadePow: 1.0, taper: 0.6, wave: { amp: 0.8, freq: 1.2, speed: 10 } },
-      { width: 0.55, time: 0.45, blend: "add", alpha: 1, colors: ["#ffffff", "#ffc0c0", "#c40000"],
-        core: "#ffffff", coreAmt: 0.8, noiseAmt: 0.1, soft: 0.2, fadePow: 0.8, taper: 0.5,
-        strip: { row: 2, repeat: 1.5, scroll: 4, mask: 0, glow: 0.8 },
-        wave: { amp: 0.8, freq: 1.2, speed: 10 } }
-    ],
-    layers: [
-      { tex: "slashes", blend: "add", rate: 10, rest: 0.2, life: [0.18, 0.32], size: [1.3, 2.0], spawn: 0.3,
-        vel: [0, 0, 0], jitter: 0,
-        colors: [[0, "#ffffff", 1], [0.4, "#ff4a4a", 0.8], [1, "#8a0000", 0]] },
-      // A few red droplets flung off
-      { tex: "glow", blend: "normal", rate: 10, rest: 0, life: [0.4, 0.7], size: [0.25, 0.2], spawn: 0.4,
-        vel: [0, 0, 1.5], jitter: 2.0, gravity: -9, drag: 0.8,
-        colors: [[0, "#c40000", 0.9], [1, "#5a0000", 0]] }
-    ]
+    ...DESIGNS.crimsonEdge.build({ bright: "#ffe0e0", main: "#ff2a2a", dark: "#4a0000" })
   },
 
-  // Signature: soft green-gold life-light with little hearts rising from the die.
+  // Signature: leaves and little hearts drifting up in a long, rising trail of life-light.
+  // The same look as the Lifebloom design, so players can pick it (and its other styles) for their own rolls too.
   healing: {
     sound: "healing",
-    aura: { color: "#7dffb0", size: 3.2, alpha: 0.5, pulse: 0.14, pulseSpeed: 2 },
-    ribbons: [
-      { width: 1.8, time: 0.65, blend: "add", alpha: 0.9, colors: ["#eaffc8", "#5dff9a", "#1fb86a"],
-        core: "#ffffff", coreAmt: 0.35, noiseAmt: 0.45, noiseScale: [4, 2], scroll: 1.2, soft: 0.4,
-        fadePow: 1.1, taper: 0.5, bands: 3, bandAmt: 0.3, bandSpeed: 2, sparkle: 0.6,
-        strip: { row: 4, repeat: 2, scroll: 1.5, mask: 0, glow: 0.7 } }
-    ],
-    layers: [
-      { tex: "heart", blend: "add", rate: 9, rest: 1.0, life: [0.9, 1.4], size: [1.5, 2.0], spawn: 0.8,
-        vel: [0, 0, 1.6], jitter: 0.3, drag: 0.7,
-        colors: [[0, "#ffffff", 0], [0.15, "#b8ffcc", 0.95], [1, "#3aff8a", 0]] },
-      { tex: "glow", blend: "add", rate: 22, rest: 0.8, life: [0.8, 1.3], size: [0.4, 0.1], spawn: 0.7,
-        vel: [0, 0, 1.4], jitter: 0.5, drag: 0.5,
-        colors: [[0, "#f4ffe0", 1], [0.5, "#7dffb0", 0.9], [1, "#1fb86a", 0]] }
-    ]
+    ...DESIGNS.lifebloom.build({ bright: "#f4ffd8", main: "#5dff8a", dark: "#1a7a3a" })
   },
 
-  // Signature: a steel-blue shield streak, with a turning ward-rune around the die and orbiting shards.
+  // Signature: a shield bubble round the die, crystal plates spiralling in it, a long shimmering wake.
+  // The same look as the Aegis design, so players can pick it (and its other styles) for their own rolls too.
   temphp: {
     sound: "ward",
-    aura: { color: "#6fb8ff", size: 3.0, alpha: 0.45, pulse: 0.1 },
-    ribbons: [
-      { width: 1.6, time: 0.55, blend: "add", alpha: 0.9, colors: ["#d8ecff", "#6fb8ff", "#1f4fa8"],
-        core: "#ffffff", coreAmt: 0.4, noiseAmt: 0.3, noiseScale: [4, 1], scroll: 1, soft: 0.3, fadePow: 1.0,
-        taper: 0.6, bands: 8, bandAmt: 0.22, bandSpeed: 4,
-        strip: { row: 5, repeat: 3, scroll: 2, mask: 0.4, glow: 0.3 } }
-    ],
-    layers: [
-      { tex: "rune", blend: "add", rate: 3, rest: 1.2, life: [0.8, 1.0], size: [4.4, 4.8], spawn: 0,
-        orbit: { radius: 0, speed: 0, rise: 0, flat: true }, spin: 2,
-        colors: [[0, "#dff0ff", 0], [0.2, "#bfe0ff", 1], [0.7, "#6fb8ff", 0.8], [1, "#2f6fd1", 0]] },
-      { tex: "shard", blend: "add", rate: 22, rest: 0.8, life: [0.6, 1.0], size: [0.45, 0.2], spawn: 0,
-        orbit: { radius: 1.4, speed: 5, rise: 0.2 }, spin: 1,
-        colors: [[0, "#ffffff", 1], [0.5, "#bfe0ff", 0.85], [1, "#3a8aff", 0]] }
-    ]
+    ...DESIGNS.aegis.build({ bright: "#e8f4ff", main: "#6fb8ff", dark: "#1a3a8a" })
   }
 };
 
@@ -1413,13 +1219,13 @@ class Ribbon {
       this.jagTimer -= dt;
       if (this.jagTimer <= 0) {
         this.jagTimer = 0.045;
-        // Random kinks every few points, straight segments in between: a real zig-zag.
-        const step = 4;
-        let prev = 0, next = Math.random() * 2 - 1;
+        // Random kinks every few points (jagStep, or a random count in [min, max]), straight segments in between.
+        const [s0, s1] = Array.isArray(d.jagStep) ? d.jagStep : [d.jagStep ?? 4, d.jagStep ?? 4];
+        let prev = 0, next = Math.random() * 2 - 1, step = 0, k = 0;
         for (let i = 0; i < this.pts.length; i++) {
-          if (i % step === 0) { prev = next; next = Math.random() * 2 - 1; }
-          const f = (i % step) / step;
-          this.pts[i].j = prev + (next - prev) * f;
+          if (k >= step) { prev = next; next = Math.random() * 2 - 1; step = Math.max(1, Math.round(rand(s0, s1))); k = 0; }
+          this.pts[i].j = prev + (next - prev) * (k / step);
+          k++;
         }
       }
     }
