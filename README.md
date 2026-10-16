@@ -18,7 +18,7 @@ Every die rolled for a damage type leaves a long tail of that element along its 
 
 | Type | Trail | Look |
 | --- | --- | --- |
-| Fire | Emberstorm | Flame tongues around a white-hot core, embers swirling up into a long tail, dark smoke |
+| Fire | Emberstorm | Flame tongues around a white-hot core, flames left burning along the die's path, embers swirling up, dark smoke |
 | Cold | Hoarfrost | Ice shards tumbling down, snowflakes spinning through a long freezing mist |
 | Lightning | Static Surge | A jagged bolt trailing the die that shrinks back into it as it lands, arcs, hot sparks and a long crackling path |
 | Thunder | Thunderhead | A long dark storm cloud lit by flashes, with shockwave rings booming off the die |
