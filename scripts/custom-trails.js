@@ -2003,16 +2003,20 @@ export const DESIGNS = {
       blight: { label: "Blight", colors: ["#e0e8a0", "#7a8a3a", "#2a2010"] }
     },
     build: p => ({
-      auras: [{ color: p.main, size: 3.2, alpha: 0.35, pulse: 0.18, pulseSpeed: 2 }],
+      auras: [{ color: p.main, size: 3.4, alpha: 0.5, pulse: 0.18, pulseSpeed: 2 }],
       layers: [
-        // The toxic cloud, curling as it lingers
-        { tex: "smoke", blend: "normal", rate: 20, rest: 0.8, life: [2.0, 3.0], size: [0.8, 3], spawn: 0.5,
+        // The toxic cloud, thick and curling as it lingers
+        { tex: "smoke", blend: "normal", rate: 32, rest: 0.8, life: [2.0, 3.0], size: [1.0, 3.4], spawn: 0.5,
           vel: [0, 0, 0.4], jitter: 0.3, drag: 0.55, swirl: 0.6, spin: 0.5,
-          colors: linger([[0, p.main, 0], [0.25, p.main, 0.5], [0.7, p.dark, 0.4], [1, p.dark, 0]]) },
+          colors: linger([[0, p.main, 0], [0.2, p.main, 0.7], [0.7, mix(p.main, p.dark, 0.5), 0.55], [1, p.dark, 0]]) },
+        // A sickly glow inside the cloud
+        { tex: "smoke", blend: "add", rate: 14, rest: 0.6, life: [2.0, 3.0], size: [0.8, 2.4], spawn: 0.4,
+          vel: [0, 0, 0.3], jitter: 0.2, drag: 0.55, swirl: 0.6, spin: 0.4,
+          colors: linger([[0, p.bright, 0], [0.2, p.main, 0.35], [1, p.dark, 0]]) },
         // Glowing spores drifting in it
-        { tex: "glow", blend: "add", rate: 18, rest: 0.8, life: [1.0, 1.8], size: [0.25, 0.1], spawn: 1.0,
-          vel: [0, 0, 0.5], jitter: 0.5, drag: 0.5, swirl: 1.2, flicker: 0.4,
-          colors: [[0, p.bright, 0], [0.2, p.bright, 0.95], [1, p.main, 0]] },
+        { tex: "glow", blend: "add", rate: 30, rest: 0.8, life: [2.0, 3.0], size: [0.35, 0.28], spawn: 1.0,
+          vel: [0, 0, 0.3], jitter: 0.3, drag: 0.5, swirl: 0.8, flicker: 0.4,
+          colors: linger([[0, p.bright, 0], [0.15, p.bright, 0.95], [1, p.main, 0]]) },
         // Sickly bubbles
         { tex: "bubbles", blend: "add", rate: 8, rest: 0.6, life: [0.6, 1.0], size: [0.3, 0.5], spawn: 0.6,
           vel: [0, 0, 0.8], jitter: 0.3, drag: 0.6,
@@ -2037,7 +2041,11 @@ export const DESIGNS = {
         // The black shroud trailing behind
         { tex: "smoke", blend: "normal", rate: 22, rest: 0.6, life: [2.0, 3.0], size: [1.2, 2.6], spawn: 0.4,
           vel: [0, 0, 0.3], inherit: -0.06, jitter: 0.3, drag: 0.6, spin: 0.7,
-          colors: linger([[0, "#000000", 0], [0.25, mix(p.dark, "#000000", 0.7), 0.7], [1, "#000000", 0]]) },
+          colors: linger([[0, "#000000", 0], [0.25, mix(p.dark, "#000000", 0.4), 0.75], [1, "#000000", 0]]) },
+        // Ghost-light left glowing in the shroud along the die's path
+        { tex: "glow", blend: "add", rate: 45, rest: 0, life: [2.0, 3.0], size: [0.9, 0.75], spawn: 0.3,
+          vel: [0, 0, 0.2], jitter: 0.15, drag: 0.5, flicker: 0.25,
+          colors: linger([[0, p.bright, 0.8], [0.3, p.main, 0.55], [1, p.dark, 0]]) },
         // Ghost-flames licking off the die
         { tex: "flames", blend: "add", rate: 30, rest: 0.4, life: [0.3, 0.6], size: [1.2, 0.5], spawn: 0.4,
           vel: [0, 0, 1.6], jitter: 0.3, drag: 0.6, flicker: 0.3,
@@ -2136,9 +2144,13 @@ export const DESIGNS = {
         { tex: "glyphs", blend: "add", rate: 8, rest: 0.8, life: [0.9, 1.4], size: [0.6, 0.9], spawn: 0.8,
           vel: [0, 0, 1.0], jitter: 0.4, drag: 0.6, flicker: 0.2, spin: 0.5,
           colors: [[0, p.bright, 0], [0.2, p.bright, 0.9], [1, p.main, 0]] },
+        // A tail of mind-swirls left turning slowly on the die's path
+        { tex: "twirls", blend: "add", rate: 30, rest: 0, life: [2.0, 3.0], size: [0.9, 0.75], spawn: 0.3,
+          jitter: 0.1, drag: 0.5, spin: 2,
+          colors: linger([[0, "#ffffff", 0.9], [0.25, p.bright, 0.8], [0.6, p.main, 0.6], [1, p.dark, 0]]) },
         // Thought-motes
-        { tex: "glow", blend: "add", rate: 40, rest: 0.5, life: [2.0, 3.0], size: [0.35, 0.28], spawn: 0.5,
-          jitter: 0.8, swirl: 1.5, flicker: 0.5,
+        { tex: "glow", blend: "add", rate: 40, rest: 0.5, life: [2.0, 3.0], size: [0.45, 0.36], spawn: 0.5,
+          jitter: 0.3, swirl: 0.6, flicker: 0.5,
           colors: linger([[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]]) },
         // Ripples of will
         { tex: "ring", blend: "add", rate: 4, rest: 0.6, life: [0.6, 0.9], size: [0.8, 4.0], spawn: 0,
@@ -2157,23 +2169,27 @@ export const DESIGNS = {
       obsidian: { label: "Obsidian", colors: ["#b8a8c8", "#3a3448", "#0a080e"] }
     },
     build: p => ({
-      auras: [{ color: p.bright, size: 2.4, alpha: 0.2, pulse: 0.05, blend: "normal" }],
+      auras: [{ color: p.bright, size: 2.6, alpha: 0.3, pulse: 0.05, blend: "normal" }],
       layers: [
         // Rock chips flung up, falling back
-        { tex: "debris", blend: "normal", rate: 20, rest: 0.05, life: [0.4, 0.8], size: [1.0, 0.8], spawn: 0.5,
+        { tex: "debris", blend: "normal", rate: 30, rest: 0.05, life: [0.4, 0.8], size: [1.0, 0.8], spawn: 0.5,
           vel: [0, 0, 2.4], jitter: 2.6, gravity: -12, drag: 0.8, spin: 8,
           colors: [[0, p.main, 1], [0.8, p.dark, 0.95], [1, p.dark, 0]] },
         // Pebbles
-        { tex: "stones", blend: "normal", rate: 8, rest: 0.05, life: [0.5, 0.9], size: [0.6, 0.5], spawn: 0.5,
+        { tex: "stones", blend: "normal", rate: 14, rest: 0.05, life: [0.5, 0.9], size: [0.6, 0.5], spawn: 0.5,
           vel: [0, 0, 3.0], jitter: 2.0, gravity: -14, drag: 0.8, spin: 6,
           colors: [[0, mix(p.main, p.bright, 0.3), 1], [0.8, p.main, 0.95], [1, p.dark, 0]] },
-        // Dust cloud
-        { tex: "smoke", blend: "normal", rate: 14, rest: 0.2, life: [2.0, 3.0], size: [0.8, 2.6], spawn: 0.4,
+        // Dust cloud, thick and slow to settle
+        { tex: "smoke", blend: "normal", rate: 24, rest: 0.2, life: [2.0, 3.0], size: [1.0, 3.2], spawn: 0.4,
           vel: [0, 0, 0.5], jitter: 0.5, drag: 0.6, spin: 0.5,
-          colors: linger([[0, p.bright, 0], [0.2, p.bright, 0.45], [1, p.main, 0]]) },
+          colors: linger([[0, p.bright, 0], [0.2, p.bright, 0.7], [1, p.main, 0]]) },
+        // Grit left lying along the die's path
+        { tex: "debris", blend: "normal", rate: 25, rest: 0, life: [2.0, 3.0], size: [0.45, 0.4], spawn: 0.4,
+          jitter: 0.3, drag: 0.4, spin: 1,
+          colors: linger([[0, p.main, 0.95], [0.5, mix(p.main, p.dark, 0.5), 0.9], [1, p.dark, 0]]) },
         // Dust rings thudding out
-        { tex: "ring", blend: "normal", rate: 3, rest: 0, life: [0.35, 0.5], size: [0.8, 4.5], spawn: 0,
-          colors: [[0, p.bright, 0.7], [1, p.main, 0]] }
+        { tex: "ring", blend: "normal", rate: 5, rest: 0, life: [0.35, 0.5], size: [0.8, 4.5], spawn: 0,
+          colors: [[0, p.bright, 0.9], [1, p.main, 0]] }
       ]
     })
   },

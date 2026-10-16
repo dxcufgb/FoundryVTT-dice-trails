@@ -135,14 +135,14 @@ const EFFECTS = {
     ...DESIGNS.corrosion.build({ bright: "#f6ffa0", main: "#b8ff1a", dark: "#3a6a00" })
   },
 
-  // Signature: a thick toxic cloud that curls and lingers, full of glowing spores.
+  // Signature: a thick, glowing toxic cloud that curls and lingers, full of glowing spores.
   // The same look as the Miasma design, so players can pick it (and its other styles) for their own rolls too.
   poison: {
     sound: "poison",
     ...DESIGNS.miasma.build({ bright: "#c8ff7a", main: "#3ab82a", dark: "#3a1a5a" })
   },
 
-  // Signature: a long black shroud, ghost-flames, spectral skulls and souls drawn in to the die.
+  // Signature: a long black shroud lit by ghost-light, ghost-flames, spectral skulls and souls drawn in to the die.
   // The same look as the Grave Shroud design, so players can pick it (and its other styles) for their own rolls too.
   necrotic: {
     sound: "necrotic",
@@ -163,14 +163,14 @@ const EFFECTS = {
     ...DESIGNS.kineticPulse.build({ bright: "#f4e0ff", main: "#c04dff", dark: "#3a0a8a" })
   },
 
-  // Signature: mind-swirls circling the die, thought-glyphs drifting off, ripples and a long tail of motes.
+  // Signature: mind-swirls circling the die and a long tail of them turning on its path, thought-glyphs and ripples.
   // The same look as the Mindstorm design, so players can pick it (and its other styles) for their own rolls too.
   psychic: {
     sound: "psychic",
     ...DESIGNS.mindstorm.build({ bright: "#ffe0f4", main: "#ff4fb8", dark: "#5a0a4a" })
   },
 
-  // Signature: rock chips and pebbles flung up in a long dust cloud, with dust rings thudding out.
+  // Signature: rock chips and pebbles flung up in a thick dust cloud, grit left on the path, dust rings thudding out.
   // The same look as the Rockfall design, so players can pick it (and its other styles) for their own rolls too.
   bludgeoning: {
     sound: "stone",

@@ -23,12 +23,12 @@ Every die rolled for a damage type leaves a long tail of that element along its 
 | Lightning | Static Surge | A jagged bolt trailing the die that shrinks back into it as it lands, arcs, hot sparks and a long crackling path |
 | Thunder | Thunderhead | A long dark storm cloud lit by flashes, with shockwave rings booming off the die |
 | Acid | Corrosion | Glowing drops dripping off, popping bubbles, caustic fumes and a glowing smear on the die's path |
-| Poison | Miasma | A thick toxic cloud that curls and lingers, full of glowing spores |
-| Necrotic | Grave Shroud | A long black shroud, ghost-flames, spectral skulls and souls drawn in to the die |
+| Poison | Miasma | A thick, glowing toxic cloud that curls and lingers, full of glowing spores |
+| Necrotic | Grave Shroud | A long black shroud lit by ghost-light, ghost-flames, spectral skulls and souls drawn in to the die |
 | Radiant | Sunburst | A halo and blazing core, star glints and a long tail of rising light |
 | Force | Kinetic Pulse | Rings closing in on the die, crystal shards spiralling round it, a long tail of splinters |
-| Psychic | Mindstorm | Mind-swirls circling the die, thought-glyphs drifting off, ripples of will and a long tail of motes |
-| Bludgeoning | Rockfall | Rock chips and pebbles flung up in a long dust cloud, with dust rings thudding out |
+| Psychic | Mindstorm | Mind-swirls circling the die and a long tail of them turning on its path, thought-glyphs and ripples of will |
+| Bludgeoning | Rockfall | Rock chips and pebbles flung up in a thick dust cloud, grit left on the path, dust rings thudding out |
 | Piercing | Needlepoint | A long, needle-thin line of light on the die's path, speed glints and a bright point |
 | Slashing | Crimson Edge | Slash marks around the die that leave a long trail of slash stripes fading to blood, steel sparks and flung drops |
 | Healing | Lifebloom | Leaves and little hearts drifting up in a long, rising trail of life-light |
