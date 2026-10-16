@@ -1812,6 +1812,484 @@ export const DESIGNS = {
           vel: [0, 0, 0.5], jitter: 0.3, flicker: 0.5, colors: [[0, p.bright, 1], [1, p.main, 0]] }
       ]
     })
+  },
+
+  /* Damage types: the trails damage dice wear (dice-trails.js EFFECTS), also offered as designs. */
+
+  // Fire damage: licking flame tongues and a white-hot core, with embers that swirl up and drift away.
+  emberstorm: {
+    label: "Emberstorm", icon: "fa-solid fa-fire", sound: "fire",
+    styles: {
+      fire: { label: "Fire", colors: ["#fff1a8", "#ff6a10", "#8a1000"] },
+      cinder: { label: "Cinder", colors: ["#ffc890", "#d8300a", "#3a0604"] },
+      bluefire: { label: "Blue Flame", colors: ["#e6f8ff", "#3a9cff", "#0a1a6a"] },
+      sulfur: { label: "Sulfur", colors: ["#fffbc0", "#e8c010", "#5a1a6a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.0, alpha: 0.55, pulse: 0.14, pulseSpeed: 9, flicker: 0.3 }],
+      layers: [
+        // Flame tongues that lick up off the die and cool as they fall behind
+        { tex: "flames", blend: "add", rate: 60, rest: 0.25, life: [0.35, 0.7], size: [1.6, 0.6], spawn: 0.4,
+          vel: [0, 0, 2.2], jitter: 0.4, inherit: -0.05, drag: 0.6, flicker: 0.2, spin: 0.6,
+          colors: [[0, mix(p.bright, "#ffffff", 0.5), 0.95], [0.3, p.bright, 0.85], [0.65, p.main, 0.5], [1, p.dark, 0]] },
+        // A white-hot core around the die
+        { tex: "glow", blend: "add", rate: 40, rest: 0.2, life: [0.15, 0.3], size: [1.5, 0.7], spawn: 0.2,
+          vel: [0, 0, 0.4], jitter: 0.2, drag: 0.5,
+          colors: [[0, "#ffffff", 0.9], [0.5, p.bright, 0.6], [1, p.main, 0]] },
+        // Embers that swirl up, flicker and fade far behind the die
+        { tex: "spark", blend: "add", rate: 45, rest: 0.5, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.6,
+          vel: [0, 0, 2.6], jitter: 1.4, drag: 0.75, swirl: 0.8, flicker: 0.6,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.95], [0.7, p.main, 0.7], [1, p.dark, 0]] },
+        // Dark smoke rising behind
+        { tex: "smoke", blend: "normal", rate: 10, rest: 0.3, life: [1.2, 2.0], size: [0.8, 2.6], spawn: 0.4,
+          vel: [0, 0, 2.0], jitter: 0.4, drag: 0.6, spin: 0.6,
+          colors: [[0, "#2a1c12", 0], [0.3, mix(p.dark, "#1a1414", 0.7), 0.32], [1, "#101010", 0]] }
+      ]
+    })
+  },
+
+  // Cold damage: icy shards flung off and falling, snowflakes spinning down through a freezing mist.
+  hoarfrost: {
+    label: "Hoarfrost", icon: "fa-solid fa-snowflake", sound: "frost",
+    styles: {
+      frost: { label: "Frost", colors: ["#f0fcff", "#8fdcff", "#1f5fb8"] },
+      glacier: { label: "Glacier", colors: ["#e0fff8", "#3fd0c0", "#06404a"] },
+      rime: { label: "Rime", colors: ["#ffffff", "#c8d8e8", "#4a5a70"] },
+      permafrost: { label: "Permafrost", colors: ["#f0eaff", "#9a8cff", "#2a1a7a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 3.0, alpha: 0.45, pulse: 0.06 }],
+      layers: [
+        // Freezing mist that hangs behind the die
+        { tex: "smoke", blend: "add", rate: 18, rest: 0.5, life: [1.2, 2.0], size: [1.0, 2.8], spawn: 0.5,
+          vel: [0, 0, 0.3], jitter: 0.3, drag: 0.5, spin: 0.4,
+          colors: [[0, p.bright, 0], [0.3, p.main, 0.3], [1, p.dark, 0]] },
+        // Ice shards flung off, tumbling down to the table
+        { tex: "shard", blend: "add", rate: 40, rest: 0.3, life: [0.5, 1.0], size: [0.7, 0.25], spawn: 0.6,
+          vel: [0, 0, 1.2], jitter: 2.0, gravity: -8, drag: 0.7, spin: 6, flicker: 0.3,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 0.95], [1, p.main, 0]] },
+        // Snowflakes that spin slowly down
+        { tex: "snowflakes", blend: "add", rate: 12, rest: 0.6, life: [1.2, 2.0], size: [0.7, 0.5], spawn: 0.9,
+          vel: [0, 0, 0.4], jitter: 0.6, gravity: -1.2, drag: 0.6, spin: 1.5,
+          colors: [[0, "#ffffff", 0], [0.15, "#ffffff", 0.95], [0.7, p.bright, 0.7], [1, p.main, 0]] },
+        // Frost glints
+        { tex: "spark", blend: "add", rate: 20, rest: 0.6, life: [0.2, 0.45], size: [0.9, 0.1], spawn: 0.8,
+          jitter: 0.2, flicker: 0.4,
+          colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Lightning damage: arcs leap off the die between crackling bolts, scattering hot sparks.
+  staticSurge: {
+    label: "Static Surge", icon: "fa-solid fa-bolt", sound: "lightning",
+    styles: {
+      storm: { label: "Storm", colors: ["#e6f4ff", "#4f9cff", "#1a2aa8"] },
+      plasma: { label: "Plasma", colors: ["#f6e6ff", "#b86aff", "#3a0a8a"] },
+      ion: { label: "Ion", colors: ["#e6fff8", "#3affc8", "#045a4a"] },
+      sunstrike: { label: "Sunstrike", colors: ["#fffbe0", "#ffd02a", "#8a4a00"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.2, alpha: 0.6, pulse: 0.05, flicker: 0.7 }],
+      arcs: [{ color: p.bright, every: 0.05, count: 3, reach: [1.4, 3.0], restCount: 1 }],
+      layers: [
+        // Crackling bolts that flash around the die
+        { tex: "bolts", blend: "add", rate: 50, rest: 0.3, life: [0.06, 0.14], size: [1.6, 1.1], spawn: 0.5,
+          jitter: 1.2, drag: 0.1, flicker: 0.6,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.9], [1, p.main, 0]] },
+        // Hot sparks spraying off and dropping
+        { tex: "spark", blend: "add", rate: 60, rest: 0.2, life: [0.15, 0.4], size: [0.5, 0.1], spawn: 0.3,
+          jitter: 4.0, gravity: -6, drag: 0.3, flicker: 0.5,
+          colors: [[0, "#ffffff", 1], [0.4, p.bright, 0.9], [1, p.main, 0]] },
+        // A flickering charge on the die
+        { tex: "glow", blend: "add", rate: 30, rest: 0.4, life: [0.1, 0.25], size: [1.3, 0.4], spawn: 0.2,
+          flicker: 0.7,
+          colors: [[0, "#ffffff", 0.9], [1, p.main, 0]] },
+        // The ionised path left behind, glowing as it fades
+        { tex: "glow", blend: "add", rate: 70, rest: 0, life: [1.2, 2.0], size: [0.7, 0.2], spawn: 0.15,
+          flicker: 0.5,
+          colors: [[0, "#ffffff", 0.9], [0.15, p.bright, 0.7], [0.5, p.main, 0.4], [1, p.dark, 0]] },
+        // Crackles still jumping along it
+        { tex: "spark", blend: "add", rate: 22, rest: 0, life: [1.2, 2.0], size: [0.7, 0.15], spawn: 0.35,
+          flicker: 0.9,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Thunder damage: a dark storm cloud lit by flashes from inside, with shockwaves booming off the die.
+  thunderhead: {
+    label: "Thunderhead", icon: "fa-solid fa-cloud-bolt", sound: "thunder",
+    styles: {
+      thunder: { label: "Thunder", colors: ["#d8daff", "#5a5dff", "#16123a"] },
+      tempest: { label: "Tempest", colors: ["#e0f4f8", "#4aa0b8", "#0e2228"] },
+      roar: { label: "Roar", colors: ["#fff0d0", "#ff9a2a", "#2a1408"] },
+      sonic: { label: "Sonic", colors: ["#ffffff", "#9af0ff", "#1a3a5a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.2, alpha: 0.45, pulse: 0.35, pulseSpeed: 10 }],
+      layers: [
+        // The storm cloud, dragged along behind the die
+        { tex: "smoke", blend: "normal", rate: 18, rest: 0.5, life: [1.2, 2.0], size: [1.0, 3.0], spawn: 0.5,
+          vel: [0, 0, 0.6], jitter: 0.5, drag: 0.6, spin: 0.8,
+          colors: [[0, p.dark, 0], [0.25, mix(p.dark, p.main, 0.25), 0.6], [1, mix(p.dark, "#000000", 0.5), 0]] },
+        // Flashes inside the cloud
+        { tex: "glow", blend: "add", rate: 8, rest: 0.3, life: [0.05, 0.12], size: [2.5, 3.0], spawn: 0.8,
+          flicker: 0.8,
+          colors: [[0, "#ffffff", 0.8], [1, p.bright, 0]] },
+        // Big shockwaves booming off the die
+        { tex: "ring", blend: "add", rate: 6, rest: 0.4, life: [0.35, 0.5], size: [0.6, 6.0], spawn: 0,
+          colors: [[0, "#ffffff", 1], [0.35, p.bright, 0.6], [1, p.main, 0]] },
+        // Quick inner ripples
+        { tex: "ring", blend: "add", rate: 12, rest: 0.2, life: [0.2, 0.3], size: [0.4, 2.5], spawn: 0,
+          colors: [[0, p.bright, 0.7], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Acid damage: glowing drops dripping off the die, popping bubbles and caustic fumes.
+  corrosion: {
+    label: "Corrosion", icon: "fa-solid fa-flask-vial", sound: "acid",
+    styles: {
+      acid: { label: "Acid", colors: ["#f6ffa0", "#b8ff1a", "#3a6a00"] },
+      bile: { label: "Bile", colors: ["#fff4b0", "#e8b81a", "#5a3a00"] },
+      ooze: { label: "Ooze", colors: ["#f8e0ff", "#c04dff", "#3a0a5a"] },
+      caustic: { label: "Caustic", colors: ["#e0fff8", "#2ae8c8", "#04483a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.8, alpha: 0.45, pulse: 0.12 }],
+      layers: [
+        // Drops that drip off and fall to the table
+        { tex: "drops", blend: "add", rate: 40, rest: 0.3, life: [0.5, 0.9], size: [0.5, 0.35], spawn: 0.5,
+          vel: [0, 0, 0.8], jitter: 0.8, gravity: -12, drag: 0.8,
+          colors: [[0, p.bright, 1], [0.5, p.main, 0.95], [1, p.dark, 0]] },
+        // Bubbles that swell and pop
+        { tex: "bubbles", blend: "add", rate: 18, rest: 0.8, life: [0.4, 0.9], size: [0.25, 0.6], spawn: 0.7,
+          vel: [0, 0, 0.6], jitter: 0.4, drag: 0.5, flicker: 0.2,
+          colors: [[0, p.bright, 0.4], [0.85, p.main, 0.9], [1, p.bright, 0]] },
+        // Caustic fumes
+        { tex: "smoke", blend: "normal", rate: 12, rest: 0.5, life: [1.2, 2.0], size: [0.6, 2.2], spawn: 0.4,
+          vel: [0, 0, 1.2], jitter: 0.3, drag: 0.6, spin: 1,
+          colors: [[0, p.main, 0], [0.3, mix(p.dark, p.main, 0.4), 0.35], [1, p.dark, 0]] },
+        // A sizzling glow on the die
+        { tex: "glow", blend: "add", rate: 30, rest: 0.2, life: [0.15, 0.3], size: [1.1, 0.5], spawn: 0.3,
+          flicker: 0.3,
+          colors: [[0, p.bright, 0.8], [1, p.main, 0]] },
+        // A glowing smear left on the die's path
+        { tex: "glow", blend: "add", rate: 35, rest: 0, life: [1.2, 2.0], size: [0.6, 0.3], spawn: 0.3,
+          flicker: 0.2,
+          colors: [[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]] }
+      ]
+    })
+  },
+
+  // Poison damage: a thick toxic cloud that curls and lingers, full of glowing spores.
+  miasma: {
+    label: "Miasma", icon: "fa-solid fa-skull-crossbones", sound: "poison",
+    styles: {
+      venom: { label: "Venom", colors: ["#c8ff7a", "#3ab82a", "#3a1a5a"] },
+      nightshade: { label: "Nightshade", colors: ["#f0c8ff", "#8a3ad8", "#1a0a2a"] },
+      toxin: { label: "Toxin", colors: ["#f4ffa0", "#a8d81a", "#2a3a08"] },
+      blight: { label: "Blight", colors: ["#e0e8a0", "#7a8a3a", "#2a2010"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.2, alpha: 0.35, pulse: 0.18, pulseSpeed: 2 }],
+      layers: [
+        // The toxic cloud, curling as it lingers
+        { tex: "smoke", blend: "normal", rate: 20, rest: 0.8, life: [1.2, 2.0], size: [0.8, 3.0], spawn: 0.5,
+          vel: [0, 0, 0.4], jitter: 0.3, drag: 0.55, swirl: 0.6, spin: 0.5,
+          colors: [[0, p.main, 0], [0.25, p.main, 0.5], [0.7, p.dark, 0.4], [1, p.dark, 0]] },
+        // Glowing spores drifting in it
+        { tex: "glow", blend: "add", rate: 18, rest: 0.8, life: [1.0, 1.8], size: [0.25, 0.1], spawn: 1.0,
+          vel: [0, 0, 0.5], jitter: 0.5, drag: 0.5, swirl: 1.2, flicker: 0.4,
+          colors: [[0, p.bright, 0], [0.2, p.bright, 0.95], [1, p.main, 0]] },
+        // Sickly bubbles
+        { tex: "bubbles", blend: "add", rate: 8, rest: 0.6, life: [0.6, 1.0], size: [0.3, 0.5], spawn: 0.6,
+          vel: [0, 0, 0.8], jitter: 0.3, drag: 0.6,
+          colors: [[0, p.bright, 0.6], [0.8, p.main, 0.6], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Necrotic damage: a black shroud trailing the die, ghost-flames and spectral skulls, souls drawn in.
+  graveShroud: {
+    label: "Grave Shroud", icon: "fa-solid fa-skull", sound: "necrotic",
+    styles: {
+      necrotic: { label: "Necrotic", colors: ["#c8ffe0", "#3affa0", "#003a2a"] },
+      wraith: { label: "Wraith", colors: ["#eaf4ff", "#8ab8ff", "#0a1a3a"] },
+      bloodmoon: { label: "Blood Moon", colors: ["#ffd0c8", "#ff2a3a", "#2a0008"] },
+      void: { label: "Void", colors: ["#f0d8ff", "#9a3aff", "#10002a"] }
+    },
+    build: p => ({
+      auras: [{ color: "#050008", size: 3.4, alpha: 0.7, pulse: 0.12, pulseSpeed: 2.5, blend: "normal",
+                inner: { color: p.main, size: 1.4, alpha: 0.35 } }],
+      layers: [
+        // The black shroud trailing behind
+        { tex: "smoke", blend: "normal", rate: 22, rest: 0.6, life: [1.2, 2.0], size: [1.2, 2.6], spawn: 0.4,
+          vel: [0, 0, 0.3], inherit: -0.06, jitter: 0.3, drag: 0.6, spin: 0.7,
+          colors: [[0, "#000000", 0], [0.25, mix(p.dark, "#000000", 0.7), 0.7], [1, "#000000", 0]] },
+        // Ghost-flames licking off the die
+        { tex: "flames", blend: "add", rate: 30, rest: 0.4, life: [0.3, 0.6], size: [1.2, 0.5], spawn: 0.4,
+          vel: [0, 0, 1.6], jitter: 0.3, drag: 0.6, flicker: 0.3,
+          colors: [[0, p.bright, 0.9], [0.4, p.main, 0.7], [1, p.dark, 0]] },
+        // Spectral skulls rising and fading
+        { tex: "skulls", blend: "add", rate: 3, rest: 0.6, life: [0.7, 1.1], size: [1.1, 1.4], spawn: 0.4,
+          vel: [0, 0, 1.2], jitter: 0.3, drag: 0.6,
+          colors: [[0, p.bright, 0], [0.3, p.main, 0.6], [1, p.dark, 0]] },
+        // Souls drawn in to the die
+        { tex: "glow", blend: "add", rate: 14, rest: 1.0, life: [0.6, 1.0], size: [0.35, 0.1], spawn: { ring: 2.0 },
+          jitter: 0.1, inward: 1.8, swirl: 2.0,
+          colors: [[0, p.main, 0], [0.3, p.bright, 0.9], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Radiant damage: a sunlit halo and blazing core, with star glints and motes of light rising.
+  sunburst: {
+    label: "Sunburst", icon: "fa-solid fa-sun", sound: "radiant",
+    styles: {
+      radiant: { label: "Radiant", colors: ["#fffbe0", "#ffd84a", "#c06a00"] },
+      dawn: { label: "Dawn", colors: ["#fff0ea", "#ffa88a", "#8a2a3a"] },
+      celestial: { label: "Celestial", colors: ["#ffffff", "#bfe0ff", "#3a5aa8"] },
+      solar: { label: "Solar", colors: ["#fff4c8", "#ff9a1a", "#7a2000"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 4.0, alpha: 0.7, pulse: 0.15, pulseSpeed: 4 }],
+      layers: [
+        // A halo that stays on the die
+        { tex: "ring", blend: "add", rate: 3, rest: 1.2, life: [0.6, 0.8], size: [2.5, 3.2], spawn: 0,
+          orbit: { radius: 0, speed: 0, rise: 0, flat: true },
+          colors: [[0, p.bright, 0], [0.3, p.bright, 0.6], [1, p.main, 0]] },
+        // The blazing core
+        { tex: "glow", blend: "add", rate: 30, rest: 0.4, life: [0.2, 0.35], size: [1.6, 0.8], spawn: 0.2,
+          colors: [[0, "#ffffff", 0.9], [0.5, p.bright, 0.6], [1, p.main, 0]] },
+        // Star glints
+        { tex: "stars", blend: "add", rate: 30, rest: 0.8, life: [0.3, 0.6], size: [1.5, 0.2], spawn: 0.7,
+          jitter: 0.25, spin: 1.5,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] },
+        // Motes of light rising
+        { tex: "glow", blend: "add", rate: 40, rest: 0.6, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.6,
+          vel: [0, 0, 1.8], jitter: 0.5, drag: 0.6, flicker: 0.3,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Force damage: pulse rings closing in on the die, crystal shards spiralling round it, a burst of sparks.
+  kineticPulse: {
+    label: "Kinetic Pulse", icon: "fa-solid fa-burst", sound: "force",
+    styles: {
+      force: { label: "Force", colors: ["#f4e0ff", "#c04dff", "#3a0a8a"] },
+      eldritch: { label: "Eldritch", colors: ["#e0fff8", "#2ad8c0", "#063a4a"] },
+      telekinetic: { label: "Telekinetic", colors: ["#e6f0ff", "#4a7aff", "#0a1a6a"] },
+      prism: { label: "Prism", colors: ["#ffffff", "#ffb8f0", "#4a2a8a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.2, alpha: 0.55, pulse: 0.2, pulseSpeed: 8 }],
+      layers: [
+        // Rings closing in on the die
+        { tex: "ring", blend: "add", rate: 7, rest: 1.0, life: [0.4, 0.6], size: [5.0, 0.6], spawn: 0,
+          colors: [[0, p.main, 0], [0.4, p.bright, 0.7], [1, "#ffffff", 0]] },
+        // Crystal shards spiralling round the die
+        { tex: "shard", blend: "add", rate: 30, rest: 1.0, life: [0.5, 0.9], size: [0.5, 0.2], spawn: 0,
+          orbit: { radius: 1.4, speed: 7, helix: true }, spin: 3,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.9], [1, p.main, 0]] },
+        // Crystal splinters shed along the die's path
+        { tex: "shard", blend: "add", rate: 32, rest: 0, life: [1.2, 2.0], size: [0.45, 0.1], spawn: 0.4,
+          jitter: 0.3, drag: 0.5, spin: 2, flicker: 0.3,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.8], [1, p.main, 0]] },
+        // Sparks pushed out by the force
+        { tex: "spark", blend: "add", rate: 30, rest: 0.3, life: [0.2, 0.4], size: [0.6, 0.1], spawn: 0.3,
+          jitter: 3.5, drag: 0.2,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Psychic damage: mind-swirls circling the die, thought-glyphs drifting off and ripples of will.
+  mindstorm: {
+    label: "Mindstorm", icon: "fa-solid fa-brain", sound: "psychic",
+    styles: {
+      psychic: { label: "Psychic", colors: ["#ffe0f4", "#ff4fb8", "#5a0a4a"] },
+      dream: { label: "Dream", colors: ["#f0eaff", "#a88aff", "#2a1a5a"] },
+      madness: { label: "Madness", colors: ["#eaffd0", "#8aff3a", "#5a0a4a"] },
+      insight: { label: "Insight", colors: ["#e6fcff", "#3ad8ff", "#0a2a5a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.2, alpha: 0.5, pulse: 0.22, pulseSpeed: 3 }],
+      layers: [
+        // Mind-swirls circling the die
+        { tex: "twirls", blend: "add", rate: 14, rest: 1.0, life: [0.6, 1.0], size: [1.4, 0.4], spawn: 0,
+          orbit: { radius: 1.1, speed: 6, rise: 0.2 }, spin: 6,
+          colors: [[0, p.bright, 1], [0.5, p.main, 0.9], [1, p.dark, 0]] },
+        // Thought-glyphs drifting off
+        { tex: "glyphs", blend: "add", rate: 8, rest: 0.8, life: [0.9, 1.4], size: [0.6, 0.9], spawn: 0.8,
+          vel: [0, 0, 1.0], jitter: 0.4, drag: 0.6, flicker: 0.2, spin: 0.5,
+          colors: [[0, p.bright, 0], [0.2, p.bright, 0.9], [1, p.main, 0]] },
+        // Thought-motes
+        { tex: "glow", blend: "add", rate: 40, rest: 0.5, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.5,
+          jitter: 0.8, swirl: 1.5, flicker: 0.5,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.8], [1, p.main, 0]] },
+        // Ripples of will
+        { tex: "ring", blend: "add", rate: 4, rest: 0.6, life: [0.6, 0.9], size: [0.8, 4.0], spawn: 0,
+          colors: [[0, p.bright, 0.7], [0.5, p.main, 0.4], [1, p.dark, 0]] }
+      ]
+    })
+  },
+
+  // Bludgeoning damage: rock chips and pebbles flung up in a cloud of dust, with dust rings thudding out.
+  rockfall: {
+    label: "Rockfall", icon: "fa-solid fa-hammer", sound: "stone",
+    styles: {
+      stone: { label: "Stone", colors: ["#d8c8a8", "#8a7456", "#3a3026"] },
+      iron: { label: "Iron", colors: ["#d0d8e0", "#6a7480", "#24282e"] },
+      sandstone: { label: "Sandstone", colors: ["#ffe0b0", "#c8884a", "#5a3418"] },
+      obsidian: { label: "Obsidian", colors: ["#b8a8c8", "#3a3448", "#0a080e"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 2.4, alpha: 0.2, pulse: 0.05, blend: "normal" }],
+      layers: [
+        // Rock chips flung up, falling back
+        { tex: "debris", blend: "normal", rate: 20, rest: 0.05, life: [0.4, 0.8], size: [1.0, 0.8], spawn: 0.5,
+          vel: [0, 0, 2.4], jitter: 2.6, gravity: -12, drag: 0.8, spin: 8,
+          colors: [[0, p.main, 1], [0.8, p.dark, 0.95], [1, p.dark, 0]] },
+        // Pebbles
+        { tex: "stones", blend: "normal", rate: 8, rest: 0.05, life: [0.5, 0.9], size: [0.6, 0.5], spawn: 0.5,
+          vel: [0, 0, 3.0], jitter: 2.0, gravity: -14, drag: 0.8, spin: 6,
+          colors: [[0, mix(p.main, p.bright, 0.3), 1], [0.8, p.main, 0.95], [1, p.dark, 0]] },
+        // Dust cloud
+        { tex: "smoke", blend: "normal", rate: 14, rest: 0.2, life: [1.2, 2.0], size: [0.8, 2.6], spawn: 0.4,
+          vel: [0, 0, 0.5], jitter: 0.5, drag: 0.6, spin: 0.5,
+          colors: [[0, p.bright, 0], [0.2, p.bright, 0.45], [1, p.main, 0]] },
+        // Dust rings thudding out
+        { tex: "ring", blend: "normal", rate: 3, rest: 0, life: [0.35, 0.5], size: [0.8, 4.5], spawn: 0,
+          colors: [[0, p.bright, 0.7], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Piercing damage: a needle-thin line of light behind the die with speed glints and a bright point.
+  needlepoint: {
+    label: "Needlepoint", icon: "fa-solid fa-location-arrow", sound: "needle",
+    styles: {
+      steel: { label: "Steel", colors: ["#ffffff", "#a8c0e8", "#3a5080"] },
+      gilded: { label: "Gilded", colors: ["#fffbe0", "#e8c060", "#6a4a10"] },
+      bone: { label: "Bone", colors: ["#fffaf0", "#e0d4b8", "#5a4a30"] },
+      venomtip: { label: "Venom Tip", colors: ["#f0ffe0", "#7aff4a", "#1a5a0a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.bright, size: 1.8, alpha: 0.5, pulse: 0.05 }],
+      layers: [
+        // The needle line: many tiny glows left exactly on the die's path
+        { tex: "glow", blend: "add", rate: 120, rest: 0, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.05,
+          colors: [[0, "#ffffff", 1], [0.2, p.bright, 0.9], [0.6, p.main, 0.5], [1, p.dark, 0]] },
+        // A soft glow along it
+        { tex: "glow", blend: "add", rate: 60, rest: 0, life: [1.2, 2.0], size: [0.9, 0.4], spawn: 0.08,
+          colors: [[0, p.bright, 0.35], [1, p.dark, 0]] },
+        // Speed glints shooting back
+        { tex: "spark", blend: "add", rate: 18, rest: 0, life: [0.1, 0.2], size: [1.2, 0.2], spawn: 0.4,
+          inherit: -0.3,
+          colors: [[0, "#ffffff", 0.9], [1, p.main, 0]] },
+        // The bright point
+        { tex: "stars", blend: "add", rate: 6, rest: 0.5, life: [0.12, 0.2], size: [1.8, 0.6], spawn: 0,
+          colors: [[0, "#ffffff", 1], [1, p.bright, 0]] }
+      ]
+    })
+  },
+
+  // Slashing damage: crescent slash marks cut the air, steel sparks fly and drops are flung off.
+  crimsonEdge: {
+    label: "Crimson Edge", icon: "fa-solid fa-khanda", sound: "blade",
+    styles: {
+      crimson: { label: "Crimson", colors: ["#ffe0e0", "#ff2a2a", "#4a0000"] },
+      steel: { label: "Steel", colors: ["#ffffff", "#b8c4d4", "#3a4250"] },
+      gale: { label: "Gale", colors: ["#f0fff4", "#8affc0", "#0a4a2a"] },
+      shadowblade: { label: "Shadow Blade", colors: ["#e8d8ff", "#7a4aff", "#10062a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 2.6, alpha: 0.35, pulse: 0.08 }],
+      layers: [
+        // Slash marks
+        { tex: "slashes", blend: "add", rate: 12, rest: 0.2, life: [0.18, 0.32], size: [1.4, 2.2], spawn: 0.4,
+          colors: [[0, "#ffffff", 1], [0.3, p.bright, 0.9], [0.7, p.main, 0.6], [1, p.dark, 0]] },
+        // The blade's streak, fading from white to blood
+        { tex: "glow", blend: "add", rate: 90, rest: 0, life: [1.2, 2.0], size: [0.5, 0.12], spawn: 0.1,
+          colors: [[0, "#ffffff", 0.9], [0.2, p.bright, 0.7], [0.6, p.main, 0.4], [1, p.dark, 0]] },
+        // Steel sparks
+        { tex: "spark", blend: "add", rate: 30, rest: 0.1, life: [0.15, 0.35], size: [0.5, 0.08], spawn: 0.3,
+          jitter: 3.0, gravity: -5, drag: 0.3, flicker: 0.4,
+          colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
+        // Drops flung off
+        { tex: "drops", blend: "normal", rate: 16, rest: 0, life: [0.4, 0.7], size: [0.35, 0.28], spawn: 0.4,
+          vel: [0, 0, 1.6], jitter: 2.0, gravity: -12, drag: 0.8,
+          colors: [[0, p.main, 0.95], [0.6, mix(p.main, p.dark, 0.5), 0.9], [1, p.dark, 0]] }
+      ]
+    })
+  },
+
+  // Healing: leaves and little hearts drifting up off the die in a rising halo of life-light.
+  lifebloom: {
+    label: "Lifebloom", icon: "fa-solid fa-seedling", sound: "healing",
+    styles: {
+      life: { label: "Life", colors: ["#f4ffd8", "#5dff8a", "#1a7a3a"] },
+      blossom: { label: "Blossom", colors: ["#fff0f6", "#ff9ac8", "#7a2a4a"] },
+      spring: { label: "Spring", colors: ["#e8fff8", "#3ae0b0", "#0a5a4a"] },
+      golden: { label: "Golden", colors: ["#fffbe0", "#ffd86a", "#7a5a10"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.2, alpha: 0.5, pulse: 0.14, pulseSpeed: 2 }],
+      layers: [
+        // Leaves fluttering off
+        { tex: "leaves", blend: "normal", rate: 10, rest: 0.6, life: [1.2, 2.0], size: [0.7, 0.6], spawn: 0.7,
+          vel: [0, 0, 0.6], jitter: 0.5, gravity: -0.8, drag: 0.6, spin: 2,
+          colors: [[0, p.main, 0], [0.15, mix(p.main, p.bright, 0.3), 0.95], [0.8, p.main, 0.85], [1, p.dark, 0]] },
+        // Little hearts rising
+        { tex: "heart", blend: "add", rate: 5, rest: 1.0, life: [1.0, 1.4], size: [1.1, 1.6], spawn: 0.7,
+          vel: [0, 0, 1.6], jitter: 0.3, drag: 0.7,
+          colors: [[0, "#ffffff", 0], [0.15, p.bright, 0.95], [1, p.main, 0]] },
+        // Motes of life-light curling up
+        { tex: "glow", blend: "add", rate: 36, rest: 0.9, life: [1.2, 2.0], size: [0.35, 0.1], spawn: 0.8,
+          vel: [0, 0, 1.5], jitter: 0.5, drag: 0.5, swirl: 0.8, flicker: 0.3,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.85], [1, p.main, 0]] },
+        // A soft halo blooming out
+        { tex: "ring", blend: "add", rate: 2, rest: 1.0, life: [0.9, 1.2], size: [1.0, 3.5], spawn: 0,
+          colors: [[0, p.bright, 0.6], [1, p.main, 0]] }
+      ]
+    })
+  },
+
+  // Temporary hit points: a shimmering shield bubble round the die, crystal plates spiralling in it.
+  aegis: {
+    label: "Aegis", icon: "fa-solid fa-shield", sound: "ward",
+    styles: {
+      aegis: { label: "Aegis", colors: ["#e8f4ff", "#6fb8ff", "#1a3a8a"] },
+      golden: { label: "Golden", colors: ["#fffbe0", "#ffcc4a", "#6a4000"] },
+      verdant: { label: "Verdant", colors: ["#eaffe8", "#5ad88a", "#0a4a2a"] },
+      arcane: { label: "Arcane", colors: ["#f4e8ff", "#b07aff", "#2a0a6a"] }
+    },
+    build: p => ({
+      auras: [{ color: p.main, size: 3.0, alpha: 0.4, pulse: 0.1 }],
+      layers: [
+        // The shield bubble on the die
+        { tex: "bubble", blend: "add", rate: 3, rest: 1.2, life: [0.6, 0.8], size: [3.6, 3.9], spawn: 0,
+          orbit: { radius: 0, speed: 0, rise: 0, flat: true },
+          colors: [[0, p.bright, 0], [0.3, p.bright, 0.5], [0.7, p.main, 0.4], [1, p.main, 0]] },
+        // Crystal plates spiralling round it
+        { tex: "shard", blend: "add", rate: 22, rest: 1.0, life: [0.6, 1.0], size: [0.55, 0.25], spawn: 0,
+          orbit: { radius: 1.5, speed: 4, helix: true }, spin: 1,
+          colors: [[0, "#ffffff", 1], [0.5, p.bright, 0.85], [1, p.main, 0]] },
+        // Glints on the shield
+        { tex: "spark", blend: "add", rate: 14, rest: 0.8, life: [0.2, 0.4], size: [0.8, 0.1], spawn: 1.1,
+          flicker: 0.4,
+          colors: [[0, "#ffffff", 1], [1, p.bright, 0]] },
+        // A shimmering wake left behind, with glinting plates
+        { tex: "glow", blend: "add", rate: 60, rest: 0, life: [1.2, 2.0], size: [0.8, 0.25], spawn: 0.3,
+          colors: [[0, p.bright, 0.6], [0.4, p.main, 0.4], [1, p.dark, 0]] },
+        { tex: "shard", blend: "add", rate: 16, rest: 0, life: [1.2, 2.0], size: [0.4, 0.1], spawn: 0.4,
+          spin: 1.5, flicker: 0.4,
+          colors: [[0, "#ffffff", 0.9], [0.4, p.bright, 0.6], [1, p.main, 0]] }
+      ]
+    })
   }
 };
 
@@ -1821,6 +2299,8 @@ export const DESIGNS = {
  */
 export const DESIGN_CATEGORIES = [
   { label: "Elements", designs: ["flame", "fireTrail", "frost", "storm", "tide"] },
+  { label: "Damage Types", designs: ["emberstorm", "hoarfrost", "staticSurge", "thunderhead", "corrosion", "miasma",
+    "graveShroud", "sunburst", "kineticPulse", "mindstorm", "rockfall", "needlepoint", "crimsonEdge", "lifebloom", "aegis"] },
   { label: "Magic", designs: ["smoke", "arcane", "ward", "charm", "song", "necrotic", "shadowWisp"] },
   { label: "Light & Stars", designs: ["rays", "stardust", "starlight", "comet", "rainbow"] },
   { label: "Nature, Stone & Steel", designs: ["petals", "stones", "blades"] },

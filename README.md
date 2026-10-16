@@ -1,6 +1,6 @@
 # Dxcufgb's dice trails
 
-Gives [Dice So Nice](https://foundryvtt.com/packages/dice-so-nice) dice a streak of their damage type while they roll, so damage dice look charged with their element: a tail of fire, a jagged lightning bolt, a frost streak, black death-smoke and more. For every other roll (attacks, checks, saves, initiative, ...) you design your own trail in the **Dice trails** window, and everyone at the table sees it on your rolls.
+Gives [Dice So Nice](https://foundryvtt.com/packages/dice-so-nice) dice a streak of their damage type while they roll, so damage dice look charged with their element: a tail of fire, crackling lightning, freezing mist, a black death-shroud and more. For every other roll (attacks, checks, saves, initiative, ...) you design your own trail in the **Dice trails** window, and everyone at the table sees it on your rolls.
 
 **Foundry VTT:** v13 · **Requires:** Dice So Nice 5 · tested with dnd5e 5.2.5
 
@@ -14,35 +14,35 @@ https://github.com/dxcufgb/FoundryVTT-dice-trails/releases/latest/download/modul
 
 ## Damage type trails
 
-Every die rolled for a damage type drags a streak of that element along its flight path (long when it's fast, shrinking as it lands), textured with flowing wisps, crackles or flame shapes, with a glowing aura and a few accent particles:
+Every die rolled for a damage type leaves a long tail of that element along its flight path (up to about two seconds of it, densest when the die is fast), with a glowing aura around the die. Each damage type's trail is also a design in the Dice trails window (category *Damage Types*), so players can put it, or one of its other styles, on their own rolls:
 
-| Type | Streak |
-| --- | --- |
-| Fire | Glowing fire puffs that swell and rise, cooling from white-hot to deep red, with thin smoke |
-| Cold | Pale icy streak in freezing mist, falling ice shards and snow glints |
-| Lightning | Thin, violently jagged white bolt in a crackling blue glow, with arcs jumping off the die |
-| Thunder | Dark indigo roar with big white shockwave rings bursting off the die |
-| Acid | Neon yellow-green streak dripping sizzling droplets, caustic fumes |
-| Poison | Thick, billowing green toxic cloud, sickly purple at the edges |
-| Necrotic | Black death-smoke pulled into the die, with ghostly green soul-wisps |
-| Radiant | Wide golden sunbeam with a white-gold core and star glints |
-| Force | Magenta-violet arcane energy with swirls orbiting the die |
-| Psychic | Two hot-pink strands weaving around each other, spinning mind-swirls |
-| Bludgeoning | Heavy dust cloud, flying rock chips and dust rings |
-| Piercing | Needle-thin, razor-straight silver streak with speed dashes and a glinting point |
-| Slashing | Crimson slash marks around a silver-and-red swing, flung droplets |
-| Healing | Soft green life-light with little hearts rising from the die |
-| Temp HP | Steel-blue shield streak with a turning ward-rune around the die and orbiting shards |
+| Type | Trail | Look |
+| --- | --- | --- |
+| Fire | Emberstorm | Flame tongues around a white-hot core, embers swirling up into a long tail, dark smoke |
+| Cold | Hoarfrost | Ice shards tumbling down, snowflakes spinning through a long freezing mist |
+| Lightning | Static Surge | Arcs and crackling bolts on the die, hot sparks, and a long ionised path that keeps crackling |
+| Thunder | Thunderhead | A long dark storm cloud lit by flashes, with shockwave rings booming off the die |
+| Acid | Corrosion | Glowing drops dripping off, popping bubbles, caustic fumes and a glowing smear on the die's path |
+| Poison | Miasma | A thick toxic cloud that curls and lingers, full of glowing spores |
+| Necrotic | Grave Shroud | A long black shroud, ghost-flames, spectral skulls and souls drawn in to the die |
+| Radiant | Sunburst | A halo and blazing core, star glints and a long tail of rising light |
+| Force | Kinetic Pulse | Rings closing in on the die, crystal shards spiralling round it, a long tail of splinters |
+| Psychic | Mindstorm | Mind-swirls circling the die, thought-glyphs drifting off, ripples of will and a long tail of motes |
+| Bludgeoning | Rockfall | Rock chips and pebbles flung up in a long dust cloud, with dust rings thudding out |
+| Piercing | Needlepoint | A long, needle-thin line of light on the die's path, speed glints and a bright point |
+| Slashing | Crimson Edge | Slash marks, steel sparks, flung drops and a long blade streak fading to blood |
+| Healing | Lifebloom | Leaves and little hearts drifting up in a long, rising trail of life-light |
+| Temp HP | Aegis | A shield bubble around the die, crystal plates spiralling in it, a long shimmering wake |
 
 - **dnd5e**: each die gets the damage type of the damage part it belongs to, so "1d8 slashing + 2d6 fire" gives slashing dice and fire dice.
-- **Any system**: dice with a damage type as flavor, e.g. `1d6[fire]`, get the matching streak.
+- **Any system**: dice with a damage type as flavor, e.g. `1d6[fire]`, get the matching trail.
 - Works for rolls shown from other players too.
 
 ## Your own trails for regular rolls
 
 Open the **Dice trails** window from the d20 button in the Token Controls, or from **Configure Settings → Dxcufgb's dice trails → Open the Dice trails window**. With a token selected that you own (the GM owns them all) it opens on that character's trails; otherwise on your own. It works like a paint box:
 
-- **61 designs, each with several styles,** picked from a dropdown grouped by category (Elements, Magic, Light & Stars, Nature, Stone & Steel, Classes, Species, Backgrounds). 13 are made for the D&D classes, 12 for the D&D species and 16 for the D&D backgrounds; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
+- **76 designs, each with several styles,** picked from a dropdown grouped by category (Elements, Damage Types, Magic, Light & Stars, Nature, Stone & Steel, Classes, Species, Backgrounds). 15 are the damage type trails, 13 are made for the D&D classes, 12 for the D&D species and 16 for the D&D backgrounds; their styles include subclass, lineage and ancestry names (Battle Smith, Eldritch Knight, Wood Elf, Storm Giant, ...):
 
   | Design | Styles |
   | --- | --- |
@@ -107,6 +107,21 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Ink Blot (Scribe) | Iron Gall, Sepia, Vermilion, Gold Leaf |
   | War Banner (Soldier) | Legion, Iron Guard, Mercenary, Highland |
   | Dusty Road (Wayfarer) | Sunset, Autumn Road, Rainy Road, Night Road |
+  | Emberstorm (fire damage) | Fire, Cinder, Blue Flame, Sulfur |
+  | Hoarfrost (cold damage) | Frost, Glacier, Rime, Permafrost |
+  | Static Surge (lightning damage) | Storm, Plasma, Ion, Sunstrike |
+  | Thunderhead (thunder damage) | Thunder, Tempest, Roar, Sonic |
+  | Corrosion (acid damage) | Acid, Bile, Ooze, Caustic |
+  | Miasma (poison damage) | Venom, Nightshade, Toxin, Blight |
+  | Grave Shroud (necrotic damage) | Necrotic, Wraith, Blood Moon, Void |
+  | Sunburst (radiant damage) | Radiant, Dawn, Celestial, Solar |
+  | Kinetic Pulse (force damage) | Force, Eldritch, Telekinetic, Prism |
+  | Mindstorm (psychic damage) | Psychic, Dream, Madness, Insight |
+  | Rockfall (bludgeoning damage) | Stone, Iron, Sandstone, Obsidian |
+  | Needlepoint (piercing damage) | Steel, Gilded, Bone, Venom Tip |
+  | Crimson Edge (slashing damage) | Crimson, Steel, Gale, Shadow Blade |
+  | Lifebloom (healing) | Life, Blossom, Spring, Golden |
+  | Aegis (temporary HP) | Aegis, Golden, Verdant, Arcane |
 
 - **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
 - **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
