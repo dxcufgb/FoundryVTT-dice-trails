@@ -2105,9 +2105,9 @@ export const DESIGNS = {
     build: p => ({
       auras: [{ color: p.main, size: 3.2, alpha: 0.55, pulse: 0.2, pulseSpeed: 8 }],
       layers: [
-        // Rings closing in on the die
-        { tex: "ring", blend: "add", rate: 7, rest: 1.0, life: [0.4, 0.6], size: [5.0, 0.6], spawn: 0,
-          colors: [[0, p.main, 0], [0.4, p.bright, 0.7], [1, "#ffffff", 0]] },
+        // Pulse rings closing in, left lingering on the die's path
+        { tex: "ring", blend: "add", rate: 7, rest: 1.0, life: [1.4, 2.0], size: [5.0, 0.8], spawn: 0,
+          colors: linger([[0, p.main, 0], [0.25, p.bright, 0.75], [1, "#ffffff", 0]]) },
         // Crystal shards spiralling round the die
         { tex: "shard", blend: "add", rate: 30, rest: 1.0, life: [0.5, 0.9], size: [0.5, 0.2], spawn: 0,
           orbit: { radius: 1.4, speed: 7, helix: true }, spin: 3,

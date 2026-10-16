@@ -156,7 +156,7 @@ const EFFECTS = {
     ...DESIGNS.sunburst.build({ bright: "#fffbe0", main: "#ffd84a", dark: "#c06a00" })
   },
 
-  // Signature: rings closing in on the die, crystal shards spiralling round it, a long tail of splinters.
+  // Signature: lingering pulse rings closing in on the die's path, crystal shards spiralling round it, a long tail of splinters.
   // The same look as the Kinetic Pulse design, so players can pick it (and its other styles) for their own rolls too.
   force: {
     sound: "force",

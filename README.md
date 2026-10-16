@@ -26,7 +26,7 @@ Every die rolled for a damage type leaves a long tail of that element along its 
 | Poison | Miasma | A thick, glowing toxic cloud that curls and lingers, full of glowing spores |
 | Necrotic | Grave Shroud | A long black shroud lit by ghost-light, ghost-flames, spectral skulls and souls drawn in to the die |
 | Radiant | Sunburst | A halo and blazing core, star glints and a long tail of rising light |
-| Force | Kinetic Pulse | Rings closing in on the die, crystal shards spiralling round it, a long tail of splinters |
+| Force | Kinetic Pulse | Lingering pulse rings closing in on the die's path, crystal shards spiralling round it, a long tail of splinters |
 | Psychic | Mindstorm | Mind-swirls circling the die and a long tail of them turning on its path, thought-glyphs and ripples of will |
 | Bludgeoning | Rockfall | Rock chips and pebbles flung up in a thick dust cloud, grit left on the path, dust rings thudding out |
 | Piercing | Needlepoint | A long, needle-thin line of light on the die's path, speed glints and a bright point |
