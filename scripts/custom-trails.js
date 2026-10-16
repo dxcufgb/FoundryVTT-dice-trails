@@ -2050,10 +2050,10 @@ export const DESIGNS = {
         { tex: "flames", blend: "add", rate: 30, rest: 0.4, life: [0.3, 0.6], size: [1.2, 0.5], spawn: 0.4,
           vel: [0, 0, 1.6], jitter: 0.3, drag: 0.6, flicker: 0.3,
           colors: [[0, p.bright, 0.9], [0.4, p.main, 0.7], [1, p.dark, 0]] },
-        // Spectral skulls rising and fading
-        { tex: "skulls", blend: "add", rate: 3, rest: 0.6, life: [0.7, 1.1], size: [1.1, 1.4], spawn: 0.4,
-          vel: [0, 0, 1.2], jitter: 0.3, drag: 0.6,
-          colors: [[0, p.bright, 0], [0.3, p.main, 0.6], [1, p.dark, 0]] },
+        // Spectral skulls rising slowly and lingering before they fade
+        { tex: "skulls", blend: "add", rate: 4, rest: 0.6, life: [2.0, 3.0], size: [1.1, 1.4], spawn: 0.4,
+          vel: [0, 0, 0.6], jitter: 0.2, drag: 0.6,
+          colors: linger([[0, p.bright, 0], [0.2, p.main, 0.65], [1, p.dark, 0]]) },
         // Souls drawn in to the die
         { tex: "glow", blend: "add", rate: 14, rest: 1.0, life: [0.6, 1.0], size: [0.35, 0.1], spawn: { ring: 2.0 },
           jitter: 0.1, inward: 1.8, swirl: 2.0,
