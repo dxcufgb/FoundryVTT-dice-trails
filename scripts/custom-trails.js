@@ -1832,6 +1832,10 @@ export const DESIGNS = {
         { tex: "flames", blend: "add", rate: 60, rest: 0.25, life: [0.35, 0.7], size: [1.6, 0.6], spawn: 0.4,
           vel: [0, 0, 2.2], jitter: 0.4, inherit: -0.05, drag: 0.6, flicker: 0.2, spin: 0.6,
           colors: [[0, mix(p.bright, "#ffffff", 0.5), 0.95], [0.3, p.bright, 0.85], [0.65, p.main, 0.5], [1, p.dark, 0]] },
+        // Flames left burning on the die's path, flickering low before they die out
+        { tex: "flames", blend: "add", rate: 45, rest: 0, life: [2.0, 3.0], size: [1.2, 1.0], spawn: 0.35,
+          vel: [0, 0, 0.6], jitter: 0.2, drag: 0.5, flicker: 0.3, spin: 0.3,
+          colors: linger([[0, p.bright, 0.85], [0.3, p.main, 0.7], [0.7, mix(p.main, p.dark, 0.5), 0.55], [1, p.dark, 0]]) },
         // A white-hot core around the die
         { tex: "glow", blend: "add", rate: 40, rest: 0.2, life: [0.15, 0.3], size: [1.5, 0.7], spawn: 0.2,
           vel: [0, 0, 0.4], jitter: 0.2, drag: 0.5,

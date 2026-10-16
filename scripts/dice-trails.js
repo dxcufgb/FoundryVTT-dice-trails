@@ -101,7 +101,7 @@ const compiled = new Map();     // JSON of a trail -> compiled effect
  *   swirl      tangential speed around the die's vertical axis
  */
 const EFFECTS = {
-  // Signature: flame tongues round a white-hot core, embers swirling up into a long tail and dark smoke.
+  // Signature: flame tongues round a white-hot core, flames left burning on the die's path, embers and dark smoke.
   // The same look as the Emberstorm design, so players can pick it (and its other styles) for their own rolls too.
   fire: {
     sound: "fire",
