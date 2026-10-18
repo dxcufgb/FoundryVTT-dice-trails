@@ -1,5 +1,12 @@
 # Dxcufgb's dice trails
 
+[![Foundry v13](https://img.shields.io/github/v/release/dxcufgb/FoundryVTT-dice-trails?label=Foundry%20v13&logo=foundryvirtualtabletop&color=ff6400)](https://github.com/dxcufgb/FoundryVTT-dice-trails/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/dxcufgb/FoundryVTT-dice-trails/module.zip?label=downloads&color=blue)](https://github.com/dxcufgb/FoundryVTT-dice-trails/releases)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/dxcufgb)\
+[![CI](https://img.shields.io/github/actions/workflow/status/dxcufgb/FoundryVTT-dice-trails/ci.yml?branch=main&label=CI)](https://github.com/dxcufgb/FoundryVTT-dice-trails/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/dxcufgb/FoundryVTT-dice-trails)](LICENSE)
+[![Requires Dice So Nice](https://img.shields.io/badge/requires-Dice%20So%20Nice%205-8a5cf6)](https://foundryvtt.com/packages/dice-so-nice)
+
 Gives [Dice So Nice](https://foundryvtt.com/packages/dice-so-nice) dice a streak of their damage type while they roll, so damage dice look charged with their element: a tail of fire, crackling lightning, freezing mist, a black death-shroud and more. For every other roll (attacks, checks, saves, initiative, ...) you design your own trail in the **Dice trails** window, and everyone at the table sees it on your rolls.
 
 **Foundry VTT:** v13 · **Requires:** Dice So Nice 5 · tested with dnd5e 5.2.5
