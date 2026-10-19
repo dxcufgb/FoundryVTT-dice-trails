@@ -41,7 +41,7 @@ import { MODULE_ID, TAG, TAG_KIND, TAG_USER, TAG_OWNER, FLAG_PRESETS, FLAG_TRAIL
 import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } from "./custom-trails.js";
 import { DiceTrailsEditor } from "./trail-editor.js";
 import { exportTrail, importTrail } from "./transfer.js";
-import { applyDefaultTrail, defaultTrail, characterSources, defaultTrailUpdate, unsavedDefault, isDefaultTrail } from "./default-trails.js";
+import { applyDefaultTrail, defaultTrail, characterSources, defaultTrailUpdate, unsavedDefault } from "./default-trails.js";
 import { DieSound, THEMES, bounceStrength, beginSoundFrame, endSoundFrame, playHit, preloadSounds, soundsOn, stopAllSounds } from "./trail-sounds.js";
 
 export { MODULE_ID };
@@ -400,13 +400,12 @@ function speakerActor(message) {
 }
 
 /**
- * Whose trail a roll gets: the character it is made as, if that has one for this kind; else the player's.
- * A character's default trail (saved or not) gives way to a trail the player gave this kind themselves.
+ * Whose trail a roll gets: the character it is made as, if that has one for this kind (its default
+ * trail included); else the player's.
  */
 export function trailOwner(message, user, kind) {
   const actor = speakerActor(message);
-  if (!actor || !trailFor(actor, kind)) return user;
-  return isDefaultTrail(actor, kind) && trailFor(user, kind) ? user : actor;
+  return actor && trailFor(actor, kind) ? actor : user;
 }
 
 /** A reference to an owner that fits in a die's options: a uuid, the token's for an unlinked token. */
