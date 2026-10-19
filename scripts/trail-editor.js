@@ -43,21 +43,20 @@ function ownerLabel(owner) {
 }
 
 /**
- * The design dropdown: the designs by category (DESIGN_CATEGORIES), anything uncategorised under
- * "Other", and an image of your own last.
+ * The design categories (DESIGN_CATEGORIES), anything uncategorised under "Other", and an image of
+ * your own last: [{id, label, designs: [design id, ...]}].
  */
-function designGroups(current, customLabel) {
-  const option = id => ({ id, label: DESIGNS[id].label, active: id === current });
+function designCategories(customLabel) {
   const listed = new Set();
   const groups = [];
-  for (const c of DESIGN_CATEGORIES) {
+  DESIGN_CATEGORIES.forEach((c, i) => {
     const ids = c.designs.filter(id => DESIGNS[id] && !listed.has(id));
     ids.forEach(id => listed.add(id));
-    if (ids.length) groups.push({ label: c.label, designs: ids.map(option) });
-  }
+    if (ids.length) groups.push({ id: `c${i}`, label: c.label, designs: ids });
+  });
   const rest = Object.keys(DESIGNS).filter(id => !listed.has(id));
-  if (rest.length) groups.push({ label: "Other", designs: rest.map(option) });
-  groups.push({ label: customLabel, designs: [{ id: CUSTOM, label: customLabel, active: current === CUSTOM }] });
+  if (rest.length) groups.push({ id: "other", label: "Other", designs: rest });
+  groups.push({ id: CUSTOM, label: customLabel, designs: [CUSTOM] });
   return groups;
 }
 
@@ -166,6 +165,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     window: { title: "DXDT.App.Title", icon: "fa-solid fa-dice-d20", resizable: false },
     position: { width: 900, height: "auto" },
     actions: {
+      design: DiceTrailsEditor.#onDesign,
       style: DiceTrailsEditor.#onStyle,
       selectLayer: DiceTrailsEditor.#onSelectLayer,
       addLayer: DiceTrailsEditor.#onAddLayer,
@@ -294,6 +294,10 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     const mine = trails(this.owner);
     const customLabel = game.i18n.localize("DXDT.App.CustomImage");
     const current = ownerRef(this.owner);
+    // The category being browsed: the one picked in the dropdown, until another layer is edited; else the design's.
+    const categories = designCategories(customLabel);
+    const category = (this.browse?.layer === layer && categories.find(c => c.id === this.browse.category))
+      || categories.find(c => c.designs.includes(layer.design)) || categories[0];
 
     return {
       kinds: KINDS.map(k => ({
@@ -319,7 +323,12 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       canMoveDown: this.sel > 0,
       canMoveUp: this.sel < this.cfg.layers.length - 1,
 
-      designGroups: designGroups(layer.design, customLabel),
+      categories: categories.map(c => ({ id: c.id, label: c.label, selected: c.id === category.id })),
+      designs: category.designs.map(id => ({
+        id, active: id === layer.design,
+        label: id === CUSTOM ? customLabel : DESIGNS[id].label,
+        icon: id === CUSTOM ? "fa-solid fa-image" : DESIGNS[id].icon
+      })),
       designIcon: isCustom ? "fa-solid fa-image" : design.icon,
       isCustom,
       styles: design ? Object.entries(design.styles).map(([id, s]) => ({ id, label: s.label, active: id === layer.style })) : [],
@@ -456,7 +465,10 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     }
 
-    html.querySelector("select[name=design]")?.addEventListener("change", ev => this.#chooseDesign(ev.currentTarget.value));
+    html.querySelector("select[name=category]")?.addEventListener("change", ev => {
+      this.browse = { layer: this.layer, category: ev.currentTarget.value };
+      this.render({ parts: ["main"] });
+    });
     html.querySelector("select[name=owner]")?.addEventListener("change", ev => this.#setOwner(ownerFromRef(ev.currentTarget.value)));
 
     requestAnimationFrame(() => this.#fitWidth());
@@ -614,6 +626,10 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       ? { ...keep, design: CUSTOM }
       : { ...keep, color: old.color, design: id, style: Object.keys(DESIGNS[id].styles)[0] });
     this.render({ parts: ["main"] });
+  }
+
+  static #onDesign(event, target) {
+    this.#chooseDesign(target.dataset.design);
   }
 
   static #onStyle(event, target) {

@@ -196,15 +196,6 @@ export function unsavedDefault(actor, kind) {
   return defaultTrail(characterSources(actor));
 }
 
-/** Whether an actor's trail for a kind of roll is its default trail: not saved yet, or saved and unchanged. */
-export function isDefaultTrail(actor, kind) {
-  if (!isActor(actor)) return false;
-  const cur = actor.getFlag(MODULE_ID, FLAG_TRAILS)?.[kind];
-  const prev = actor.getFlag(MODULE_ID, FLAG_DEFAULT);
-  if (!cur?.layers) return !prev?.layers && !!unsavedDefault(actor, kind);
-  return !!prev?.layers && same(cur, prev);
-}
-
 /** Save a character's default trail now. */
 export async function applyDefaultTrail(actor) {
   const update = defaultTrailUpdate(actor);
