@@ -315,7 +315,7 @@ Hooks.on("diceSoNiceRollStart", (messageID, context) => {
 
     const user = context?.user ?? message?.author ?? message?.user ?? null;
     const kind = rollKind(message, rolls);
-    const owner = kind ? trailOwner(message, user, kind) : null;
+    const owner = kind ? trailOwner(message, user, kind, rolls) : null;
     const cfg = trailFor(owner, kind);
     if (cfg && (user?.id === game.user.id || game.settings.get(MODULE_ID, "showOthers"))) {
       for (const roll of rolls) tagged += tagCustom(roll, kind, user?.id, owner !== user ? ownerRef(owner) : null);
@@ -343,6 +343,8 @@ export function rollKind(message, rolls = []) {
   if (f.pf2e?.context?.type) hints.push(f.pf2e.context.type);
   for (const r of rolls) {
     if (typeof r.options?.type === "string") hints.push(r.options.type);
+    // dnd5e keeps its roll type on the roll too, which is all a roll shown without a message (midi-qol) has.
+    if (typeof r.options?.rollType === "string") hints.push(r.options.rollType);
     if (r.constructor?.name) hints.push(r.constructor.name);
   }
   for (const raw of hints) {
@@ -401,12 +403,22 @@ function speakerActor(message) {
 
 /**
  * Whose trail a roll gets: the character it is made as, if that has one for this kind (its default
- * trail included); else the player's.
+ * trail included); else the player's. Without a message (midi-qol shows its dice before there is
+ * one) the character is the one stamped on the roll when it was configured.
  */
-export function trailOwner(message, user, kind) {
-  const actor = speakerActor(message);
+export function trailOwner(message, user, kind, rolls = []) {
+  const actor = speakerActor(message) ?? ownerFromRef(rolls.find(r => r?.options?.[TAG_OWNER])?.options[TAG_OWNER]);
   return actor && trailFor(actor, kind) ? actor : user;
 }
+
+// Stamp every dnd5e roll with the character making it: roll options survive the copies other modules
+// show with Dice So Nice directly (midi-qol), which have no message and so no speaker.
+Hooks.on("dnd5e.postRollConfiguration", (rolls, config) => {
+  const actor = config?.subject?.actor ?? config?.subject;
+  if (actor?.documentName !== "Actor") return;
+  const ref = ownerRef(actor);
+  for (const roll of rolls ?? []) if (roll?.options) roll.options[TAG_OWNER] = ref;
+});
 
 /** A reference to an owner that fits in a die's options: a uuid, the token's for an unlinked token. */
 export function ownerRef(owner) {
