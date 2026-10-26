@@ -7,6 +7,8 @@
 [![License](https://img.shields.io/github/license/dxcufgb/FoundryVTT-dice-trails)](LICENSE)
 [![Requires Dice So Nice](https://img.shields.io/badge/requires-Dice%20So%20Nice%205-8a5cf6)](https://foundryvtt.com/packages/dice-so-nice)
 
+<a href="https://dxcufgb.github.io/FVTT-dev-showcase/"><img src="https://dxcufgb.github.io/FVTT-dev-showcase/assets/img/workshop-badge.png" alt="Dxcufgb's Workshop: every Foundry VTT project, video and changelog in one place" width="650"></a>
+
 Gives [Dice So Nice](https://foundryvtt.com/packages/dice-so-nice) dice a streak of their damage type while they roll, so damage dice look charged with their element: a tail of fire, crackling lightning, freezing mist, a black death-shroud and more. For every other roll (attacks, checks, saves, initiative, ...) you design your own trail in the **Dice trails** window, and everyone at the table sees it on your rolls.
 
 **Foundry VTT:** v13 · **Requires:** Dice So Nice 5 · tested with dnd5e 5.2.5
