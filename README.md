@@ -133,7 +133,7 @@ Open the **Dice trails** window from the d20 button in the Token Controls, or fr
   | Aegis (temporary HP) | Aegis, Golden, Verdant, Arcane |
 
 - **Layers: combine effects into one trail.** Stack up to 20 layers, for example Blue Flame + Spectral Knives + Stardust. Each layer has its own design, style, fine-tuning and effects; reorder, duplicate or remove them. Every layer is drawn in full on every die, so a trail with many busy layers costs frames on slower computers: lower the **Trail intensity** setting or the layers' *Particles* if rolls stutter.
-- **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** a PNG (it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
+- **Your own image as a layer.** Pick *Your image*, then **Browse** to an image or **Upload** one (PNG, WebP or any other image; it goes into `worlds/<your world>/dxcufgbs-dice-trails/`). Choose how it moves (trailing behind the die, circling, rising, bursting out, fluttering down, spinning on the die), its size and how many, and its colour: *Original colours*, *Tint* or *Recolour*, optionally glowing like light (additive blending). Uploading needs Foundry's *Upload New Files* permission; without it you can still pick an image that is already on the server, or type its path or URL.
 - **Fine-tune every layer:** width, length, speed, opacity, number of particles, and an own colour instead of the style's.
 - **Effects for every layer:** *Glow* (an aura around the die), *Pulse* (a beat along the streak and aura), *Sparkle* (glints) and *Wave* (a weaving motion).
 - **Live preview:** a die flies through the window with the trail, rests a moment and goes again; every change shows at once. **Test roll** throws a d20 on the table with it.
@@ -174,7 +174,7 @@ All sounds are the module's own: `tools/make-sounds.py` synthesizes them from no
 - **Keep glowing after landing**: dice keep a faint aura on the table.
 - **Trail sounds**: on/off.
 - **Sound volume** (0–2, default 0.2): how loud the trail sounds are, on top of Foundry's Interface volume.
-- **Your trails for regular rolls**: opens the Dice trails window.
+- **Trails for regular rolls**: the **Open the Dice trails window** button.
 - **Show other players' trails**: show the trails the other players designed on their rolls.
 - **Default trails from class, species and background** (world, GM): give every character its default trail (on by default).
 
@@ -184,25 +184,55 @@ All sounds are the module's own: `tools/make-sounds.py` synthesizes them from no
 const api = game.modules.get("dxcufgbs-dice-trails").api;
 api.open();                                                   // the Dice trails window (selected token's, or yours)
 api.open(actor);                                              // the window on a character's trails
-api.preview("fire");                                          // roll dice with a damage type trail
-api.previewAll();                                             // every damage type in turn
-api.preview({ layers: [{ design: "flame", style: "blue" }] });   // roll dice with a custom trail
-api.setTrail("attack", { layers: [                            // your trail for attack rolls, bottom to top
+await api.preview("fire");                                    // roll dice with a damage type trail (default formula 2d6)
+await api.previewAll();                                       // every damage type in turn
+await api.preview({ layers: [{ design: "flame", style: "blue" }] });   // roll dice with a custom trail
+await api.setTrail("attack", { layers: [                      // your trail for attack rolls, bottom to top
   { design: "storm", style: "golden", glow: 0.5 },
   { design: "custom", src: "path/to/crest.png", motion: "orbit", count: 4, size: 0.8, colorMode: "colorize", color: "#ff8a2a" }
 ] });
-api.setTrail(["check", "save"], cfg);                         // several kinds at once
-api.clearTrail("attack");
-api.setTrail("attack", cfg, actor); api.clearTrail("attack", actor);   // a character's trails (an Actor you own)
+await api.setTrail(["check", "save"], cfg);                   // several kinds at once
+await api.clearTrail("attack");
+await api.setTrail("attack", cfg, actor); await api.clearTrail("attack", actor);   // a character's trails (an Actor you own)
 api.trails();                                                 // your trails by kind; api.trails(actor) a character's
 api.defaultTrail(actor);                                      // the trail a character gets from its class, species and background
 await api.applyDefaultTrail(actor);                           // give it to the character now (as the GM does automatically)
 api.designs; api.kinds; api.types;                            // designs and styles, kinds of roll, damage types
 api.sounds; api.playSound("thunder", 1);                      // the sound themes; play one's bounce hit (strength 0-1)
-api.presets();                                                // your saved trails
+api.presets();                                                // your saved trails: [{ id, name, cfg }]
+const id = await api.savePreset("Golden storm", cfg);         // save a trail under a name (same name: replaced); returns its id
+await api.deletePreset(id);                                   // delete a saved trail
 await api.exportTrail(cfg, "My trail");                       // download it as one file, images included
 const { name, cfg } = await api.importTrail(file);            // read such a file (a File or its text)
+api.ownerRef(actor); api.ownerFromRef(ref);                   // a User/Actor as a uuid string (an unlinked token's uuid) and back
 ```
+
+- **Trails** are `{ layers: [layer, ...] }`, at most 20 layers, drawn bottom to top. A layer has `design` and `style` (ids from `api.designs`, e.g. `"flame"` / `"blue"`), fine-tuning `scale` (0.4–2.5), `length` (0.3–2.5), `speed` (0–3), `alpha` (0.1–1), `density` (0–2.5), `color` (`"#rrggbb"` or `null` for the style's), effects `glow`, `pulse`, `sparkle`, `wave` (0–1), and `sound` (a theme from `api.sounds`, `"none"`, or `null` for the design's own). A layer with `design: "custom"` is your own image: `src`, `motion` (`trail`, `orbit`, `rise`, `burst`, `flutter`, `spin`), `count` (1–40), `size` (0.05–4), `blend` (`"add"` or `"normal"`) and `colorMode` (`"original"`, `"tint"`, `"colorize"`). Missing fields get their defaults and every value is clamped; an unknown design becomes a silver Comet, an unknown style the design's first.
+- **Kinds** (`api.kinds`): `attack`, `check`, `save`, `death`, `initiative`, `other`. `setTrail` / `clearTrail` ignore other names and resolve to `false` if none is left, else `true`.
+- **Owners**: a trail belongs to the current user (the default) or an Actor; for an unlinked token pass its own actor (`token.actor`). `setTrail` / `clearTrail` update that document directly, so the caller needs permission to update it. Saved trails (`presets`, `savePreset`, `deletePreset`) are always the current user's.
+- `api.designs` is `{ id: { label, icon, sound, styles: { id: { label, colors } }, build } }`; `api.types` the damage type ids (`fire`, `cold`, ..., `healing`, `temphp`); `api.sounds` the 23 sound theme ids.
+- `api.trails(owner)` returns `{ kind: trail }` for the kinds that have one, a character's unsaved default trail included. `api.applyDefaultTrail(actor)` resolves to `false` when there is nothing to save (or **Default trails from class, species and background** is off).
+- `api.exportTrail(cfg, name)` resolves to `{ file, data, missing }` (`missing`: images that could not be packed). `api.importTrail(source)` takes a `File`, the file's text or the parsed object (a bare `{ layers }` trail works too), uploads its images when the user may upload files, and resolves to `{ name, cfg, uploaded, skipped }`; it does not save the trail anywhere, pass `cfg` to `setTrail` or `savePreset`. It throws on a file that is not a dice trail or is from a newer version of the module.
+- `api.preview`, `api.previewAll` and `api.open` need Dice So Nice to be active; the trail and saved-trail functions only change flags and work without it.
+
+**From another module**
+
+The API is set during `init`, so it is ready from `setup` on. Make the integration optional:
+
+```js
+Hooks.once("ready", async () => {
+  const api = game.modules.get("dxcufgbs-dice-trails")?.active ? game.modules.get("dxcufgbs-dice-trails").api : null;
+  if (!api) return;   // Dxcufgb's dice trails not installed or not enabled
+  await api.setTrail("initiative", { layers: [{ design: "comet", style: "gold" }] });
+});
+```
+
+Add `{ "id": "dxcufgbs-dice-trails", "type": "module" }` to `relationships.recommends` in your `module.json`. The module calls no hooks of its own.
+
+**Data**
+
+- `flags.dxcufgbs-dice-trails.trails` on Users and Actors: `{ kind: trail }`. `flags.dxcufgbs-dice-trails.presets` on Users: `[{ id, name, cfg }]`. `flags.dxcufgbs-dice-trails.defaultTrail` on Actors: the default trail last saved on it. Read them through `api.trails()` / `api.presets()` and write through the API, not directly.
+- Exported files: `<name>.dice-trail.json`, `{ "format": "dxcufgbs-dice-trails.trail", "formatVersion": 1, name, exported, moduleVersion, trail, images }`; a custom layer's `image` key points into `images`, where each image is `{ name, type, size, data }` with the bytes as a data URL.
 
 ## License
 
