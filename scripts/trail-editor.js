@@ -15,6 +15,7 @@ import {
 } from "./dice-trails.js";
 import { exportTrail, importTrail } from "./transfer.js";
 import { playHit } from "./trail-sounds.js";
+import { crumb, noteError } from "./debug-recorder.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -213,6 +214,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       return null;
     }
     owner ??= selectedCharacter() ?? game.user;
+    crumb("app.open", { owner: owner?.documentName ?? null, reused: !!this.instance });
     if (this.instance) this.instance.#setOwner(owner);
     else this.instance = new this({ owner });
     if (this.instance.rendered) this.instance.bringToFront();
@@ -515,6 +517,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
         if (!this.rendered || this.preview) return;
         this.preview = new TrailPreview(host);
       } catch (err) {
+        noteError("editor.preview");
         console.error(`${MODULE_ID} | the preview could not be started`, err);
         host.textContent = game.i18n.localize("DXDT.App.NoPreview");
         return;
@@ -542,6 +545,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   async close(options) {
+    crumb("app.close", { layers: this.cfg?.layers?.length ?? 0 });
     this.previewBuild++;
     clearTimeout(this._previewTimer);
     this.preview?.destroy();
@@ -572,6 +576,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       const res = await FP.upload("data", dir, file, {}, { notify: true });
       if (res?.path) this.#setImage(res.path);
     } catch (err) {
+      noteError("editor.upload");
       console.error(`${MODULE_ID} | upload failed`, err);
       ui.notifications.error(game.i18n.localize("DXDT.App.UploadFailed"));
     }
@@ -604,6 +609,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       }
       this.render({ parts: ["main"] });
     } catch (err) {
+      noteError("transfer.import");
       console.error(`${MODULE_ID} | import failed`, err);
       ui.notifications.error(game.i18n.format("DXDT.Transfer.ImportFailed", { error: err.message }));
     } finally {
@@ -745,6 +751,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
       const { file } = await exportTrail(cfg, name);
       ui.notifications.info(game.i18n.format("DXDT.Transfer.Exported", { file }));
     } catch (err) {
+      noteError("transfer.export");
       console.error(`${MODULE_ID} | export failed`, err);
       ui.notifications.error(game.i18n.localize("DXDT.Transfer.ExportFailed"));
     }
@@ -758,6 +765,7 @@ export class DiceTrailsEditor extends HandlebarsApplicationMixin(ApplicationV2) 
     try {
       await previewTrail(normalizeConfig(this.cfg));
     } catch (err) {
+      noteError("preview.roll");
       console.error(`${MODULE_ID} | test roll failed`, err);
     }
   }

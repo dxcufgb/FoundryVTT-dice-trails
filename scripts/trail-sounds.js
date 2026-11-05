@@ -16,6 +16,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { SOUNDS } from "./custom-trails.js";
+import { noteError } from "./debug-recorder.js";
 
 /** Every theme a trail can sound like (the list lives with the trail data, so the editor can offer it). */
 export const THEMES = SOUNDS;
@@ -110,6 +111,7 @@ function fetchFile(theme, kind) {
     e.data = await r.arrayBuffer();
   }).catch(err => {
     e.failed = true;
+    noteError("sound.load");
     console.warn(`${MODULE_ID} | could not load sound ${theme}-${kind}.ogg`, err);
   });
   return e.loading;
@@ -125,6 +127,7 @@ function bufferFor(theme, kind) {
   if (!a || e.decoding) return null;
   e.decoding = a.ctx.decodeAudioData(e.data.slice(0)).then(b => { e.buffer = b; }).catch(err => {
     e.failed = true;
+    noteError("sound.decode");
     console.warn(`${MODULE_ID} | could not decode sound ${theme}-${kind}.ogg`, err);
   });
   return null;
@@ -327,4 +330,26 @@ export function bounceStrength(prev, v) {
   const away = (v[0] * jx + v[1] * jy + v[2] * jz) / j;             // speed away from it after
   if (into < 2 || away < -0.25 * into) return 0;
   return Math.min(1, (j - BOUNCE_MIN) / BOUNCE_HARD);
+}
+
+/* ======================================================================== */
+/*  Debug Recorder snapshot                                                  */
+/* ======================================================================== */
+
+/** The sound state for the Debug Recorder's snapshot (counts and theme ids only). */
+export function soundDebugState() {
+  let loaded = 0, decoded = 0, failed = 0;
+  for (const e of files.values()) {
+    if (e.data) loaded++;
+    if (e.buffer) decoded++;
+    if (e.failed) failed++;
+  }
+  return {
+    on: soundsOn(),
+    audioUnlocked: !!state.ctx,
+    coreVolumeBus: state.bus,
+    files: { known: files.size, loaded, decoded, failed },
+    loopsPlaying: [...loops].filter(([, l]) => l.source).map(([theme]) => theme),
+    hitsPlaying
+  };
 }
