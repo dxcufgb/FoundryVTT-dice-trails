@@ -44,14 +44,16 @@ function safeSnapshot() {
   }
 }
 
-/** Register with the recorder if it is there and this module has not registered yet. */
+/**
+ * Register with the recorder if it is there and this module has not registered yet. Only a successful register()
+ * (it returns false on failure) counts, so a failed one is tried again on the next init / ready / recorder hook.
+ */
 function tryRegister() {
   if (registered || !snapshotFn) return;
   const rec = api();
   if (typeof rec?.register !== "function") return;
-  registered = true;
   try {
-    rec.register(MODULE_ID, { snapshot: safeSnapshot });
+    if (rec.register(MODULE_ID, { snapshot: safeSnapshot }) !== false) registered = true;
   } catch (err) {
     console.warn(`${MODULE_ID} | could not register with the debug recorder`, err);
   }
