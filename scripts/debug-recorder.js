@@ -34,6 +34,7 @@ function api() {
   return recorder;
 }
 
+/** The snapshot plus the error counts; a failing snapshot reports that instead of throwing into the recorder. */
 function safeSnapshot() {
   try {
     return { ...snapshotFn(), errors: { counts: { ...errors.counts }, last: errors.last, lastAt: errors.lastAt } };
@@ -43,6 +44,7 @@ function safeSnapshot() {
   }
 }
 
+/** Register with the recorder if it is there and this module has not registered yet. */
 function tryRegister() {
   if (registered || !snapshotFn) return;
   const rec = api();
