@@ -57,6 +57,7 @@ let tickerActive = false;
 let lastTime = 0;
 let previewDef = null;          // the effect the editor's test roll shows
 const compiled = new Map();     // JSON of a trail -> compiled effect
+const crumbedDice = new WeakSet();   // meshes that already had their emitter.create breadcrumb
 const rollCounts = { rolls: 0, damageDice: 0, customDice: 0, previews: 0, lastKind: null };   // Debug Recorder snapshot
 
 /* ======================================================================== */
@@ -1479,7 +1480,11 @@ function tickDice(dt) {
     if (!effect) continue;
     if (effect.cfg && !customTexturesReady(effect.cfg)) { loadCustomTextures(effect.cfg); continue; }   // next tick
     emitters.set(key, new DieEmitter(box, child, mesh, effect.def));
-    crumb("emitter.create", { effect: effectId(mesh.options[TAG]), active: emitters.size });
+    // A preview die gets a new emitter on every editor change: one breadcrumb per die all the same.
+    if (!crumbedDice.has(mesh)) {
+      crumbedDice.add(mesh);
+      crumb("emitter.create", { effect: effectId(mesh.options[TAG]), active: emitters.size });
+    }
   }
 
   if (!emitters.size) return;
