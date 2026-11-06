@@ -346,7 +346,8 @@ export function soundDebugState() {
   }
   return {
     on: soundsOn(),
-    audioUnlocked: !!state.ctx,
+    // The context's own state ("running", "suspended", "interrupted", "closed"): it can stop after it was unlocked.
+    audioState: state.ctx?.state ?? null,
     coreVolumeBus: state.bus,
     files: { known: files.size, loaded, decoded, failed },
     loopsPlaying: [...loops].filter(([, l]) => l.source).map(([theme]) => theme),
