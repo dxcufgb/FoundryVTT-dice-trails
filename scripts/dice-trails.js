@@ -395,7 +395,7 @@ function tagCustom(roll, kind, userId, ref = null) {
     term.options[TAG_KIND] = kind;
     term.options[TAG_USER] = userId;
     if (ref) term.options[TAG_OWNER] = ref;
-    n++;
+    n += term.results.length || 1;   // one per die, not per term (10d6 is ten dice)
   }
   return n;
 }
@@ -622,7 +622,7 @@ function tagTerm(term, type) {
     if (!t) return 0;
     term.options ??= {};
     if (!term.options[TAG]) term.options[TAG] = t;
-    return 1;
+    return term.results.length || 1;   // one per die, not per term (10d6 is ten dice)
   }
   return 0;
 }
