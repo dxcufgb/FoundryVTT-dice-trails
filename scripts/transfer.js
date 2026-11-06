@@ -15,6 +15,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { CUSTOM, normalizeConfig } from "./custom-trails.js";
+import { crumb } from "./debug-recorder.js";
 
 export const FORMAT = "dxcufgbs-dice-trails.trail";
 export const FORMAT_VERSION = 1;
@@ -156,6 +157,7 @@ export async function exportTrail(cfg, name) {
   const { data, missing } = await buildExport(cfg, name);
   const file = `${slug(data.name)}${FILE_SUFFIX}`;
   foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", file);
+  crumb("transfer.export", { layers: data.trail.layers.length, embedded: Object.keys(data.images).length, missing: missing.length });
   if (missing.length) {
     ui.notifications.warn(game.i18n.format("DXDT.Transfer.NotEmbedded", { files: missing.map(baseName).join(", ") }));
   }
@@ -264,6 +266,10 @@ export async function importTrail(source) {
     if (path) layer.src = path;
   }
 
+  crumb("transfer.import", {
+    bareTrail: !isFile, formatVersion: isFile ? Number(data.formatVersion) || null : null,
+    layers: layers.length, uploaded, skipped: skipped.length
+  });
   return {
     name: String((isFile ? data.name : "") || "").trim().slice(0, 60) || game.i18n.localize("DXDT.Transfer.DefaultName"),
     cfg: normalizeConfig({ layers }),

@@ -42,7 +42,9 @@ import { DESIGNS, KINDS, CUSTOM, normalizeConfig, customSources, compileTrail } 
 import { DiceTrailsEditor } from "./trail-editor.js";
 import { exportTrail, importTrail } from "./transfer.js";
 import { applyDefaultTrail, defaultTrail, characterSources, defaultTrailUpdate, unsavedDefault } from "./default-trails.js";
-import { DieSound, THEMES, bounceStrength, beginSoundFrame, endSoundFrame, playHit, preloadSounds, soundsOn, stopAllSounds } from "./trail-sounds.js";
+import { DieSound, THEMES, bounceStrength, beginSoundFrame, endSoundFrame, playHit, preloadSounds, soundsOn, stopAllSounds, soundDebugState } from "./trail-sounds.js";
+import { defaultTrailsDebugState } from "./default-trails.js";
+import { crumb, noteError, registerDebugRecorder } from "./debug-recorder.js";
 
 export { MODULE_ID };
 
@@ -55,6 +57,8 @@ let tickerActive = false;
 let lastTime = 0;
 let previewDef = null;          // the effect the editor's test roll shows
 const compiled = new Map();     // JSON of a trail -> compiled effect
+const crumbedDice = new WeakSet();   // meshes that already had their emitter.create breadcrumb
+const rollCounts = { rolls: 0, damageDice: 0, customDice: 0, previews: 0, lastKind: null };   // Debug Recorder snapshot
 
 /* ======================================================================== */
 /*  Effect definitions                                                      */
@@ -285,12 +289,17 @@ Hooks.on("getSceneControlButtons", controls => {
 });
 
 Hooks.once("ready", async () => {
-  if (!game.modules.get("dice-so-nice")?.active) return;
+  if (!game.modules.get("dice-so-nice")?.active) {
+    crumb("dsn.missing", { installed: !!game.modules.get("dice-so-nice") });
+    return;
+  }
   try {
     await loadThree();
     startTicker();   // always on: rolls shown from other clients don't fire the start hook
     if (soundsOn()) preloadSounds();
+    crumb("three.load", { sprites: Object.keys(FRAMES).length, expected: Object.keys(SPRITES).length });
   } catch (err) {
+    noteError("three.load");
     console.error(`${MODULE_ID} | could not load three.js from Dice So Nice`, err);
   }
 });
@@ -312,16 +321,28 @@ Hooks.on("diceSoNiceRollStart", (messageID, context) => {
     const message = messageID ? game.messages.get(messageID) : null;
     const rolls = [...(message?.rolls ?? []), context?.roll, context?.dsnRoll].filter(r => r?.terms);
     for (const roll of rolls) tagged += tagRoll(roll, null);
+    const damageDice = tagged;
 
     const user = context?.user ?? message?.author ?? message?.user ?? null;
     const kind = rollKind(message, rolls);
     const owner = kind ? trailOwner(message, user, kind, rolls) : null;
     const cfg = trailFor(owner, kind);
-    if (cfg && (user?.id === game.user.id || game.settings.get(MODULE_ID, "showOthers"))) {
+    const own = user?.id === game.user.id;
+    const shown = !!cfg && (own || game.settings.get(MODULE_ID, "showOthers"));
+    if (shown) {
       for (const roll of rolls) tagged += tagCustom(roll, kind, user?.id, owner !== user ? ownerRef(owner) : null);
     }
+    rollCounts.rolls++;
+    rollCounts.damageDice += damageDice;
+    rollCounts.customDice += tagged - damageDice;
+    rollCounts.lastKind = kind ?? "damage";
+    crumb("dsn.rollStart", {
+      kind: kind ?? "damage", damageDice, customDice: tagged - damageDice, own, hasMessage: !!message,
+      trailOwner: cfg ? owner?.documentName ?? null : null, skippedOthers: !!cfg && !shown
+    });
     if (tagged) startTicker();
   } catch (err) {
+    noteError("dsn.rollStart");
     console.error(`${MODULE_ID} | diceSoNiceRollStart`, err);
   }
 });
@@ -375,7 +396,7 @@ function tagCustom(roll, kind, userId, ref = null) {
     term.options[TAG_KIND] = kind;
     term.options[TAG_USER] = userId;
     if (ref) term.options[TAG_OWNER] = ref;
-    n++;
+    n += term.results.length || 1;   // one per die, not per term (10d6 is ten dice)
   }
   return n;
 }
@@ -461,6 +482,7 @@ export async function setTrail(kinds, cfg, owner = game.user) {
   const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
   if (!list.length || !owner) return false;
   const data = normalizeConfig(cfg);
+  crumb("trail.set", { kinds: list.join(","), layers: data.layers.length, owner: owner.documentName ?? null });
   // A character's default trail is saved with it, so its other kinds keep showing it.
   await owner.update({
     ...defaultTrailUpdate(owner, list),
@@ -473,6 +495,7 @@ export async function setTrail(kinds, cfg, owner = game.user) {
 export async function clearTrail(kinds, owner = game.user) {
   const list = (Array.isArray(kinds) ? kinds : [kinds]).filter(k => KINDS.includes(k));
   if (!list.length || !owner) return false;
+  crumb("trail.clear", { kinds: list.join(","), owner: owner.documentName ?? null });
   // Updates merge into the flag, so a kind is removed with Foundry's "-=" deletion key. A character's default
   // trail is saved with it (on its other kinds), so the kind taken off stays off.
   await owner.update({
@@ -498,11 +521,14 @@ export async function savePreset(name, cfg) {
   const next = old ? list.map(p => (p === old ? entry : p)) : [...list, entry];
   next.sort((a, b) => a.name.localeCompare(b.name));
   await game.user.setFlag(MODULE_ID, FLAG_PRESETS, next);
+  crumb("preset.save", { replaced: !!old, layers: entry.cfg.layers.length, presets: next.length });
   return entry.id;
 }
 
 export async function deletePreset(id) {
-  await game.user.setFlag(MODULE_ID, FLAG_PRESETS, presets().filter(p => p.id !== id));
+  const next = presets().filter(p => p.id !== id);
+  crumb("preset.delete", { presets: next.length });
+  await game.user.setFlag(MODULE_ID, FLAG_PRESETS, next);
 }
 
 /** The compiled effect of a trail (cached by content). */
@@ -597,7 +623,7 @@ function tagTerm(term, type) {
     if (!t) return 0;
     term.options ??= {};
     if (!term.options[TAG]) term.options[TAG] = t;
-    return 1;
+    return term.results.length || 1;   // one per die, not per term (10d6 is ten dice)
   }
   return 0;
 }
@@ -642,6 +668,7 @@ async function loadSprites() {
       TEXTURES[name] = tex;
       FRAMES[name] = frames;
     } catch (err) {
+      noteError("texture.sprite");
       console.warn(`${MODULE_ID} | could not load texture ${name}, using a plain glow`, err);
     }
   }));
@@ -662,6 +689,7 @@ export function loadCustomTextures(cfg) {
         FRAMES[`custom:${src}`] = 1;
         return tex;
       }).catch(err => {
+        noteError("texture.custom");
         console.warn(`${MODULE_ID} | image ${src} could not be loaded`, err);
         return null;
       }).finally(() => { entry.done = true; });
@@ -1452,6 +1480,11 @@ function tickDice(dt) {
     if (!effect) continue;
     if (effect.cfg && !customTexturesReady(effect.cfg)) { loadCustomTextures(effect.cfg); continue; }   // next tick
     emitters.set(key, new DieEmitter(box, child, mesh, effect.def));
+    // A preview die gets a new emitter on every editor change: one breadcrumb per die all the same.
+    if (!crumbedDice.has(mesh)) {
+      crumbedDice.add(mesh);
+      crumb("emitter.create", { effect: effectId(mesh.options[TAG]), active: emitters.size });
+    }
   }
 
   if (!emitters.size) return;
@@ -1500,6 +1533,7 @@ async function preview(type = "fire", formula = "2d6") {
     ui.notifications.warn(`${MODULE_ID}: unknown damage type "${type}". Known: ${Object.keys(EFFECTS).join(", ")}`);
     return;
   }
+  crumb("preview.roll", { effect: key });
   return rollTagged(formula, { [TAG]: key });
 }
 
@@ -1508,15 +1542,18 @@ export async function previewTrail(cfg, formula = "1d20") {
   setPreviewEffect(cfg);
   await loadThree();
   await loadCustomTextures(cfg);
+  crumb("preview.roll", { effect: "preview", layers: normalizeConfig(cfg).layers.length });
   return rollTagged(formula, { [TAG]: "preview" });
 }
 
 async function rollTagged(formula, options) {
   if (!game.dice3d) {
+    crumb("preview.noDiceSoNice");
     ui.notifications.warn(`${MODULE_ID}: Dice So Nice is not active.`);
     return;
   }
   await loadThree();
+  rollCounts.previews++;
   const roll = await new Roll(formula).evaluate();
   for (const d of roll.dice) Object.assign(d.options, options);
   startTicker();
@@ -1543,3 +1580,83 @@ async function previewAll(formula = "1d8") {
     await preview(type, formula);
   }
 }
+
+/* ======================================================================== */
+/*  Debug Recorder (optional, see debug-recorder.js)                        */
+/* ======================================================================== */
+
+/** A die's trail tag as one of this module's own ids (die options come from other clients' rolls). */
+function effectId(tag) {
+  return (typeof tag === "string" && Object.hasOwn(EFFECTS, tag)) || tag === CUSTOM || tag === "preview" ? tag : "unknown";
+}
+
+/**
+ * Runtime state for Dxcufgb's Debug Recorder: counts, booleans, versions and this module's own fixed ids
+ * (designs, damage types, kinds, sound themes). No names, preset names, image paths or URLs.
+ */
+function debugSnapshot() {
+  const dsn = game.modules.get("dice-so-nice");
+  const box = game.dice3d?.box;
+  const byEffect = {};
+  for (const em of emitters.values()) {
+    const id = effectId(em.mesh?.options?.[TAG]);
+    byEffect[id] = (byEffect[id] ?? 0) + 1;
+  }
+  let customLoaded = 0, customDone = 0;
+  for (const [src, entry] of customTextures) {
+    if (entry.done) customDone++;
+    if (TEXTURES?.[`custom:${src}`]) customLoaded++;
+  }
+  // This user's own trails: per kind the design ids of its layers ("custom" for an own image, never its path).
+  const myTrails = {};
+  let myPresetCount = null;
+  try {
+    for (const [kind, cfg] of Object.entries(trails(game.user))) myTrails[kind] = cfg.layers.map(l => l.design);
+    myPresetCount = presets().length;
+  } catch (_) { /* flags not readable yet */ }
+  const editor = DiceTrailsEditor.instance;
+  return {
+    diceSoNice: {
+      detected: !!dsn?.active,
+      installed: !!dsn,
+      version: dsn?.version ?? null,
+      api: !!game.dice3d,
+      scene: !!box?.scene,
+      rolling: box ? box.rolling === true : null
+    },
+    three: { loaded: !!THREE, revision: THREE?.REVISION ?? null },
+    integrations: {
+      system: game.system?.id ?? null,
+      dnd5eDamageTypes: !!CONFIG.DND5E?.damageTypes,
+      midiQol: !!game.modules.get("midi-qol")?.active
+    },
+    registry: {
+      designCount: Object.keys(DESIGNS).length,
+      designs: Object.keys(DESIGNS),
+      damageTypes: Object.keys(EFFECTS),
+      kinds: [...KINDS],
+      soundThemes: [...THEMES]
+    },
+    renderer: {
+      tickerActive,
+      activeEmitters: emitters.size,
+      emittersByEffect: byEffect,
+      compiledTrailsCached: compiled.size,
+      spritesLoaded: Object.keys(FRAMES).filter(k => !k.startsWith("custom:")).length,
+      spritesExpected: Object.keys(SPRITES).length,
+      customImages: { requested: customTextures.size, done: customDone, loaded: customLoaded },
+      previewEffectSet: !!previewDef
+    },
+    rolls: { ...rollCounts },
+    myTrails,
+    myPresetCount,
+    editor: editor
+      ? { open: !!editor.rendered, owner: editor.owner?.documentName ?? null, layers: editor.cfg?.layers?.length ?? 0,
+          selectedLayer: editor.sel ?? 0, previewRunning: !!editor.preview }
+      : { open: false },
+    sounds: soundDebugState(),
+    defaultTrails: defaultTrailsDebugState()
+  };
+}
+
+registerDebugRecorder(debugSnapshot);

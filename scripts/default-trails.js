@@ -13,6 +13,7 @@
 
 import { MODULE_ID, FLAG_TRAILS, FLAG_DEFAULT } from "./constants.js";
 import { DESIGNS, KINDS, normalizeConfig } from "./custom-trails.js";
+import { crumb, noteError } from "./debug-recorder.js";
 
 /** Class design by class: the first pattern that matches the class's identifier or name wins. */
 const CLASS_DESIGNS = [
@@ -222,7 +223,12 @@ function schedule(actor) {
     pending.delete(key);
     // An unlinked token's actor is rebuilt on every change, so take its token's current one.
     const a = actor.isToken ? actor.token?.actor : game.actors.get(actor.id);
-    if (a) applyDefaultTrail(a).catch(err => console.error(`${MODULE_ID} | default trail for ${a.name}`, err));
+    if (a) applyDefaultTrail(a)
+      .then(saved => { if (saved) crumb("defaults.applyActor", { docId: a.id, unlinked: !!a.isToken }); })
+      .catch(err => {
+        noteError("defaults.applyActor");
+        console.error(`${MODULE_ID} | default trail for ${a.name}`, err);
+      });
   }, 250));
 }
 
@@ -242,10 +248,29 @@ export async function applyAllDefaultTrails() {
     for (let i = 0; i < updates.length; i += 100) {
       await CONFIG.Actor.documentClass.updateDocuments(updates.slice(i, i + 100));
     }
+    if (updates.length) crumb("defaults.applyAll", { actors: updates.length });
     for (const token of canvas?.scene?.tokens ?? []) if (!token.actorLink && token.actor) schedule(token.actor);
   } catch (err) {
+    noteError("defaults.applyAll");
     console.error(`${MODULE_ID} | default trails`, err);
   }
+}
+
+/** The default-trail state for the Debug Recorder's snapshot (counts and booleans only). */
+export function defaultTrailsDebugState() {
+  let withDefault = 0, writerFor = 0;
+  for (const actor of game.actors ?? []) {
+    if (actor.getFlag(MODULE_ID, FLAG_DEFAULT)?.layers) withDefault++;
+    if (isWriter(actor)) writerFor++;
+  }
+  return {
+    enabled: enabled(),
+    responsibleGM: !!game.users?.activeGM?.isSelf,
+    pending: pending.size,
+    actors: game.actors?.size ?? 0,
+    actorsWithDefault: withDefault,
+    actorsThisClientWrites: writerFor
+  };
 }
 
 Hooks.once("init", () => {
